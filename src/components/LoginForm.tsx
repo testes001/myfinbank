@@ -7,7 +7,11 @@ import { Label } from "@/components/ui/label";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
 
-export function LoginForm() {
+interface LoginFormProps {
+  onShowLanding?: () => void;
+}
+
+export function LoginForm({ onShowLanding }: LoginFormProps) {
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -44,6 +48,14 @@ export function LoginForm() {
         className="w-full max-w-md"
       >
         <div className="rounded-2xl border border-white/10 bg-white/5 p-8 backdrop-blur-xl">
+          {onShowLanding && (
+            <button
+              onClick={onShowLanding}
+              className="mb-4 text-sm text-white/60 hover:text-white transition"
+            >
+              ← Back to home
+            </button>
+          )}
           <div className="mb-8 text-center">
             <h1 className="mb-2 text-3xl font-bold text-white">FinBank</h1>
             <p className="text-white/60">Your modern banking solution</p>
