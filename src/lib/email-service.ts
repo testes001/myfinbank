@@ -5,7 +5,7 @@
 
 import { EmailTemplate, EmailTemplates } from "./email-templates";
 
-const RESEND_API_KEY = import.meta.env.VITE_RESEND_API_KEY || process.env.RESEND_API_KEY;
+const RESEND_API_KEY = import.meta.env.VITE_RESEND_API_KEY;
 const FROM_EMAIL = "noreply@finbank.eu";
 const FROM_NAME = "Fin-Bank";
 
