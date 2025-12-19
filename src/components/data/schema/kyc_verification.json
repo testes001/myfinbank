@@ -1,0 +1,207 @@
+{
+  "id": "102019b1c43cabc782896826e4ba657e690",
+  "version": "102019b1c43cabc7609b8210ecd80693a52",
+  "schema": {
+    "name": "kyc_verification",
+    "description": "Stores Know Your Customer (KYC) documents and verification status for users.",
+    "fields": [
+      {
+        "name": "id",
+        "description": "Unique identifier for each data of this entity.",
+        "type": 1,
+        "compliance": {
+          "confidentiality": 1,
+          "reason": "Primary key identifier"
+        }
+      },
+      {
+        "name": "data_creator",
+        "description": "id of the user who creates the record",
+        "type": 1,
+        "compliance": {
+          "confidentiality": 2,
+          "reason": "Audit trail"
+        }
+      },
+      {
+        "name": "data_updater",
+        "description": "id of the user who updates the record",
+        "type": 1,
+        "compliance": {
+          "confidentiality": 2,
+          "reason": "Audit trail"
+        }
+      },
+      {
+        "name": "create_time",
+        "description": "create time in timestamp unix",
+        "type": 1,
+        "compliance": {
+          "confidentiality": 1,
+          "reason": "Audit trail"
+        },
+        "format": "timestamp"
+      },
+      {
+        "name": "update_time",
+        "description": "update time in timestamp unix",
+        "type": 1,
+        "compliance": {
+          "confidentiality": 1,
+          "reason": "Audit trail"
+        },
+        "format": "timestamp"
+      },
+      {
+        "name": "user_id",
+        "description": "Reference ID to the user undergoing verification.",
+        "type": 1,
+        "compliance": {
+          "confidentiality": 3,
+          "reason": "PII Relationship"
+        },
+        "taxonomy": {
+          "category": "Relationship",
+          "subject": "KYC"
+        }
+      },
+      {
+        "name": "document_type",
+        "description": "Type of document provided for verification (e.g., Passport, Driver's License).",
+        "type": 100,
+        "compliance": {
+          "confidentiality": 3,
+          "reason": "Identification Type"
+        },
+        "taxonomy": {
+          "category": "Identification",
+          "subject": "KYC"
+        },
+        "enumeration": [
+          {
+            "value": "Unspecified"
+          }
+        ]
+      },
+      {
+        "name": "document_number",
+        "description": "Encrypted document number (e.g., passport number).",
+        "type": 1,
+        "compliance": {
+          "confidentiality": 4,
+          "reason": "Highly Sensitive PII"
+        },
+        "taxonomy": {
+          "category": "Identification",
+          "subject": "KYC"
+        }
+      },
+      {
+        "name": "document_url",
+        "description": "Secure URL or path to the stored document image/file.",
+        "type": 1,
+        "compliance": {
+          "confidentiality": 4,
+          "reason": "Sensitive Document"
+        },
+        "taxonomy": {
+          "category": "Evidence",
+          "subject": "KYC"
+        }
+      },
+      {
+        "name": "verification_status",
+        "description": "Current status of the verification process.",
+        "type": 100,
+        "compliance": {
+          "confidentiality": 2,
+          "reason": "Process Status"
+        },
+        "taxonomy": {
+          "category": "Status",
+          "subject": "KYC"
+        },
+        "enumeration": [
+          {
+            "value": "Unspecified"
+          }
+        ]
+      },
+      {
+        "name": "rejection_reason",
+        "description": "Reason for rejection if the verification failed.",
+        "type": 1,
+        "compliance": {
+          "confidentiality": 2,
+          "reason": "Business Logic"
+        },
+        "taxonomy": {
+          "category": "Decision",
+          "subject": "KYC"
+        },
+        "nullable": true
+      }
+    ],
+    "indexes": [
+      {
+        "fields": [
+          "id"
+        ],
+        "unique": true,
+        "primary": true,
+        "order": false
+      },
+      {
+        "fields": [
+          "user_id"
+        ],
+        "order": false
+      },
+      {
+        "fields": [
+          "verification_status"
+        ],
+        "order": false
+      },
+      {
+        "fields": [
+          "data_creator"
+        ],
+        "order": false
+      },
+      {
+        "fields": [
+          "data_updater"
+        ],
+        "order": false
+      }
+    ],
+    "relations": [
+      {
+        "referencing_fields": [
+          "user_id"
+        ],
+        "referenced_entity": {
+          "name": "user"
+        },
+        "referenced_fields": [
+          "id"
+        ],
+        "cascade": true
+      }
+    ]
+  },
+  "task": {
+    "id": "693e8153bf79398469bc43b4",
+    "root": "693be70dec184ca07e4e3fe1",
+    "project": "693be70dec184ca07e4e3fe0",
+    "user": "f8e123b0-10f1-702c-da98-1c6eaf9f54f9"
+  },
+  "namespace": {
+    "id": "01987547fc6c72ecb453bd2736bd4ea0",
+    "tenant": 2,
+    "name": "global-1",
+    "default": true
+  },
+  "revision": 1
+}

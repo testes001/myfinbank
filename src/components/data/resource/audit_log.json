@@ -1,0 +1,211 @@
+{
+  "id": "102019b1c43eac8754ea1c238377adc5d82",
+  "version": "102019b3612e2f0746cb43826627dd52e1d",
+  "schema": {
+    "name": "audit_log",
+    "description": "Stores system-wide audit trails for security and compliance.",
+    "fields": [
+      {
+        "name": "id",
+        "description": "Unique identifier for each data of this entity.",
+        "type": 1,
+        "compliance": {
+          "confidentiality": 1,
+          "reason": "Primary key identifier"
+        }
+      },
+      {
+        "name": "data_creator",
+        "description": "id of the user who creates the record",
+        "type": 1,
+        "compliance": {
+          "confidentiality": 2,
+          "reason": "Audit trail"
+        }
+      },
+      {
+        "name": "data_updater",
+        "description": "id of the user who updates the record",
+        "type": 1,
+        "compliance": {
+          "confidentiality": 2,
+          "reason": "Audit trail"
+        }
+      },
+      {
+        "name": "create_time",
+        "description": "create time in timestamp unix",
+        "type": 1,
+        "compliance": {
+          "confidentiality": 1,
+          "reason": "Audit trail"
+        },
+        "format": "timestamp"
+      },
+      {
+        "name": "update_time",
+        "description": "update time in timestamp unix",
+        "type": 1,
+        "compliance": {
+          "confidentiality": 1,
+          "reason": "Audit trail"
+        },
+        "format": "timestamp"
+      },
+      {
+        "name": "user_id",
+        "description": "ID of the user performing the action. Null if system action.",
+        "type": 1,
+        "compliance": {
+          "confidentiality": 2,
+          "reason": "Identity Tracking"
+        },
+        "taxonomy": {
+          "category": "Actor",
+          "subject": "Audit"
+        },
+        "nullable": true
+      },
+      {
+        "name": "action",
+        "description": "Description of the action performed (e.g., 'LOGIN', 'TRANSFER_FUNDS').",
+        "type": 1,
+        "compliance": {
+          "confidentiality": 2,
+          "reason": "Action Type"
+        },
+        "taxonomy": {
+          "category": "Activity",
+          "subject": "Audit"
+        }
+      },
+      {
+        "name": "resource_entity",
+        "description": "The name of the entity affected (e.g., 'transaction').",
+        "type": 1,
+        "compliance": {
+          "confidentiality": 2,
+          "reason": "Target Identification"
+        },
+        "taxonomy": {
+          "category": "Target",
+          "subject": "Audit"
+        }
+      },
+      {
+        "name": "resource_id",
+        "description": "The ID of the specific record affected.",
+        "type": 1,
+        "compliance": {
+          "confidentiality": 2,
+          "reason": "Target Identification"
+        },
+        "taxonomy": {
+          "category": "Target",
+          "subject": "Audit"
+        }
+      },
+      {
+        "name": "ip_address",
+        "description": "IP address from which the action originated.",
+        "type": 1,
+        "compliance": {
+          "confidentiality": 3,
+          "reason": "Security Context"
+        },
+        "taxonomy": {
+          "category": "Network",
+          "subject": "Audit"
+        },
+        "nullable": true
+      },
+      {
+        "name": "details",
+        "description": "JSON string containing details of the change or event.",
+        "type": 1,
+        "compliance": {
+          "confidentiality": 3,
+          "reason": "Change History"
+        },
+        "taxonomy": {
+          "category": "Details",
+          "subject": "Audit"
+        },
+        "nullable": true
+      }
+    ],
+    "indexes": [
+      {
+        "fields": [
+          "id"
+        ],
+        "unique": true,
+        "primary": true,
+        "order": false
+      },
+      {
+        "fields": [
+          "user_id"
+        ],
+        "order": false
+      },
+      {
+        "fields": [
+          "action"
+        ],
+        "order": false
+      },
+      {
+        "fields": [
+          "create_time"
+        ],
+        "order": true
+      },
+      {
+        "fields": [
+          "resource_entity",
+          "resource_id"
+        ],
+        "order": false
+      },
+      {
+        "fields": [
+          "data_creator"
+        ],
+        "order": false
+      },
+      {
+        "fields": [
+          "data_updater"
+        ],
+        "order": false
+      }
+    ],
+    "relations": [
+      {
+        "referencing_fields": [
+          "user_id"
+        ],
+        "referenced_entity": {
+          "name": "user"
+        },
+        "referenced_fields": [
+          "id"
+        ]
+      }
+    ]
+  },
+  "task": {
+    "id": "6945235f40179249e0d105dc",
+    "root": "693be70dec184ca07e4e3fe1",
+    "project": "693be70dec184ca07e4e3fe0",
+    "user": "f8e123b0-10f1-702c-da98-1c6eaf9f54f9"
+  },
+  "namespace": {
+    "id": "01987547fc6c72ecb453bd2736bd4ea0",
+    "tenant": 2,
+    "name": "global-1",
+    "default": true
+  },
+  "revision": 1
+}

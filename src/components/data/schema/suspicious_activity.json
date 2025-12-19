@@ -1,0 +1,186 @@
+{
+  "id": "102019b1c43cabc792189f6c0a4f46db1e6",
+  "version": "102019b1c43cabc7609b8210ecd80693a52",
+  "schema": {
+    "name": "suspicious_activity",
+    "description": "Tracks potentially fraudulent or suspicious activities associated with accounts or transactions.",
+    "fields": [
+      {
+        "name": "id",
+        "description": "Unique identifier for each data of this entity.",
+        "type": 1,
+        "compliance": {
+          "confidentiality": 1,
+          "reason": "Primary key identifier"
+        }
+      },
+      {
+        "name": "data_creator",
+        "description": "id of the user who creates the record",
+        "type": 1,
+        "compliance": {
+          "confidentiality": 2,
+          "reason": "Audit trail"
+        }
+      },
+      {
+        "name": "data_updater",
+        "description": "id of the user who updates the record",
+        "type": 1,
+        "compliance": {
+          "confidentiality": 2,
+          "reason": "Audit trail"
+        }
+      },
+      {
+        "name": "create_time",
+        "description": "create time in timestamp unix",
+        "type": 1,
+        "compliance": {
+          "confidentiality": 1,
+          "reason": "Audit trail"
+        },
+        "format": "timestamp"
+      },
+      {
+        "name": "update_time",
+        "description": "update time in timestamp unix",
+        "type": 1,
+        "compliance": {
+          "confidentiality": 1,
+          "reason": "Audit trail"
+        },
+        "format": "timestamp"
+      },
+      {
+        "name": "target_entity",
+        "description": "The entity type being flagged (e.g., 'transaction', 'account').",
+        "type": 1,
+        "compliance": {
+          "confidentiality": 2,
+          "reason": "Context"
+        },
+        "taxonomy": {
+          "category": "Target",
+          "subject": "Fraud"
+        }
+      },
+      {
+        "name": "target_id",
+        "description": "The ID of the flagged entity.",
+        "type": 1,
+        "compliance": {
+          "confidentiality": 2,
+          "reason": "Context"
+        },
+        "taxonomy": {
+          "category": "Target",
+          "subject": "Fraud"
+        }
+      },
+      {
+        "name": "reason",
+        "description": "Description of why the activity is suspicious.",
+        "type": 1,
+        "compliance": {
+          "confidentiality": 3,
+          "reason": "Investigation Details"
+        },
+        "taxonomy": {
+          "category": "Reason",
+          "subject": "Fraud"
+        }
+      },
+      {
+        "name": "severity",
+        "description": "Severity level of the suspicious activity.",
+        "type": 100,
+        "compliance": {
+          "confidentiality": 2,
+          "reason": "Risk Assessment"
+        },
+        "taxonomy": {
+          "category": "Risk",
+          "subject": "Fraud"
+        },
+        "enumeration": [
+          {
+            "value": "Unspecified"
+          }
+        ]
+      },
+      {
+        "name": "status",
+        "description": "Investigation status (e.g., Open, Resolved).",
+        "type": 100,
+        "compliance": {
+          "confidentiality": 2,
+          "reason": "Case Management"
+        },
+        "taxonomy": {
+          "category": "Status",
+          "subject": "Fraud"
+        },
+        "enumeration": [
+          {
+            "value": "Unspecified"
+          }
+        ]
+      }
+    ],
+    "indexes": [
+      {
+        "fields": [
+          "id"
+        ],
+        "unique": true,
+        "primary": true,
+        "order": false
+      },
+      {
+        "fields": [
+          "target_entity",
+          "target_id"
+        ],
+        "order": false
+      },
+      {
+        "fields": [
+          "status"
+        ],
+        "order": false
+      },
+      {
+        "fields": [
+          "severity"
+        ],
+        "order": false
+      },
+      {
+        "fields": [
+          "data_creator"
+        ],
+        "order": false
+      },
+      {
+        "fields": [
+          "data_updater"
+        ],
+        "order": false
+      }
+    ]
+  },
+  "task": {
+    "id": "693e8153bf79398469bc43b4",
+    "root": "693be70dec184ca07e4e3fe1",
+    "project": "693be70dec184ca07e4e3fe0",
+    "user": "f8e123b0-10f1-702c-da98-1c6eaf9f54f9"
+  },
+  "namespace": {
+    "id": "01987547fc6c72ecb453bd2736bd4ea0",
+    "tenant": 2,
+    "name": "global-1",
+    "default": true
+  },
+  "revision": 1
+}

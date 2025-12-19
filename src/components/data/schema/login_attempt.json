@@ -1,0 +1,177 @@
+{
+  "id": "102019b1c43cabc799092a6593067c9545c",
+  "version": "102019b1c43cabc7609b8210ecd80693a52",
+  "schema": {
+    "name": "login_attempt",
+    "description": "Tracks login attempts for security monitoring and rate limiting.",
+    "fields": [
+      {
+        "name": "id",
+        "description": "Unique identifier for each data of this entity.",
+        "type": 1,
+        "compliance": {
+          "confidentiality": 1,
+          "reason": "Primary key identifier"
+        }
+      },
+      {
+        "name": "data_creator",
+        "description": "id of the user who creates the record",
+        "type": 1,
+        "compliance": {
+          "confidentiality": 2,
+          "reason": "Audit trail"
+        }
+      },
+      {
+        "name": "data_updater",
+        "description": "id of the user who updates the record",
+        "type": 1,
+        "compliance": {
+          "confidentiality": 2,
+          "reason": "Audit trail"
+        }
+      },
+      {
+        "name": "create_time",
+        "description": "create time in timestamp unix",
+        "type": 1,
+        "compliance": {
+          "confidentiality": 1,
+          "reason": "Audit trail"
+        },
+        "format": "timestamp"
+      },
+      {
+        "name": "update_time",
+        "description": "update time in timestamp unix",
+        "type": 1,
+        "compliance": {
+          "confidentiality": 1,
+          "reason": "Audit trail"
+        },
+        "format": "timestamp"
+      },
+      {
+        "name": "email",
+        "description": "The email address provided during the login attempt.",
+        "type": 1,
+        "compliance": {
+          "confidentiality": 3,
+          "reason": "PII"
+        },
+        "taxonomy": {
+          "category": "Identifier",
+          "subject": "Security"
+        }
+      },
+      {
+        "name": "ip_address",
+        "description": "IP address where the attempt originated.",
+        "type": 1,
+        "compliance": {
+          "confidentiality": 3,
+          "reason": "Security Context"
+        },
+        "taxonomy": {
+          "category": "Network",
+          "subject": "Security"
+        }
+      },
+      {
+        "name": "success",
+        "description": "Whether the login attempt was successful.",
+        "type": 3,
+        "compliance": {
+          "confidentiality": 2,
+          "reason": "Security Status"
+        },
+        "taxonomy": {
+          "category": "Outcome",
+          "subject": "Security"
+        }
+      },
+      {
+        "name": "failure_reason",
+        "description": "Reason for failure (e.g., 'invalid_password', 'account_locked').",
+        "type": 1,
+        "compliance": {
+          "confidentiality": 2,
+          "reason": "Debug Info"
+        },
+        "taxonomy": {
+          "category": "Reason",
+          "subject": "Security"
+        },
+        "nullable": true
+      },
+      {
+        "name": "user_agent",
+        "description": "User agent string of the client.",
+        "type": 1,
+        "compliance": {
+          "confidentiality": 2,
+          "reason": "Device Info"
+        },
+        "taxonomy": {
+          "category": "Device",
+          "subject": "Security"
+        },
+        "nullable": true
+      }
+    ],
+    "indexes": [
+      {
+        "fields": [
+          "id"
+        ],
+        "unique": true,
+        "primary": true,
+        "order": false
+      },
+      {
+        "fields": [
+          "email"
+        ],
+        "order": false
+      },
+      {
+        "fields": [
+          "ip_address"
+        ],
+        "order": false
+      },
+      {
+        "fields": [
+          "create_time"
+        ],
+        "order": true
+      },
+      {
+        "fields": [
+          "data_creator"
+        ],
+        "order": false
+      },
+      {
+        "fields": [
+          "data_updater"
+        ],
+        "order": false
+      }
+    ]
+  },
+  "task": {
+    "id": "693e8153bf79398469bc43b4",
+    "root": "693be70dec184ca07e4e3fe1",
+    "project": "693be70dec184ca07e4e3fe0",
+    "user": "f8e123b0-10f1-702c-da98-1c6eaf9f54f9"
+  },
+  "namespace": {
+    "id": "01987547fc6c72ecb453bd2736bd4ea0",
+    "tenant": 2,
+    "name": "global-1",
+    "default": true
+  },
+  "revision": 1
+}

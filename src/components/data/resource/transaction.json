@@ -1,0 +1,225 @@
+{
+  "id": "102019b1bc588777c1abd932f3644c037b5",
+  "version": "102019b3612e2f0746cb43826627dd52e1d",
+  "schema": {
+    "name": "transaction",
+    "description": "Stores financial transactions between accounts.",
+    "fields": [
+      {
+        "name": "id",
+        "description": "Unique identifier for each data of this entity.",
+        "type": 1,
+        "compliance": {
+          "confidentiality": 1,
+          "reason": "Primary key identifier"
+        }
+      },
+      {
+        "name": "data_creator",
+        "description": "id of the user who creates the record",
+        "type": 1,
+        "compliance": {
+          "confidentiality": 2,
+          "reason": "Audit trail"
+        }
+      },
+      {
+        "name": "data_updater",
+        "description": "id of the user who updates the record",
+        "type": 1,
+        "compliance": {
+          "confidentiality": 2,
+          "reason": "Audit trail"
+        }
+      },
+      {
+        "name": "create_time",
+        "description": "create time in timestamp unix",
+        "type": 1,
+        "compliance": {
+          "confidentiality": 1,
+          "reason": "Audit trail"
+        },
+        "format": "timestamp"
+      },
+      {
+        "name": "update_time",
+        "description": "update time in timestamp unix",
+        "type": 1,
+        "compliance": {
+          "confidentiality": 1,
+          "reason": "Audit trail"
+        },
+        "format": "timestamp"
+      },
+      {
+        "name": "from_account_id",
+        "description": "Reference ID to the source account. Nullable for deposits.",
+        "type": 1,
+        "compliance": {
+          "confidentiality": 3,
+          "reason": "Financial Relationship"
+        },
+        "taxonomy": {
+          "category": "Relationship",
+          "subject": "Transaction"
+        },
+        "nullable": true
+      },
+      {
+        "name": "to_account_id",
+        "description": "Reference ID to the destination account. Nullable for withdrawals.",
+        "type": 1,
+        "compliance": {
+          "confidentiality": 3,
+          "reason": "Financial Relationship"
+        },
+        "taxonomy": {
+          "category": "Relationship",
+          "subject": "Transaction"
+        },
+        "nullable": true
+      },
+      {
+        "name": "amount",
+        "description": "Transaction amount stored as a decimal string.",
+        "type": 1,
+        "compliance": {
+          "confidentiality": 3,
+          "reason": "Sensitive Financial Info"
+        },
+        "taxonomy": {
+          "category": "Financial Info",
+          "subject": "Transaction"
+        }
+      },
+      {
+        "name": "transaction_type",
+        "description": "Type of the transaction.",
+        "type": 100,
+        "compliance": {
+          "confidentiality": 2,
+          "reason": "Business Logic"
+        },
+        "taxonomy": {
+          "category": "Classification",
+          "subject": "Transaction"
+        },
+        "enumeration": [
+          {
+            "value": "Unspecified"
+          }
+        ]
+      },
+      {
+        "name": "status",
+        "description": "Current status of the transaction. Default 'Completed'.",
+        "type": 100,
+        "compliance": {
+          "confidentiality": 2,
+          "reason": "Business Logic"
+        },
+        "taxonomy": {
+          "category": "Status",
+          "subject": "Transaction"
+        },
+        "enumeration": [
+          {
+            "value": "Unspecified"
+          }
+        ]
+      },
+      {
+        "name": "description",
+        "description": "Optional text description or note for the transaction.",
+        "type": 1,
+        "compliance": {
+          "confidentiality": 3,
+          "reason": "User Content"
+        },
+        "taxonomy": {
+          "category": "Content",
+          "subject": "Transaction"
+        },
+        "nullable": true
+      }
+    ],
+    "indexes": [
+      {
+        "fields": [
+          "id"
+        ],
+        "unique": true,
+        "primary": true,
+        "order": false
+      },
+      {
+        "fields": [
+          "from_account_id"
+        ],
+        "order": false
+      },
+      {
+        "fields": [
+          "to_account_id"
+        ],
+        "order": false
+      },
+      {
+        "fields": [
+          "create_time"
+        ],
+        "order": true
+      },
+      {
+        "fields": [
+          "data_creator"
+        ],
+        "order": false
+      },
+      {
+        "fields": [
+          "data_updater"
+        ],
+        "order": false
+      }
+    ],
+    "relations": [
+      {
+        "referencing_fields": [
+          "from_account_id"
+        ],
+        "referenced_entity": {
+          "name": "account"
+        },
+        "referenced_fields": [
+          "id"
+        ]
+      },
+      {
+        "referencing_fields": [
+          "to_account_id"
+        ],
+        "referenced_entity": {
+          "name": "account"
+        },
+        "referenced_fields": [
+          "id"
+        ]
+      }
+    ]
+  },
+  "task": {
+    "id": "6945235f40179249e0d105dc",
+    "root": "693be70dec184ca07e4e3fe1",
+    "project": "693be70dec184ca07e4e3fe0",
+    "user": "f8e123b0-10f1-702c-da98-1c6eaf9f54f9"
+  },
+  "namespace": {
+    "id": "01987547fc6c72ecb453bd2736bd4ea0",
+    "tenant": 2,
+    "name": "global-1",
+    "default": true
+  },
+  "revision": 1
+}

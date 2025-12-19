@@ -1,0 +1,188 @@
+{
+  "id": "102019b1bc588777554b5cf24f4f2d8794c",
+  "version": "102019b3612e2f0746cb43826627dd52e1d",
+  "schema": {
+    "name": "account",
+    "description": "Stores banking account details linked to users.",
+    "fields": [
+      {
+        "name": "id",
+        "description": "Unique identifier for each data of this entity.",
+        "type": 1,
+        "compliance": {
+          "confidentiality": 1,
+          "reason": "Primary key identifier"
+        }
+      },
+      {
+        "name": "data_creator",
+        "description": "id of the user who creates the record",
+        "type": 1,
+        "compliance": {
+          "confidentiality": 2,
+          "reason": "Audit trail"
+        }
+      },
+      {
+        "name": "data_updater",
+        "description": "id of the user who updates the record",
+        "type": 1,
+        "compliance": {
+          "confidentiality": 2,
+          "reason": "Audit trail"
+        }
+      },
+      {
+        "name": "create_time",
+        "description": "create time in timestamp unix",
+        "type": 1,
+        "compliance": {
+          "confidentiality": 1,
+          "reason": "Audit trail"
+        },
+        "format": "timestamp"
+      },
+      {
+        "name": "update_time",
+        "description": "update time in timestamp unix",
+        "type": 1,
+        "compliance": {
+          "confidentiality": 1,
+          "reason": "Audit trail"
+        },
+        "format": "timestamp"
+      },
+      {
+        "name": "user_id",
+        "description": "Reference ID to the owner user.",
+        "type": 1,
+        "compliance": {
+          "confidentiality": 2,
+          "reason": "Foreign key"
+        },
+        "taxonomy": {
+          "category": "Relationship",
+          "subject": "Account"
+        }
+      },
+      {
+        "name": "account_type",
+        "description": "Type of the account (e.g., 'checking', 'savings'). Default 'checking'.",
+        "type": 1,
+        "compliance": {
+          "confidentiality": 2,
+          "reason": "Financial Info"
+        },
+        "taxonomy": {
+          "category": "Financial Info",
+          "subject": "Account"
+        }
+      },
+      {
+        "name": "balance",
+        "description": "Current balance of the account stored as a decimal string.",
+        "type": 1,
+        "compliance": {
+          "confidentiality": 3,
+          "reason": "Sensitive Financial Info"
+        },
+        "taxonomy": {
+          "category": "Financial Info",
+          "subject": "Account"
+        }
+      },
+      {
+        "name": "currency",
+        "description": "Currency code (e.g., 'USD'). Default 'USD'.",
+        "type": 1,
+        "compliance": {
+          "confidentiality": 1,
+          "reason": "Financial configuration"
+        },
+        "taxonomy": {
+          "category": "Financial Info",
+          "subject": "Account"
+        }
+      },
+      {
+        "name": "status",
+        "description": "Status of the account, used for admin management (freezing/closing).",
+        "type": 100,
+        "compliance": {
+          "confidentiality": 2,
+          "reason": "Account Lifecycle"
+        },
+        "taxonomy": {
+          "category": "Status",
+          "subject": "Account"
+        },
+        "enumeration": [
+          {
+            "value": "Unspecified"
+          }
+        ]
+      }
+    ],
+    "indexes": [
+      {
+        "fields": [
+          "id"
+        ],
+        "unique": true,
+        "primary": true,
+        "order": false
+      },
+      {
+        "fields": [
+          "user_id"
+        ],
+        "order": false
+      },
+      {
+        "fields": [
+          "status"
+        ],
+        "order": false
+      },
+      {
+        "fields": [
+          "data_creator"
+        ],
+        "order": false
+      },
+      {
+        "fields": [
+          "data_updater"
+        ],
+        "order": false
+      }
+    ],
+    "relations": [
+      {
+        "referencing_fields": [
+          "user_id"
+        ],
+        "referenced_entity": {
+          "name": "user"
+        },
+        "referenced_fields": [
+          "id"
+        ],
+        "cascade": true
+      }
+    ]
+  },
+  "task": {
+    "id": "6945235f40179249e0d105dc",
+    "root": "693be70dec184ca07e4e3fe1",
+    "project": "693be70dec184ca07e4e3fe0",
+    "user": "f8e123b0-10f1-702c-da98-1c6eaf9f54f9"
+  },
+  "namespace": {
+    "id": "01987547fc6c72ecb453bd2736bd4ea0",
+    "tenant": 2,
+    "name": "global-1",
+    "default": true
+  },
+  "revision": 1
+}

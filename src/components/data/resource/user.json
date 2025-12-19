@@ -1,0 +1,213 @@
+{
+  "id": "102019b1bc5887778f8bda50d076f6d42e5",
+  "version": "102019b3612e2f0746cb43826627dd52e1d",
+  "schema": {
+    "name": "user",
+    "description": "Stores user authentication, profile information, and administrative status.",
+    "fields": [
+      {
+        "name": "id",
+        "description": "Unique identifier for each data of this entity.",
+        "type": 1,
+        "compliance": {
+          "confidentiality": 1,
+          "reason": "Primary key identifier"
+        }
+      },
+      {
+        "name": "data_creator",
+        "description": "id of the user who creates the record",
+        "type": 1,
+        "compliance": {
+          "confidentiality": 2,
+          "reason": "Audit trail"
+        }
+      },
+      {
+        "name": "data_updater",
+        "description": "id of the user who updates the record",
+        "type": 1,
+        "compliance": {
+          "confidentiality": 2,
+          "reason": "Audit trail"
+        }
+      },
+      {
+        "name": "create_time",
+        "description": "create time in timestamp unix",
+        "type": 1,
+        "compliance": {
+          "confidentiality": 1,
+          "reason": "Audit trail"
+        },
+        "format": "timestamp"
+      },
+      {
+        "name": "update_time",
+        "description": "update time in timestamp unix",
+        "type": 1,
+        "compliance": {
+          "confidentiality": 1,
+          "reason": "Audit trail"
+        },
+        "format": "timestamp"
+      },
+      {
+        "name": "email",
+        "description": "User's unique email address used for login.",
+        "type": 1,
+        "compliance": {
+          "confidentiality": 3,
+          "reason": "PII and login credential"
+        },
+        "taxonomy": {
+          "category": "Account Info",
+          "subject": "User"
+        }
+      },
+      {
+        "name": "password_hash",
+        "description": "Hashed password for authentication.",
+        "type": 1,
+        "compliance": {
+          "confidentiality": 4,
+          "reason": "Authentication secret"
+        },
+        "taxonomy": {
+          "category": "Security",
+          "subject": "User"
+        }
+      },
+      {
+        "name": "full_name",
+        "description": "Full name of the user.",
+        "type": 1,
+        "compliance": {
+          "confidentiality": 3,
+          "reason": "PII"
+        },
+        "taxonomy": {
+          "category": "Personal Info",
+          "subject": "User"
+        }
+      },
+      {
+        "name": "avatar_url",
+        "description": "URL to the user's avatar image.",
+        "type": 1,
+        "compliance": {
+          "confidentiality": 1,
+          "reason": "Public profile info"
+        },
+        "taxonomy": {
+          "category": "Profile",
+          "subject": "User"
+        },
+        "nullable": true
+      },
+      {
+        "name": "theme_preference",
+        "description": "UI theme preference (e.g., 'dark', 'light'). Defaults to 'dark'.",
+        "type": 1,
+        "compliance": {
+          "confidentiality": 1,
+          "reason": "User preference"
+        },
+        "taxonomy": {
+          "category": "Settings",
+          "subject": "User"
+        }
+      },
+      {
+        "name": "role",
+        "description": "Role of the user in the system to distinguish admins from regular users.",
+        "type": 100,
+        "compliance": {
+          "confidentiality": 2,
+          "reason": "Access Control"
+        },
+        "taxonomy": {
+          "category": "Permissions",
+          "subject": "User"
+        },
+        "enumeration": [
+          {
+            "value": "Unspecified"
+          }
+        ]
+      },
+      {
+        "name": "status",
+        "description": "Status of the user account (e.g., Active, Suspended).",
+        "type": 100,
+        "compliance": {
+          "confidentiality": 2,
+          "reason": "Account Lifecycle"
+        },
+        "taxonomy": {
+          "category": "Status",
+          "subject": "User"
+        },
+        "enumeration": [
+          {
+            "value": "Unspecified"
+          }
+        ]
+      }
+    ],
+    "indexes": [
+      {
+        "fields": [
+          "id"
+        ],
+        "unique": true,
+        "primary": true,
+        "order": false
+      },
+      {
+        "fields": [
+          "email"
+        ],
+        "unique": true,
+        "order": false
+      },
+      {
+        "fields": [
+          "role"
+        ],
+        "order": false
+      },
+      {
+        "fields": [
+          "status"
+        ],
+        "order": false
+      },
+      {
+        "fields": [
+          "data_creator"
+        ],
+        "order": false
+      },
+      {
+        "fields": [
+          "data_updater"
+        ],
+        "order": false
+      }
+    ]
+  },
+  "task": {
+    "id": "6945235f40179249e0d105dc",
+    "root": "693be70dec184ca07e4e3fe1",
+    "project": "693be70dec184ca07e4e3fe0",
+    "user": "f8e123b0-10f1-702c-da98-1c6eaf9f54f9"
+  },
+  "namespace": {
+    "id": "01987547fc6c72ecb453bd2736bd4ea0",
+    "tenant": 2,
+    "name": "global-1",
+    "default": true
+  },
+  "revision": 1
+}
