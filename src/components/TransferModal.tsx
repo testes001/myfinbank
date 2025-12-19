@@ -484,10 +484,10 @@ export function TransferModal({ open, onOpenChange, onSuccess }: TransferModalPr
                   </Button>
                   <Button
                     type="submit"
-                    disabled={isLoading}
-                    className="flex-1 bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600"
+                    disabled={isLoading || isFundsRestricted}
+                    className="flex-1 bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    {isLoading ? "Sending..." : "Send Money"}
+                    {isLoading ? "Sending..." : isFundsRestricted ? "Security Delay Active" : "Send Money"}
                   </Button>
                 </div>
               </form>
