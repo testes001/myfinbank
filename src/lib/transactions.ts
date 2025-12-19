@@ -94,6 +94,38 @@ export async function transferFunds(
     status: "success",
   });
 
+  // Send transaction confirmation email asynchronously (non-blocking)
+  try {
+    const fromUserORM = UserORM.getInstance();
+    const fromUsers = await fromUserORM.getUserById(fromAccount.user_id);
+    const toUsers = await fromUserORM.getUserById(toAccount.user_id);
+
+    if (fromUsers.length > 0 && toUsers.length > 0) {
+      const fromUser = fromUsers[0];
+      const toUser = toUsers[0];
+
+      // Send email to sender
+      sendTransactionConfirmationEmail(
+        fromUser.email,
+        toUser.full_name,
+        amount.toFixed(2),
+        "USD",
+        transaction.id,
+      ).catch((error) => console.error("Failed to send transaction email to sender:", error));
+
+      // Send email to recipient
+      sendTransactionConfirmationEmail(
+        toUser.email,
+        fromUser.full_name,
+        amount.toFixed(2),
+        "USD",
+        transaction.id,
+      ).catch((error) => console.error("Failed to send transaction email to recipient:", error));
+    }
+  } catch (error) {
+    console.error("Error sending transaction emails:", error);
+  }
+
   return transaction;
 }
 
