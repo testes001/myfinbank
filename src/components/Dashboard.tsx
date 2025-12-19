@@ -196,6 +196,9 @@ export function Dashboard({ onNavigate }: DashboardProps) {
   return (
     <div className="min-h-screen p-4 pt-6">
       <div className="mx-auto max-w-2xl space-y-6">
+        {/* Fund Access Restriction Banner */}
+        <FundAccessRestrictionBanner userId={currentUser.user.id} />
+
         {/* Header with Profile Avatar */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
