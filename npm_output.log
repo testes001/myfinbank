@@ -1,0 +1,5 @@
+
+> start
+> vite --port 3000
+
+sh: 1: vite: not found

@@ -138,7 +138,9 @@ export async function registerUser(
 }
 
 export async function loginUser(email: string, password: string): Promise<AuthUser> {
+  console.log("Attempting to log in user:", email);
   const users = await userOrm.getUserByEmail(email);
+  console.log("Users found:", users);
   if (users.length === 0) {
     addAuditLog({
       actor: email,
