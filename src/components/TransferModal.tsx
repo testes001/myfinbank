@@ -325,6 +325,26 @@ export function TransferModal({ open, onOpenChange, onSuccess }: TransferModalPr
               <DialogTitle className="text-xl text-white">Send Money</DialogTitle>
             </DialogHeader>
 
+            {isFundsRestricted && (
+              <motion.div
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="rounded-lg border border-amber-500/50 bg-amber-500/10 p-3"
+              >
+                <div className="flex items-start gap-3">
+                  <Clock className="w-5 h-5 text-amber-400 flex-shrink-0 mt-0.5" />
+                  <div className="flex-1">
+                    <p className="text-sm font-semibold text-amber-200 mb-1">Security Delay Active</p>
+                    <p className="text-xs text-amber-200/80">
+                      For your security, fund transfers are temporarily disabled. Access will be restored in{" "}
+                      {Math.floor(restrictionTimeRemaining / (1000 * 60 * 60))}h{" "}
+                      {Math.floor((restrictionTimeRemaining % (1000 * 60 * 60)) / (1000 * 60))}m
+                    </p>
+                  </div>
+                </div>
+              </motion.div>
+            )}
+
             <Tabs value={transferMethod} onValueChange={(v) => setTransferMethod(v as "email" | "account")}>
               <TabsList className="grid w-full grid-cols-2 bg-white/5">
                 <TabsTrigger value="email" className="data-[state=active]:bg-white/20">
