@@ -94,7 +94,7 @@ export async function transferFunds(
     status: "success",
   });
 
-  // Send transaction confirmation email asynchronously (non-blocking)
+  // Send transaction confirmation email asynchronously (non-blocking, fire-and-forget)
   try {
     const fromUserORM = UserORM.getInstance();
     const fromUsers = await fromUserORM.getUserById(fromAccount.user_id);
@@ -104,26 +104,27 @@ export async function transferFunds(
       const fromUser = fromUsers[0];
       const toUser = toUsers[0];
 
-      // Send email to sender
-      sendTransactionConfirmationEmail(
-        fromUser.email,
-        toUser.full_name,
-        amount.toFixed(2),
-        "USD",
-        transaction.id,
-      ).catch((error) => console.error("Failed to send transaction email to sender:", error));
+      // Send emails asynchronously without blocking
+      Promise.resolve().then(() => {
+        sendTransactionConfirmationEmail(
+          fromUser.email,
+          toUser.full_name,
+          amount.toFixed(2),
+          "USD",
+          transaction.id,
+        ).catch((error) => console.error("Failed to send transaction email to sender:", error));
 
-      // Send email to recipient
-      sendTransactionConfirmationEmail(
-        toUser.email,
-        fromUser.full_name,
-        amount.toFixed(2),
-        "USD",
-        transaction.id,
-      ).catch((error) => console.error("Failed to send transaction email to recipient:", error));
+        sendTransactionConfirmationEmail(
+          toUser.email,
+          fromUser.full_name,
+          amount.toFixed(2),
+          "USD",
+          transaction.id,
+        ).catch((error) => console.error("Failed to send transaction email to recipient:", error));
+      });
     }
   } catch (error) {
-    console.error("Error sending transaction emails:", error);
+    console.error("Error querying user data for transaction emails:", error);
   }
 
   return transaction;
