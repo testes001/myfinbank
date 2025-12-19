@@ -207,6 +207,17 @@ export function TransferModal({ open, onOpenChange, onSuccess }: TransferModalPr
     e.preventDefault();
     if (!currentUser) return;
 
+    // Check if fund access is restricted (24-hour delay after password reset from unknown device)
+    if (isFundAccessRestricted(currentUser.user.id)) {
+      const timeRemaining = getFundRestrictionTimeRemaining(currentUser.user.id);
+      const hours = Math.floor(timeRemaining / (1000 * 60 * 60));
+      const minutes = Math.floor((timeRemaining % (1000 * 60 * 60)) / (1000 * 60));
+      toast.error(
+        `Fund access is temporarily restricted for security. Access restored in ${hours}h ${minutes}m`,
+      );
+      return;
+    }
+
     const amountNum = parseFloat(amount);
     if (isNaN(amountNum) || amountNum <= 0) {
       toast.error("Please enter a valid amount");
