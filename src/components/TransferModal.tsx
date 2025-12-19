@@ -10,7 +10,8 @@ import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
-import { CheckCircle2, Mail, CreditCard, AlertCircle } from "lucide-react";
+import { CheckCircle2, Mail, CreditCard, AlertCircle, Clock } from "lucide-react";
+import { isFundAccessRestricted, getFundRestrictionTimeRemaining } from "@/lib/ip-geolocation";
 import { FINBANK_ROUTING_NUMBER } from "@/lib/seed";
 import {
   isValidRoutingNumber,
