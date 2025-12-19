@@ -8,7 +8,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { TransferModal } from "@/components/TransferModal";
 import { MobileDepositModal } from "@/components/MobileDepositModal";
 import { BillPayModal } from "@/components/BillPayModal";
-import { FundAccessRestrictionBanner } from "@/components/FundAccessRestrictionBanner";
+// import { FundAccessRestrictionBanner } from "@/components/FundAccessRestrictionBanner";
 import { SpendingChart } from "@/components/SpendingChart";
 import { TransactionSkeleton } from "@/components/LoadingSkeleton";
 import { NotificationCenter } from "@/components/NotificationCenter";
