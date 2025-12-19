@@ -8,6 +8,8 @@ import {
 import { FilterBuilder, SortBuilder, CreateValue } from "@/components/data/orm/client";
 import { Direction, DataType } from "@/components/data/orm/common";
 import { addAuditLog } from "@/lib/admin-storage";
+import { sendTransactionConfirmationEmail } from "@/lib/email-service";
+import { UserORM } from "@/components/data/orm/orm_user";
 
 const accountOrm = AccountORM.getInstance();
 const transactionOrm = TransactionORM.getInstance();
@@ -91,6 +93,39 @@ export async function transferFunds(
     details: { fromAccountId, toAccountId, amount, description },
     status: "success",
   });
+
+  // Send transaction confirmation email asynchronously (non-blocking, fire-and-forget)
+  try {
+    const fromUserORM = UserORM.getInstance();
+    const fromUsers = await fromUserORM.getUserById(fromAccount.user_id);
+    const toUsers = await fromUserORM.getUserById(toAccount.user_id);
+
+    if (fromUsers.length > 0 && toUsers.length > 0) {
+      const fromUser = fromUsers[0];
+      const toUser = toUsers[0];
+
+      // Send emails asynchronously without blocking
+      Promise.resolve().then(() => {
+        sendTransactionConfirmationEmail(
+          fromUser.email,
+          toUser.full_name,
+          amount.toFixed(2),
+          "USD",
+          transaction.id,
+        ).catch((error) => console.error("Failed to send transaction email to sender:", error));
+
+        sendTransactionConfirmationEmail(
+          toUser.email,
+          fromUser.full_name,
+          amount.toFixed(2),
+          "USD",
+          transaction.id,
+        ).catch((error) => console.error("Failed to send transaction email to recipient:", error));
+      });
+    }
+  } catch (error) {
+    console.error("Error querying user data for transaction emails:", error);
+  }
 
   return transaction;
 }

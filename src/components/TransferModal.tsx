@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { UserORM } from "@/components/data/orm/orm_user";
 import { AccountORM } from "@/components/data/orm/orm_account";
@@ -10,7 +10,8 @@ import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
-import { CheckCircle2, Mail, CreditCard, AlertCircle } from "lucide-react";
+import { CheckCircle2, Mail, CreditCard, AlertCircle, Clock } from "lucide-react";
+import { isFundAccessRestricted, getFundRestrictionTimeRemaining } from "@/lib/ip-geolocation";
 import { FINBANK_ROUTING_NUMBER } from "@/lib/seed";
 import {
   isValidRoutingNumber,
@@ -47,6 +48,20 @@ export function TransferModal({ open, onOpenChange, onSuccess }: TransferModalPr
   const [showSuccess, setShowSuccess] = useState(false);
   const [transferFee, setTransferFee] = useState(0);
   const [processingTime, setProcessingTime] = useState("");
+  const [isFundsRestricted, setIsFundsRestricted] = useState(false);
+  const [restrictionTimeRemaining, setRestrictionTimeRemaining] = useState(0);
+
+  // Check fund access restrictions when modal opens
+  useEffect(() => {
+    if (open && currentUser) {
+      const restricted = isFundAccessRestricted(currentUser.user.id);
+      setIsFundsRestricted(restricted);
+      if (restricted) {
+        const timeRemaining = getFundRestrictionTimeRemaining(currentUser.user.id);
+        setRestrictionTimeRemaining(timeRemaining);
+      }
+    }
+  }, [open, currentUser]);
 
   const handleRoutingNumberChange = (value: string) => {
     setRoutingNumber(value);
@@ -206,6 +221,17 @@ export function TransferModal({ open, onOpenChange, onSuccess }: TransferModalPr
     e.preventDefault();
     if (!currentUser) return;
 
+    // Check if fund access is restricted (24-hour delay after password reset from unknown device)
+    if (isFundAccessRestricted(currentUser.user.id)) {
+      const timeRemaining = getFundRestrictionTimeRemaining(currentUser.user.id);
+      const hours = Math.floor(timeRemaining / (1000 * 60 * 60));
+      const minutes = Math.floor((timeRemaining % (1000 * 60 * 60)) / (1000 * 60));
+      toast.error(
+        `Fund access is temporarily restricted for security. Access restored in ${hours}h ${minutes}m`,
+      );
+      return;
+    }
+
     const amountNum = parseFloat(amount);
     if (isNaN(amountNum) || amountNum <= 0) {
       toast.error("Please enter a valid amount");
@@ -298,6 +324,26 @@ export function TransferModal({ open, onOpenChange, onSuccess }: TransferModalPr
             <DialogHeader>
               <DialogTitle className="text-xl text-white">Send Money</DialogTitle>
             </DialogHeader>
+
+            {isFundsRestricted && (
+              <motion.div
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="rounded-lg border border-amber-500/50 bg-amber-500/10 p-3"
+              >
+                <div className="flex items-start gap-3">
+                  <Clock className="w-5 h-5 text-amber-400 flex-shrink-0 mt-0.5" />
+                  <div className="flex-1">
+                    <p className="text-sm font-semibold text-amber-200 mb-1">Security Delay Active</p>
+                    <p className="text-xs text-amber-200/80">
+                      For your security, fund transfers are temporarily disabled. Access will be restored in{" "}
+                      {Math.floor(restrictionTimeRemaining / (1000 * 60 * 60))}h{" "}
+                      {Math.floor((restrictionTimeRemaining % (1000 * 60 * 60)) / (1000 * 60))}m
+                    </p>
+                  </div>
+                </div>
+              </motion.div>
+            )}
 
             <Tabs value={transferMethod} onValueChange={(v) => setTransferMethod(v as "email" | "account")}>
               <TabsList className="grid w-full grid-cols-2 bg-white/5">
@@ -438,10 +484,10 @@ export function TransferModal({ open, onOpenChange, onSuccess }: TransferModalPr
                   </Button>
                   <Button
                     type="submit"
-                    disabled={isLoading}
-                    className="flex-1 bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600"
+                    disabled={isLoading || isFundsRestricted}
+                    className="flex-1 bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    {isLoading ? "Sending..." : "Send Money"}
+                    {isLoading ? "Sending..." : isFundsRestricted ? "Security Delay Active" : "Send Money"}
                   </Button>
                 </div>
               </form>
