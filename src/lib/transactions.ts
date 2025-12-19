@@ -8,6 +8,8 @@ import {
 import { FilterBuilder, SortBuilder, CreateValue } from "@/components/data/orm/client";
 import { Direction, DataType } from "@/components/data/orm/common";
 import { addAuditLog } from "@/lib/admin-storage";
+import { sendTransactionConfirmationEmail } from "@/lib/email-service";
+import { UserORM } from "@/components/data/orm/orm_user";
 
 const accountOrm = AccountORM.getInstance();
 const transactionOrm = TransactionORM.getInstance();
