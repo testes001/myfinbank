@@ -66,16 +66,11 @@ export async function seedDemoUsers() {
   ];
 
   try {
-    const existingUsers = await userOrm.getAllUser();
-    const existingUsersByEmail = new Map(existingUsers.map((u) => [u.email, u]));
-
     for (const demoUser of demoUsers) {
-      const existingUser = existingUsersByEmail.get(demoUser.email);
+      // Create new demo user
+      const passwordHash = await hashPassword(demoUser.password);
 
-      if (!existingUser) {
-        // Create new demo user
-        const passwordHash = await hashPassword(demoUser.password);
-
+      try {
         const [newUser] = await userOrm.insertUser([
           {
             email: demoUser.email,
@@ -110,13 +105,8 @@ export async function seedDemoUsers() {
         // Create approved KYC data for new demo user
         createDemoKYCData(newUser.id, demoUser.phone, demoUser.address);
         console.log(`Created demo user: ${demoUser.email}`);
-      } else {
-        // Check if existing demo user needs KYC data
-        const existingKYC = getKYCData(existingUser.id);
-        if (!existingKYC || existingKYC.kycStatus !== "approved") {
-          createDemoKYCData(existingUser.id, demoUser.phone, demoUser.address);
-          console.log(`Added approved KYC data for existing demo user: ${demoUser.email}`);
-        }
+      } catch (error) {
+        // Ignore errors if user already exists
       }
     }
 

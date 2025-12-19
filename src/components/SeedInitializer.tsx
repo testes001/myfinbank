@@ -7,6 +7,13 @@ export function SeedInitializer({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     const initSeed = async () => {
+      console.log("Current NODE_ENV:", process.env.NODE_ENV);
+      // Do not run seeder in test environment
+      if (process.env.NODE_ENV === 'test') {
+        setIsSeeded(true);
+        return;
+      }
+
       const seededKey = "finbank_demo_seeded";
       const hasSeeded = localStorage.getItem(seededKey);
 
