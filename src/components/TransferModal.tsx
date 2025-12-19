@@ -48,6 +48,8 @@ export function TransferModal({ open, onOpenChange, onSuccess }: TransferModalPr
   const [showSuccess, setShowSuccess] = useState(false);
   const [transferFee, setTransferFee] = useState(0);
   const [processingTime, setProcessingTime] = useState("");
+  const [isFundsRestricted, setIsFundsRestricted] = useState(false);
+  const [restrictionTimeRemaining, setRestrictionTimeRemaining] = useState(0);
 
   const handleRoutingNumberChange = (value: string) => {
     setRoutingNumber(value);
