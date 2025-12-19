@@ -12,7 +12,9 @@ export default defineConfig({
 	base: process.env.TENANT_ID ? `/${process.env.TENANT_ID}/` : "/",
 	define: {
 		"import.meta.env.TENANT_ID": JSON.stringify(process.env.TENANT_ID || ""),
-		"import.meta.env.VITE_RESEND_API_KEY": JSON.stringify(process.env.RESEND_API_KEY || ""),
+		"import.meta.env.VITE_RESEND_API_KEY": JSON.stringify(
+			process.env.RESEND_API_KEY || "",
+		),
 	},
 	plugins: [
 		...creaoPlugins(),

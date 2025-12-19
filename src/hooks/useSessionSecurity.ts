@@ -10,7 +10,7 @@ interface SessionSecurityOptions {
 export function useSessionSecurity(options: SessionSecurityOptions = {}) {
   const { inactivityTimeout = 15 * 60 * 1000, enableIpMonitoring = true } = options;
   const { logout, currentUser } = useAuth();
-  const inactivityTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const inactivityTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lastActivityRef = useRef<number>(Date.now());
   const ipAddressRef = useRef<string>("");
 
@@ -19,7 +19,7 @@ export function useSessionSecurity(options: SessionSecurityOptions = {}) {
     lastActivityRef.current = Date.now();
 
     if (inactivityTimerRef.current) {
-      clearTimeout(inactivityTimerRef.current);
+      clearTimeout(inactivityTimerRef.current as number);
     }
 
     inactivityTimerRef.current = setTimeout(() => {

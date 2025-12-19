@@ -3,9 +3,9 @@
  * Sends transactional emails via Resend API
  */
 
-import { EmailTemplate, EmailTemplates } from "./email-templates";
+import type { EmailTemplate, EmailTemplates } from "./email-templates";
 
-const RESEND_API_KEY = import.meta.env.VITE_RESEND_API_KEY;
+const RESEND_API_KEY = import.meta.env?.VITE_RESEND_API_KEY || import.meta.env?.RESEND_API_KEY || "";
 const FROM_EMAIL = "noreply@finbank.eu";
 const FROM_NAME = "Fin-Bank";
 
@@ -24,49 +24,52 @@ export async function sendEmail(
 ): Promise<EmailSendResult> {
   if (!RESEND_API_KEY) {
     console.error("RESEND_API_KEY is not configured");
-    return {
-      success: false,
-      error: "Email service not configured",
-    };
+    return { success: false, error: "Email service not configured" };
   }
 
-  try {
-    const response = await fetch("https://api.resend.com/emails", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${RESEND_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        from: `${FROM_NAME} <${FROM_EMAIL}>`,
-        to,
-        subject: template.subject,
-        html: template.html,
-        text: template.plainText,
-      }),
-    });
+  // simple retry/backoff
+  const maxAttempts = 2;
+  let attempt = 0;
+  while (attempt < maxAttempts) {
+    attempt += 1;
+    try {
+      const response = await fetch("https://api.resend.com/emails", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${RESEND_API_KEY}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          from: `${FROM_NAME} <${FROM_EMAIL}>`,
+          to,
+          subject: template.subject,
+          html: template.html,
+          text: template.plainText,
+        }),
+      });
 
-    if (!response.ok) {
-      const error = await response.text();
-      console.error("Resend API error:", error);
-      return {
-        success: false,
-        error: `Email send failed: ${response.statusText}`,
-      };
+      if (!response.ok) {
+        const text = await response.text();
+        console.error("Resend API error:", response.status, text);
+        if (attempt >= maxAttempts) {
+          return { success: false, error: `Email send failed: ${response.statusText}` };
+        }
+        // small backoff
+        await new Promise((r) => setTimeout(r, 300 * attempt));
+        continue;
+      }
+
+      const data = await response.json() as { id?: string };
+      return { success: true, messageId: data.id };
+    } catch (error) {
+      console.error("Email service error (attempt", attempt, "):", error);
+      if (attempt >= maxAttempts) {
+        return { success: false, error: error instanceof Error ? error.message : "Unknown error" };
+      }
+      await new Promise((r) => setTimeout(r, 300 * attempt));
     }
-
-    const data = await response.json() as { id?: string };
-    return {
-      success: true,
-      messageId: data.id,
-    };
-  } catch (error) {
-    console.error("Email service error:", error);
-    return {
-      success: false,
-      error: error instanceof Error ? error.message : "Unknown error",
-    };
   }
+  return { success: false, error: "Unknown error" };
 }
 
 /**
@@ -95,10 +98,12 @@ export async function sendTransactionConfirmationEmail(
   currency: string,
   referenceNumber: string,
 ): Promise<EmailSendResult> {
+  const date = new Date().toLocaleString();
   const template = EmailTemplates.transactionConfirmation({
     recipientName,
     amount,
     currency,
+    date,
     referenceNumber,
   });
   return sendEmail(email, template);
@@ -112,8 +117,10 @@ export async function sendPasswordResetEmail(
   resetLink: string,
   deviceInfo: string,
 ): Promise<EmailSendResult> {
+  const expiresIn = "24 hours";
   const template = EmailTemplates.passwordReset({
     resetLink,
+    expiresIn,
     deviceInfo,
   });
   return sendEmail(email, template);
@@ -140,13 +147,13 @@ export async function sendPasswordResetCompletedEmail(
 export async function sendNewLoginAlertEmail(
   email: string,
   deviceInfo: string,
-  loginLocation: string,
+  location: string,
   timestamp: string,
   isUnknownDevice: boolean,
 ): Promise<EmailSendResult> {
   const template = EmailTemplates.newLoginAlert({
     deviceInfo,
-    loginLocation,
+    location,
     timestamp,
     isUnknownDevice,
   });
@@ -158,13 +165,15 @@ export async function sendNewLoginAlertEmail(
  */
 export async function sendMobileDepositSubmittedEmail(
   email: string,
-  depositAmount: string,
+  amount: string,
   currency: string,
+  accountType: string,
   depositDate: string,
 ): Promise<EmailSendResult> {
   const template = EmailTemplates.mobileDepositSubmitted({
-    depositAmount,
+    amount,
     currency,
+    accountType,
     depositDate,
   });
   return sendEmail(email, template);
@@ -175,13 +184,15 @@ export async function sendMobileDepositSubmittedEmail(
  */
 export async function sendMobileDepositApprovedEmail(
   email: string,
-  depositAmount: string,
+  amount: string,
   currency: string,
+  newBalance: string,
   approvedDate: string,
 ): Promise<EmailSendResult> {
   const template = EmailTemplates.mobileDepositApproved({
-    depositAmount,
+    amount,
     currency,
+    newBalance,
     approvedDate,
   });
   return sendEmail(email, template);
@@ -192,13 +203,13 @@ export async function sendMobileDepositApprovedEmail(
  */
 export async function sendMobileDepositRejectedEmail(
   email: string,
-  depositAmount: string,
+  amount: string,
   currency: string,
   rejectionReason: string,
   submittedDate: string,
 ): Promise<EmailSendResult> {
   const template = EmailTemplates.mobileDepositRejected({
-    depositAmount,
+    amount,
     currency,
     rejectionReason,
     submittedDate,

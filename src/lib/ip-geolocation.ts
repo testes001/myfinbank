@@ -229,15 +229,27 @@ export function isFundAccessRestricted(userId: string): boolean {
   try {
     const stored = localStorage.getItem(`${STORAGE_KEY_FUND_RESTRICTIONS}_${userId}`);
     if (!stored) return false;
-
     const restrictions = JSON.parse(stored);
     const now = Date.now();
 
-    // Check if any restriction is still active
-    return restrictions.some((restriction: any) => {
+    // Keep only active restrictions
+    const active = restrictions.filter((restriction: any) => {
       const expiresAt = new Date(restriction.expiresAt).getTime();
       return now < expiresAt;
     });
+
+    if (active.length === 0) {
+      // Cleanup expired restrictions
+      localStorage.removeItem(`${STORAGE_KEY_FUND_RESTRICTIONS}_${userId}`);
+      return false;
+    }
+
+    // Persist only active restrictions (trim history)
+    try {
+      localStorage.setItem(`${STORAGE_KEY_FUND_RESTRICTIONS}_${userId}`, JSON.stringify(active));
+    } catch {}
+
+    return true;
   } catch {
     return false;
   }

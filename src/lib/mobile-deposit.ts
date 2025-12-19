@@ -6,6 +6,13 @@
 export type DepositStatus = "submitted" | "reviewing" | "approved" | "rejected";
 export type DepositCurrency = "USD" | "EUR";
 export type AccountType = "checking" | "savings";
+import { AccountORM } from "@/components/data/orm/orm_account";
+import { UserORM } from "@/components/data/orm/orm_user";
+import {
+  sendMobileDepositSubmittedEmail,
+  sendMobileDepositApprovedEmail,
+  sendMobileDepositRejectedEmail,
+} from "@/lib/email-service";
 export type RejectionReason =
   | "unsupported_currency"
   | "illegible_image"
@@ -21,8 +28,8 @@ export interface MobileDeposit {
   amount: string;
   currency: DepositCurrency;
   accountType: AccountType;
-  checkFrontImageUrl: string;
-  checkBackImageUrl: string;
+  checkFrontImageUrl: string | null;
+  checkBackImageUrl: string | null;
   status: DepositStatus;
   extractedAmount?: string;
   extractedPayee?: string;
@@ -81,7 +88,7 @@ export function validateDepositAmount(amount: string | number): {
 /**
  * Submit a mobile check deposit
  */
-export function submitMobileDeposit(
+export async function submitMobileDeposit(
   userId: string,
   depositData: {
     amount: string;
@@ -91,7 +98,7 @@ export function submitMobileDeposit(
     checkBackImage: string; // base64
     userNotes?: string;
   },
-): { success: boolean; error?: string; deposit?: MobileDeposit } {
+): Promise<{ success: boolean; error?: string; deposit?: MobileDeposit }> {
   // Validate currency
   if (!isValidDepositCurrency(depositData.currency)) {
     return {
@@ -138,6 +145,20 @@ export function submitMobileDeposit(
     console.error("Failed to add deposit to admin queue:", error);
   }
 
+  // Send submission email to user (non-blocking)
+  try {
+    const userOrm = UserORM.getInstance();
+    const users = await userOrm.getUserById(userId);
+    const email = users[0]?.email;
+    if (email) {
+      void sendMobileDepositSubmittedEmail(email, deposit.amount, deposit.currency, deposit.accountType, deposit.submittedAt).catch((e) =>
+        console.error("Failed to send mobile deposit submitted email:", e),
+      );
+    }
+  } catch (e) {
+    console.error("Error sending deposit submitted email:", e);
+  }
+
   return { success: true, deposit };
 }
 
@@ -178,10 +199,10 @@ export function getAdminDepositQueue(): MobileDeposit[] {
 /**
  * Admin action: Approve a deposit
  */
-export function approveDeposit(
+export async function approveDeposit(
   depositId: string,
   reviewedBy: string,
-): { success: boolean; error?: string } {
+): Promise<{ success: boolean; error?: string }> {
   try {
     const adminQueue = getAdminDepositQueue();
     const depositIndex = adminQueue.findIndex((d) => d.id === depositId);
@@ -196,7 +217,7 @@ export function approveDeposit(
     deposit.reviewedBy = reviewedBy;
     deposit.reviewedAt = new Date().toISOString();
 
-    // Update admin queue
+    // Update admin queue (store full list)
     const allDeposits = getAllDeposits();
     const allIndex = allDeposits.findIndex((d) => d.id === depositId);
     if (allIndex !== -1) {
@@ -209,10 +230,35 @@ export function approveDeposit(
     const userIndex = userDeposits.findIndex((d) => d.id === depositId);
     if (userIndex !== -1) {
       userDeposits[userIndex] = deposit;
-      localStorage.setItem(
-        `${STORAGE_KEY_DEPOSITS}_${deposit.userId}`,
-        JSON.stringify(userDeposits),
-      );
+      localStorage.setItem(`${STORAGE_KEY_DEPOSITS}_${deposit.userId}`, JSON.stringify(userDeposits));
+    }
+
+    // Credit user's account balance
+    try {
+      const accountOrm = AccountORM.getInstance();
+      const accounts = await accountOrm.getAccountByUserId(deposit.userId);
+      const targetAccount = accounts.find((a: any) => a.account_type === deposit.accountType) || accounts[0];
+      if (targetAccount) {
+        const current = parseFloat(targetAccount.balance || "0");
+        const newBalance = (current + parseFloat(deposit.amount)).toFixed(2);
+        await accountOrm.setAccountById(targetAccount.id, { ...targetAccount, balance: newBalance });
+
+        // Send approval email with new balance
+        try {
+          const userOrm = UserORM.getInstance();
+          const users = await userOrm.getUserById(deposit.userId);
+          const email = users[0]?.email;
+          if (email) {
+            void sendMobileDepositApprovedEmail(email, deposit.amount, deposit.currency, newBalance, deposit.approvedAt).catch((e) =>
+              console.error("Failed to send mobile deposit approved email:", e),
+            );
+          }
+        } catch (e) {
+          console.error("Error sending deposit approved email:", e);
+        }
+      }
+    } catch (e) {
+      console.error("Error crediting user account for approved deposit:", e);
     }
 
     return { success: true };
@@ -224,12 +270,12 @@ export function approveDeposit(
 /**
  * Admin action: Reject a deposit
  */
-export function rejectDeposit(
+export async function rejectDeposit(
   depositId: string,
   reviewedBy: string,
   reason: RejectionReason,
   details?: string,
-): { success: boolean; error?: string } {
+): Promise<{ success: boolean; error?: string }> {
   try {
     const adminQueue = getAdminDepositQueue();
     const depositIndex = adminQueue.findIndex((d) => d.id === depositId);
@@ -259,10 +305,21 @@ export function rejectDeposit(
     const userIndex = userDeposits.findIndex((d) => d.id === depositId);
     if (userIndex !== -1) {
       userDeposits[userIndex] = deposit;
-      localStorage.setItem(
-        `${STORAGE_KEY_DEPOSITS}_${deposit.userId}`,
-        JSON.stringify(userDeposits),
-      );
+      localStorage.setItem(`${STORAGE_KEY_DEPOSITS}_${deposit.userId}`, JSON.stringify(userDeposits));
+    }
+
+    // Send rejection email
+    try {
+      const userOrm = UserORM.getInstance();
+      const users = await userOrm.getUserById(deposit.userId);
+      const email = users[0]?.email;
+      if (email) {
+        void sendMobileDepositRejectedEmail(email, deposit.amount, deposit.currency, reason, deposit.submittedAt).catch((e) =>
+          console.error("Failed to send mobile deposit rejected email:", e),
+        );
+      }
+    } catch (e) {
+      console.error("Error sending deposit rejected email:", e);
     }
 
     return { success: true };

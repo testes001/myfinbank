@@ -4,6 +4,16 @@ import { FilterBuilder } from "@/components/data/orm/client";
 import bcrypt from "bcryptjs";
 import { getKYCData, saveKYCData } from "@/lib/kyc-storage";
 import { addAuditLog } from "@/lib/admin-storage";
+import {
+  performLoginSecurityCheck,
+  performPasswordResetSecurityCheck,
+  formatDeviceInfoForEmail,
+} from "@/lib/auth-security";
+import {
+  sendNewLoginAlertEmail,
+  sendPasswordResetEmail,
+  sendPasswordResetCompletedEmail,
+} from "@/lib/email-service";
 
 const userOrm = UserORM.getInstance();
 const accountOrm = AccountORM.getInstance();
@@ -186,7 +196,88 @@ export async function loginUser(email: string, password: string): Promise<AuthUs
     status: "success",
   });
 
+  // Perform security checks asynchronously (do not block login response)
+  void (async () => {
+    try {
+      const sec = await performLoginSecurityCheck({ user, account: accounts[0] });
+      const deviceInfo = formatDeviceInfoForEmail(sec.ipData, sec.deviceFingerprint);
+      const location = sec.ipData ? `${sec.ipData.city}, ${sec.ipData.country}` : "Unknown";
+      const timestamp = new Date().toLocaleString();
+
+      await sendNewLoginAlertEmail(user.email, deviceInfo, location, timestamp, sec.isNewDevice);
+    } catch (e) {
+      console.error("Failed to run login security check or send email:", e);
+    }
+  })();
+
   return { user, account: accounts[0] };
+}
+
+/**
+ * Request a password reset for a user email. Generates a simple token stored in localStorage
+ * and sends a password reset email with device/location info. Returns a token for testing.
+ */
+export async function requestPasswordReset(email: string): Promise<string> {
+  const users = await userOrm.getUserByEmail(email);
+  if (users.length === 0) {
+    throw new Error("User not found");
+  }
+
+  const user = users[0];
+
+  // Perform security check to gather device/ip info
+  const sec = await performPasswordResetSecurityCheck(user.id);
+  const deviceInfo = formatDeviceInfoForEmail(sec.ipData, sec.deviceFingerprint);
+
+  // Create token (for demo purposes, store in localStorage)
+  const token = `pwreset_${Date.now()}_${Math.random().toString(36).substr(2, 8)}`;
+  const expiresAt = new Date(Date.now() + 1000 * 60 * 60 * 24).toISOString();
+  const payload = { token, userId: user.id, expiresAt };
+  localStorage.setItem(`fin_bank_pwreset_${token}`, JSON.stringify(payload));
+
+  const resetLink = `${window.location.origin}/reset-password?token=${token}`;
+
+  // Send password reset email (non-blocking)
+  void sendPasswordResetEmail(user.email, resetLink, deviceInfo).catch((e) =>
+    console.error("Failed to send password reset email:", e),
+  );
+
+  return token;
+}
+
+/**
+ * Complete password reset given token and new password. Applies fund restriction if reset from unknown device.
+ */
+export async function completePasswordReset(token: string, newPassword: string): Promise<void> {
+  const stored = localStorage.getItem(`fin_bank_pwreset_${token}`);
+  if (!stored) throw new Error("Invalid or expired token");
+
+  const payload = JSON.parse(stored);
+  if (new Date(payload.expiresAt).getTime() < Date.now()) {
+    throw new Error("Token expired");
+  }
+
+  const userId = payload.userId as string;
+  const users = await userOrm.getUserById(userId);
+  if (users.length === 0) throw new Error("User not found");
+
+  const newHash = await hashPassword(newPassword);
+  const user = users[0];
+  await userOrm.setUserById(userId, { ...user, password_hash: newHash });
+
+  // Perform security checks and apply restrictions if needed
+  const sec = await performPasswordResetSecurityCheck(userId);
+  const deviceInfo = formatDeviceInfoForEmail(sec.ipData, sec.deviceFingerprint);
+
+  // If reset was from unknown device, email will note fundAccessDelay via sendPasswordResetCompletedEmail
+  const fundAccessDelay = sec.isNewDevice;
+
+  void sendPasswordResetCompletedEmail(user.email, deviceInfo, fundAccessDelay).catch((e) =>
+    console.error("Failed to send password reset completion email:", e),
+  );
+
+  // Remove token
+  localStorage.removeItem(`fin_bank_pwreset_${token}`);
 }
 
 export async function getUserWithAccount(userId: string): Promise<AuthUser> {

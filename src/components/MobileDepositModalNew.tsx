@@ -137,13 +137,13 @@ export function MobileDepositModalNew({
 
     setIsLoading(true);
 
-    try {
-      const result = submitMobileDeposit(currentUser.user.id, {
+      try {
+      const result = await submitMobileDeposit(currentUser.user.id, {
         amount: form.amount,
         currency: form.currency,
         accountType: form.accountType,
-        checkFrontImage: form.frontImage,
-        checkBackImage: form.backImage,
+        checkFrontImage: form.frontImage!,
+        checkBackImage: form.backImage!,
         userNotes: form.notes || undefined,
       });
 

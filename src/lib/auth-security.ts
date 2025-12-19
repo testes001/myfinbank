@@ -87,7 +87,24 @@ export async function performLoginSecurityCheck(
 
     // Restrict funds on medium-risk logins from very new devices (first 24 hours)
     if (riskLevel === "medium" && isNew) {
-      const createdAt = new Date(user.user.created_at).getTime();
+      // Determine user creation time. The ORM stores `create_time` which may be a timestamp string
+      // or an ISO string depending on how records were created. Handle both formats.
+      let createdAt = Date.now();
+      try {
+        const ct = (user.user as any).create_time || (user.user as any).create_time;
+        if (ct) {
+          const parsed = Date.parse(ct);
+          if (!isNaN(parsed)) {
+            createdAt = parsed;
+          } else {
+            const asNum = parseInt(ct as string, 10);
+            createdAt = asNum > 1e12 ? asNum : asNum * 1000;
+          }
+        }
+      } catch (e) {
+        createdAt = Date.now();
+      }
+
       const now = Date.now();
       const hoursSinceCreation = (now - createdAt) / (1000 * 60 * 60);
 

@@ -55,6 +55,7 @@ import { TransactionORM, type TransactionModel, TransactionStatus } from "@/comp
 import { formatCurrency, formatDate } from "@/lib/transactions";
 import { AdminAccountControls } from "@/components/AdminAccountControls";
 import { exportAuditLogs, downloadSystemReport } from "@/lib/data-export";
+import AdminDepositQueue from "@/components/AdminDepositQueue";
 
 export function AdminPanel() {
   const [adminUser, setAdminUser] = useState<AdminUser | null>(null);
@@ -246,6 +247,10 @@ function AdminDashboard({ adminUser, onLogout }: { adminUser: AdminUser; onLogou
               <TrendingUp className="h-4 w-4 mr-2" />
               Transactions
             </TabsTrigger>
+            <TabsTrigger value="deposits">
+              <FileText className="h-4 w-4 mr-2" />
+              Deposits
+            </TabsTrigger>
             <TabsTrigger value="controls">
               <Lock className="h-4 w-4 mr-2" />
               Controls
@@ -270,6 +275,10 @@ function AdminDashboard({ adminUser, onLogout }: { adminUser: AdminUser; onLogou
 
           <TabsContent value="transactions">
             <TransactionApprovalPanel adminUser={adminUser} />
+          </TabsContent>
+
+          <TabsContent value="deposits">
+            <AdminDepositQueue adminUser={adminUser} />
           </TabsContent>
 
           <TabsContent value="controls">

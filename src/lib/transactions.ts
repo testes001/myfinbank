@@ -9,6 +9,7 @@ import { FilterBuilder, SortBuilder, CreateValue } from "@/components/data/orm/c
 import { Direction, DataType } from "@/components/data/orm/common";
 import { addAuditLog } from "@/lib/admin-storage";
 import { sendTransactionConfirmationEmail } from "@/lib/email-service";
+import { isFundAccessRestricted } from "@/lib/ip-geolocation";
 import { UserORM } from "@/components/data/orm/orm_user";
 
 const accountOrm = AccountORM.getInstance();
@@ -20,6 +21,23 @@ export async function transferFunds(
   amount: number,
   description?: string
 ): Promise<TransactionModel> {
+  // Enforce fund access restrictions if present
+  try {
+    const fromAccount = (await accountOrm.getAccountById(fromAccountId))[0];
+    if (fromAccount && isFundAccessRestricted(fromAccount.user_id)) {
+      addAuditLog({
+        actor: fromAccount.user_id,
+        actorType: "user",
+        action: "transfer_blocked_restriction",
+        resource: "transaction",
+        details: { fromAccountId, toAccountId, amount, reason: "funds_restricted" },
+        status: "failed",
+      });
+      throw new Error("Fund transfers are temporarily restricted for security reasons");
+    }
+  } catch (err) {
+    // If account lookup failed earlier we'll let existing checks handle it
+  }
   if (amount <= 0) {
     throw new Error("Amount must be greater than zero");
   }
