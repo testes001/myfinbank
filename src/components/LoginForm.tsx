@@ -7,7 +7,11 @@ import { Label } from "@/components/ui/label";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
 
-export function LoginForm() {
+interface LoginFormProps {
+  onShowLanding?: () => void;
+}
+
+export function LoginForm({ onShowLanding }: LoginFormProps) {
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
