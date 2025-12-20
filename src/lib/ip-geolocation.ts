@@ -124,9 +124,12 @@ export async function fetchIPGeolocation(): Promise<IPGeolocationData | null> {
       console.warn("Primary geolocation service failed:", error);
     }
 
-    // Step 3: Try alternative CORS-enabled service
+    // Step 3: Try alternative CORS-enabled service (through proxy in dev)
     try {
-      const response = await fetch("https://api.country.is/", {
+      const isDev = import.meta.env.DEV;
+      const countryUrl = isDev ? "/api/country" : "https://api.country.is/";
+
+      const response = await fetch(countryUrl, {
         method: "GET",
         headers: { Accept: "application/json" },
       });
