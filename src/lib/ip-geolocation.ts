@@ -81,10 +81,15 @@ export async function fetchIPGeolocation(): Promise<IPGeolocationData | null> {
       // Ignore cache errors and proceed
     }
 
-    // Step 2: Try CORS-friendly service (abstractapi.com geo endpoint)
-    // No auth required, CORS-enabled for browser requests
+    // Step 2: Try CORS-friendly service through Vite proxy (in dev) or direct (in prod)
+    // Vite dev proxy available at /api/geolocation
+    // Direct URL available at https://ipgeolocation.abstractapi.com/v1/?api_key=free
     try {
-      const response = await fetch("https://ipgeolocation.abstractapi.com/v1/?api_key=free", {
+      // In dev mode, use the Vite proxy; in production, use direct URL
+      const isDev = import.meta.env.DEV;
+      const geoUrl = isDev ? "/api/geolocation" : "https://ipgeolocation.abstractapi.com/v1/?api_key=free";
+
+      const response = await fetch(geoUrl, {
         method: "GET",
         headers: { Accept: "application/json" },
       });
