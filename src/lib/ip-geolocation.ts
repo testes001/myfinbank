@@ -56,37 +56,65 @@ const STORAGE_KEY_FUND_RESTRICTIONS = "fin_bank_fund_restrictions";
 
 /**
  * Fetch IP geolocation data from a free API
- * Uses ipapi.co (no API key required for reasonable rate limits)
+ * Uses ip-api.com (no API key required for reasonable rate limits)
+ * Fallback to alternative service if primary fails
  */
 export async function fetchIPGeolocation(): Promise<IPGeolocationData | null> {
   try {
-    // Using ipapi.co - free tier, no authentication needed
-    const response = await fetch("https://ipapi.co/json/", {
+    // Primary: ip-api.com - highly reliable, free tier
+    const response = await fetch("https://ip-api.com/json/?fields=status,message,country,countryCode,region,city,timezone,lat,lon,isp,ip", {
       method: "GET",
       headers: { Accept: "application/json" },
     });
 
-    if (!response.ok) {
-      console.error("Failed to fetch IP geolocation");
-      return null;
+    if (response.ok) {
+      const data = await response.json();
+
+      if (data.status === "success") {
+        return {
+          ip: data.ip,
+          country: data.country,
+          countryCode: data.countryCode,
+          city: data.city,
+          region: data.region,
+          timezone: data.timezone,
+          latitude: data.lat,
+          longitude: data.lon,
+          isp: data.isp,
+          timestamp: new Date().toISOString(),
+        };
+      }
     }
 
-    const data = await response.json();
+    // Fallback: geoip-db.com - alternative free service
+    console.warn("Primary IP geolocation service failed, trying fallback...");
+    const fallbackResponse = await fetch("https://geoip-db.com/json/", {
+      method: "GET",
+      headers: { Accept: "application/json" },
+    });
 
-    return {
-      ip: data.ip,
-      country: data.country_name,
-      countryCode: data.country_code,
-      city: data.city,
-      region: data.region,
-      timezone: data.timezone,
-      latitude: data.latitude,
-      longitude: data.longitude,
-      isp: data.org,
-      timestamp: new Date().toISOString(),
-    };
+    if (fallbackResponse.ok) {
+      const data = await fallbackResponse.json();
+
+      return {
+        ip: data.IPv4,
+        country: data.country_name,
+        countryCode: data.country_code,
+        city: data.city,
+        region: data.state,
+        timezone: data.timezone,
+        latitude: data.latitude,
+        longitude: data.longitude,
+        isp: "Unknown",
+        timestamp: new Date().toISOString(),
+      };
+    }
+
+    console.error("Both IP geolocation services failed");
+    return null;
   } catch (error) {
     console.error("Error fetching IP geolocation:", error);
+    // Graceful degradation - return null but don't break the app
     return null;
   }
 }
