@@ -12,6 +12,7 @@
 
 import { Route as rootRoute } from './routes/__root'
 import { Route as MarketingImport } from './routes/marketing'
+import { Route as DashboardImport } from './routes/dashboard'
 import { Route as AdminConsoleImport } from './routes/admin-console'
 import { Route as IndexImport } from './routes/index'
 import { Route as MarketingIndexImport } from './routes/marketing/index'
@@ -26,6 +27,12 @@ import { Route as MarketingAboutImport } from './routes/marketing/about'
 const MarketingRoute = MarketingImport.update({
   id: '/marketing',
   path: '/marketing',
+  getParentRoute: () => rootRoute,
+} as any)
+
+const DashboardRoute = DashboardImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
   getParentRoute: () => rootRoute,
 } as any)
 
@@ -93,6 +100,13 @@ declare module '@tanstack/react-router' {
       path: '/admin-console'
       fullPath: '/admin-console'
       preLoaderRoute: typeof AdminConsoleImport
+      parentRoute: typeof rootRoute
+    }
+    '/dashboard': {
+      id: '/dashboard'
+      path: '/dashboard'
+      fullPath: '/dashboard'
+      preLoaderRoute: typeof DashboardImport
       parentRoute: typeof rootRoute
     }
     '/marketing': {
@@ -174,6 +188,7 @@ const MarketingRouteWithChildren = MarketingRoute._addFileChildren(
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/admin-console': typeof AdminConsoleRoute
+  '/dashboard': typeof DashboardRoute
   '/marketing': typeof MarketingRouteWithChildren
   '/marketing/about': typeof MarketingAboutRoute
   '/marketing/features': typeof MarketingFeaturesRoute
@@ -186,6 +201,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/admin-console': typeof AdminConsoleRoute
+  '/dashboard': typeof DashboardRoute
   '/marketing/about': typeof MarketingAboutRoute
   '/marketing/features': typeof MarketingFeaturesRoute
   '/marketing/how-it-works': typeof MarketingHowItWorksRoute
@@ -198,6 +214,7 @@ export interface FileRoutesById {
   __root__: typeof rootRoute
   '/': typeof IndexRoute
   '/admin-console': typeof AdminConsoleRoute
+  '/dashboard': typeof DashboardRoute
   '/marketing': typeof MarketingRouteWithChildren
   '/marketing/about': typeof MarketingAboutRoute
   '/marketing/features': typeof MarketingFeaturesRoute
@@ -212,6 +229,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/admin-console'
+    | '/dashboard'
     | '/marketing'
     | '/marketing/about'
     | '/marketing/features'
@@ -223,6 +241,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/admin-console'
+    | '/dashboard'
     | '/marketing/about'
     | '/marketing/features'
     | '/marketing/how-it-works'
@@ -233,6 +252,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/admin-console'
+    | '/dashboard'
     | '/marketing'
     | '/marketing/about'
     | '/marketing/features'
@@ -246,12 +266,14 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AdminConsoleRoute: typeof AdminConsoleRoute
+  DashboardRoute: typeof DashboardRoute
   MarketingRoute: typeof MarketingRouteWithChildren
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AdminConsoleRoute: AdminConsoleRoute,
+  DashboardRoute: DashboardRoute,
   MarketingRoute: MarketingRouteWithChildren,
 }
 
@@ -267,6 +289,7 @@ export const routeTree = rootRoute
       "children": [
         "/",
         "/admin-console",
+        "/dashboard",
         "/marketing"
       ]
     },
@@ -275,6 +298,9 @@ export const routeTree = rootRoute
     },
     "/admin-console": {
       "filePath": "admin-console.tsx"
+    },
+    "/dashboard": {
+      "filePath": "dashboard.tsx"
     },
     "/marketing": {
       "filePath": "marketing.tsx",
