@@ -1,4 +1,8 @@
-# Fin-Bank Code Examples & Integration Patterns
+# ensure server is running
+npm run dev
+
+# open app (manually) at:
+http://localhost:3000# Fin-Bank Code Examples & Integration Patterns
 
 ## Authentication & Security
 
