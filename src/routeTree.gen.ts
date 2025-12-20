@@ -11,10 +11,23 @@
 // Import Routes
 
 import { Route as rootRoute } from './routes/__root'
+import { Route as MarketingImport } from './routes/marketing'
 import { Route as AdminConsoleImport } from './routes/admin-console'
 import { Route as IndexImport } from './routes/index'
+import { Route as MarketingIndexImport } from './routes/marketing/index'
+import { Route as MarketingSecurityImport } from './routes/marketing/security'
+import { Route as MarketingPricingImport } from './routes/marketing/pricing'
+import { Route as MarketingHowItWorksImport } from './routes/marketing/how-it-works'
+import { Route as MarketingFeaturesImport } from './routes/marketing/features'
+import { Route as MarketingAboutImport } from './routes/marketing/about'
 
 // Create/Update Routes
+
+const MarketingRoute = MarketingImport.update({
+  id: '/marketing',
+  path: '/marketing',
+  getParentRoute: () => rootRoute,
+} as any)
 
 const AdminConsoleRoute = AdminConsoleImport.update({
   id: '/admin-console',
@@ -26,6 +39,42 @@ const IndexRoute = IndexImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRoute,
+} as any)
+
+const MarketingIndexRoute = MarketingIndexImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => MarketingRoute,
+} as any)
+
+const MarketingSecurityRoute = MarketingSecurityImport.update({
+  id: '/security',
+  path: '/security',
+  getParentRoute: () => MarketingRoute,
+} as any)
+
+const MarketingPricingRoute = MarketingPricingImport.update({
+  id: '/pricing',
+  path: '/pricing',
+  getParentRoute: () => MarketingRoute,
+} as any)
+
+const MarketingHowItWorksRoute = MarketingHowItWorksImport.update({
+  id: '/how-it-works',
+  path: '/how-it-works',
+  getParentRoute: () => MarketingRoute,
+} as any)
+
+const MarketingFeaturesRoute = MarketingFeaturesImport.update({
+  id: '/features',
+  path: '/features',
+  getParentRoute: () => MarketingRoute,
+} as any)
+
+const MarketingAboutRoute = MarketingAboutImport.update({
+  id: '/about',
+  path: '/about',
+  getParentRoute: () => MarketingRoute,
 } as any)
 
 // Populate the FileRoutesByPath interface
@@ -46,44 +95,164 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminConsoleImport
       parentRoute: typeof rootRoute
     }
+    '/marketing': {
+      id: '/marketing'
+      path: '/marketing'
+      fullPath: '/marketing'
+      preLoaderRoute: typeof MarketingImport
+      parentRoute: typeof rootRoute
+    }
+    '/marketing/about': {
+      id: '/marketing/about'
+      path: '/about'
+      fullPath: '/marketing/about'
+      preLoaderRoute: typeof MarketingAboutImport
+      parentRoute: typeof MarketingImport
+    }
+    '/marketing/features': {
+      id: '/marketing/features'
+      path: '/features'
+      fullPath: '/marketing/features'
+      preLoaderRoute: typeof MarketingFeaturesImport
+      parentRoute: typeof MarketingImport
+    }
+    '/marketing/how-it-works': {
+      id: '/marketing/how-it-works'
+      path: '/how-it-works'
+      fullPath: '/marketing/how-it-works'
+      preLoaderRoute: typeof MarketingHowItWorksImport
+      parentRoute: typeof MarketingImport
+    }
+    '/marketing/pricing': {
+      id: '/marketing/pricing'
+      path: '/pricing'
+      fullPath: '/marketing/pricing'
+      preLoaderRoute: typeof MarketingPricingImport
+      parentRoute: typeof MarketingImport
+    }
+    '/marketing/security': {
+      id: '/marketing/security'
+      path: '/security'
+      fullPath: '/marketing/security'
+      preLoaderRoute: typeof MarketingSecurityImport
+      parentRoute: typeof MarketingImport
+    }
+    '/marketing/': {
+      id: '/marketing/'
+      path: '/'
+      fullPath: '/marketing/'
+      preLoaderRoute: typeof MarketingIndexImport
+      parentRoute: typeof MarketingImport
+    }
   }
 }
 
 // Create and export the route tree
 
+interface MarketingRouteChildren {
+  MarketingAboutRoute: typeof MarketingAboutRoute
+  MarketingFeaturesRoute: typeof MarketingFeaturesRoute
+  MarketingHowItWorksRoute: typeof MarketingHowItWorksRoute
+  MarketingPricingRoute: typeof MarketingPricingRoute
+  MarketingSecurityRoute: typeof MarketingSecurityRoute
+  MarketingIndexRoute: typeof MarketingIndexRoute
+}
+
+const MarketingRouteChildren: MarketingRouteChildren = {
+  MarketingAboutRoute: MarketingAboutRoute,
+  MarketingFeaturesRoute: MarketingFeaturesRoute,
+  MarketingHowItWorksRoute: MarketingHowItWorksRoute,
+  MarketingPricingRoute: MarketingPricingRoute,
+  MarketingSecurityRoute: MarketingSecurityRoute,
+  MarketingIndexRoute: MarketingIndexRoute,
+}
+
+const MarketingRouteWithChildren = MarketingRoute._addFileChildren(
+  MarketingRouteChildren,
+)
+
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/admin-console': typeof AdminConsoleRoute
+  '/marketing': typeof MarketingRouteWithChildren
+  '/marketing/about': typeof MarketingAboutRoute
+  '/marketing/features': typeof MarketingFeaturesRoute
+  '/marketing/how-it-works': typeof MarketingHowItWorksRoute
+  '/marketing/pricing': typeof MarketingPricingRoute
+  '/marketing/security': typeof MarketingSecurityRoute
+  '/marketing/': typeof MarketingIndexRoute
 }
 
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/admin-console': typeof AdminConsoleRoute
+  '/marketing/about': typeof MarketingAboutRoute
+  '/marketing/features': typeof MarketingFeaturesRoute
+  '/marketing/how-it-works': typeof MarketingHowItWorksRoute
+  '/marketing/pricing': typeof MarketingPricingRoute
+  '/marketing/security': typeof MarketingSecurityRoute
+  '/marketing': typeof MarketingIndexRoute
 }
 
 export interface FileRoutesById {
   __root__: typeof rootRoute
   '/': typeof IndexRoute
   '/admin-console': typeof AdminConsoleRoute
+  '/marketing': typeof MarketingRouteWithChildren
+  '/marketing/about': typeof MarketingAboutRoute
+  '/marketing/features': typeof MarketingFeaturesRoute
+  '/marketing/how-it-works': typeof MarketingHowItWorksRoute
+  '/marketing/pricing': typeof MarketingPricingRoute
+  '/marketing/security': typeof MarketingSecurityRoute
+  '/marketing/': typeof MarketingIndexRoute
 }
 
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/admin-console'
+  fullPaths:
+    | '/'
+    | '/admin-console'
+    | '/marketing'
+    | '/marketing/about'
+    | '/marketing/features'
+    | '/marketing/how-it-works'
+    | '/marketing/pricing'
+    | '/marketing/security'
+    | '/marketing/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/admin-console'
-  id: '__root__' | '/' | '/admin-console'
+  to:
+    | '/'
+    | '/admin-console'
+    | '/marketing/about'
+    | '/marketing/features'
+    | '/marketing/how-it-works'
+    | '/marketing/pricing'
+    | '/marketing/security'
+    | '/marketing'
+  id:
+    | '__root__'
+    | '/'
+    | '/admin-console'
+    | '/marketing'
+    | '/marketing/about'
+    | '/marketing/features'
+    | '/marketing/how-it-works'
+    | '/marketing/pricing'
+    | '/marketing/security'
+    | '/marketing/'
   fileRoutesById: FileRoutesById
 }
 
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AdminConsoleRoute: typeof AdminConsoleRoute
+  MarketingRoute: typeof MarketingRouteWithChildren
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AdminConsoleRoute: AdminConsoleRoute,
+  MarketingRoute: MarketingRouteWithChildren,
 }
 
 export const routeTree = rootRoute
@@ -97,7 +266,8 @@ export const routeTree = rootRoute
       "filePath": "__root.tsx",
       "children": [
         "/",
-        "/admin-console"
+        "/admin-console",
+        "/marketing"
       ]
     },
     "/": {
@@ -105,6 +275,41 @@ export const routeTree = rootRoute
     },
     "/admin-console": {
       "filePath": "admin-console.tsx"
+    },
+    "/marketing": {
+      "filePath": "marketing.tsx",
+      "children": [
+        "/marketing/about",
+        "/marketing/features",
+        "/marketing/how-it-works",
+        "/marketing/pricing",
+        "/marketing/security",
+        "/marketing/"
+      ]
+    },
+    "/marketing/about": {
+      "filePath": "marketing/about.tsx",
+      "parent": "/marketing"
+    },
+    "/marketing/features": {
+      "filePath": "marketing/features.tsx",
+      "parent": "/marketing"
+    },
+    "/marketing/how-it-works": {
+      "filePath": "marketing/how-it-works.tsx",
+      "parent": "/marketing"
+    },
+    "/marketing/pricing": {
+      "filePath": "marketing/pricing.tsx",
+      "parent": "/marketing"
+    },
+    "/marketing/security": {
+      "filePath": "marketing/security.tsx",
+      "parent": "/marketing"
+    },
+    "/marketing/": {
+      "filePath": "marketing/index.tsx",
+      "parent": "/marketing"
     }
   }
 }
