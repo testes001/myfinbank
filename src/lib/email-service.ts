@@ -79,7 +79,7 @@ export async function sendEmail(
 export async function sendWelcomeEmail(
   email: string,
   fullName: string,
-  appUrl: string = "https://finbank.eu",
+  appUrl: string = "https://finbank.online",
 ): Promise<EmailSendResult> {
   const template = EmailTemplates.welcome({
     fullName,
