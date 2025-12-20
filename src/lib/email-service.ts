@@ -3,7 +3,8 @@
  * Sends transactional emails via Resend API
  */
 
-import type { EmailTemplate, EmailTemplates } from "./email-templates";
+import type { EmailTemplate } from "./email-templates";
+import { EmailTemplates } from "./email-templates";
 
 const RESEND_API_KEY = import.meta.env?.VITE_RESEND_API_KEY || import.meta.env?.RESEND_API_KEY || "";
 const FROM_EMAIL = "noreply@finbank.eu";
