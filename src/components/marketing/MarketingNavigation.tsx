@@ -1,11 +1,12 @@
 import { useState } from "react";
-import { Link } from "@tanstack/react-router";
+import { Link, useNavigate } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
 import { FinBankBrand } from "@/lib/brand-config";
 import { Menu, X, Shield, ArrowRight } from "lucide-react";
 
 export function MarketingNavigation() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const navigate = useNavigate();
 
   const navLinks = [
     { label: "Features", href: "/marketing/features" },
@@ -48,10 +49,15 @@ export function MarketingNavigation() {
               variant="ghost"
               size="sm"
               className="text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white"
+              onClick={() => navigate({ to: "/" })}
             >
               Sign In
             </Button>
-            <Button size="sm" className="bg-blue-600 hover:bg-blue-700 text-white flex items-center gap-2">
+            <Button
+              size="sm"
+              className="bg-blue-600 hover:bg-blue-700 text-white flex items-center gap-2"
+              onClick={() => navigate({ to: "/" })}
+            >
               Get Started <ArrowRight className="w-4 h-4" />
             </Button>
           </div>
@@ -79,10 +85,25 @@ export function MarketingNavigation() {
               </Link>
             ))}
             <div className="flex flex-col gap-2 pt-2">
-              <Button variant="outline" size="sm" className="w-full">
+              <Button
+                variant="outline"
+                size="sm"
+                className="w-full"
+                onClick={() => {
+                  setMobileMenuOpen(false);
+                  navigate({ to: "/" });
+                }}
+              >
                 Sign In
               </Button>
-              <Button size="sm" className="w-full bg-blue-600 hover:bg-blue-700 text-white">
+              <Button
+                size="sm"
+                className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+                onClick={() => {
+                  setMobileMenuOpen(false);
+                  navigate({ to: "/" });
+                }}
+              >
                 Get Started
               </Button>
             </div>
