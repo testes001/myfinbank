@@ -44,6 +44,27 @@ export default defineConfig({
 			usePolling: true,
 			interval: 300, // ms; tune if CPU gets high
 		},
+		// Proxy external API calls through dev server to avoid CORS issues
+		proxy: {
+			"/api/geolocation": {
+				target: "https://ipgeolocation.abstractapi.com",
+				changeOrigin: true,
+				rewrite: (path) => path.replace(/^\/api\/geolocation/, "/v1/?api_key=free"),
+				secure: false,
+				headers: {
+					Accept: "application/json",
+				},
+			},
+			"/api/country": {
+				target: "https://api.country.is",
+				changeOrigin: true,
+				rewrite: (path) => path.replace(/^\/api\/country/, ""),
+				secure: false,
+				headers: {
+					Accept: "application/json",
+				},
+			},
+		},
 	},
 	build: {
 		chunkSizeWarningLimit: 1500,

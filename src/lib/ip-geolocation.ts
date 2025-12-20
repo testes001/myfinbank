@@ -104,6 +104,8 @@ export async function fetchIPGeolocation(): Promise<IPGeolocationData | null> {
           timestamp: new Date().toISOString(),
         };
       }
+    } catch (error) {
+      console.warn("Primary geolocation service failed:", error);
     }
 
     // Fallback: ipify-api.com (CORS-friendly)
