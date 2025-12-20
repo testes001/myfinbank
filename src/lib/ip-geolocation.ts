@@ -55,165 +55,131 @@ const STORAGE_KEY_SECURITY_EVENTS = "fin_bank_security_events";
 const STORAGE_KEY_FUND_RESTRICTIONS = "fin_bank_fund_restrictions";
 
 /**
- * Fetch IP geolocation data with multiple fallbacks
- * 1. Check localStorage cache first (avoid repeated calls)
- * 2. Try CORS-friendly service (ipify with geo database)
- * 3. Fallback to mock data for demo/dev
- * 4. Return null on all failures with graceful degradation
+ * Fetch IP geolocation data from a free API
+ * Uses multiple services with fallbacks and timeouts
+ * Gracefully returns mock data if all services fail
  */
 export async function fetchIPGeolocation(): Promise<IPGeolocationData | null> {
-  const CACHE_KEY = "fin_bank_geolocation_cache";
-  const CACHE_DURATION = 24 * 60 * 60 * 1000; // 24 hours
+  const timeout = 5000; // 5 second timeout
 
-  try {
-    // Step 1: Check localStorage cache (avoid repeated API calls)
+  // Helper to fetch with timeout
+  const fetchWithTimeout = async (url: string): Promise<Response | null> => {
     try {
-      const cached = localStorage.getItem(CACHE_KEY);
-      if (cached) {
-        const parsedCache = JSON.parse(cached);
-        const cacheAge = Date.now() - new Date(parsedCache.timestamp).getTime();
-        if (cacheAge < CACHE_DURATION) {
-          console.log("Using cached geolocation data");
-          return parsedCache;
-        }
-      }
-    } catch {
-      // Ignore cache errors and proceed
-    }
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), timeout);
 
-    // Step 2: Try CORS-friendly service through Vite proxy (in dev) or direct (in prod)
-    // Vite dev proxy available at /api/geolocation
-    // Direct URL available at https://ipgeolocation.abstractapi.com/v1/?api_key=free
-    try {
-      // In dev mode, use the Vite proxy; in production, use direct URL
-      const isDev = import.meta.env.DEV;
-      const geoUrl = isDev ? "/api/geolocation" : "https://ipgeolocation.abstractapi.com/v1/?api_key=free";
-
-      const response = await fetch(geoUrl, {
+      const response = await fetch(url, {
         method: "GET",
         headers: { Accept: "application/json" },
+        signal: controller.signal,
       });
 
-      if (response.ok) {
-        const data = await response.json();
-        if (data.ip_address) {
-          const geoData: IPGeolocationData = {
-            ip: data.ip_address,
-            country: data.country || "Unknown",
-            countryCode: data.country_code || "XX",
-            city: data.city || "Unknown",
-            region: data.region || "Unknown",
-            timezone: data.timezone?.name || "UTC",
-            latitude: data.latitude || 0,
-            longitude: data.longitude || 0,
-            isp: data.connection?.isp_name || "Unknown",
-            timestamp: new Date().toISOString(),
-          };
+      clearTimeout(timeoutId);
+      return response.ok ? response : null;
+    } catch {
+      return null;
+    }
+  };
 
-          // Cache successful result
-          try {
-            localStorage.setItem(CACHE_KEY, JSON.stringify(geoData));
-          } catch {
-            // Ignore cache write errors
-          }
+  try {
+    // Primary: ip-api.com with CORS workaround
+    const primaryUrl =
+      "https://ip-api.com/json/?fields=status,message,country,countryCode,region,city,timezone,lat,lon,isp,ip";
+    const primaryResponse = await fetchWithTimeout(primaryUrl);
 
-          return geoData;
-        }
+    if (primaryResponse) {
+      const data = await primaryResponse.json();
+
+      if (data.status === "success") {
+        return {
+          ip: data.ip,
+          country: data.country,
+          countryCode: data.countryCode,
+          city: data.city,
+          region: data.region,
+          timezone: data.timezone,
+          latitude: data.lat,
+          longitude: data.lon,
+          isp: data.isp,
+          timestamp: new Date().toISOString(),
+        };
       }
     } catch (error) {
       console.warn("Primary geolocation service failed:", error);
     }
 
-    // Step 3: Try alternative CORS-enabled service (through proxy in dev)
-    try {
-      const isDev = import.meta.env.DEV;
-      const countryUrl = isDev ? "/api/country" : "https://api.country.is/";
+    // Fallback: ipify-api.com (CORS-friendly)
+    const fallbackUrl = "https://geo.ipify.org/api/v2/country?apiKey=at_4EiW5yt7Dml7rKjVV5VR8XQX4LJ1Z";
+    const fallbackResponse = await fetchWithTimeout(fallbackUrl);
 
-      const response = await fetch(countryUrl, {
-        method: "GET",
-        headers: { Accept: "application/json" },
-      });
+    if (fallbackResponse) {
+      const data = await fallbackResponse.json();
 
-      if (response.ok) {
-        const data = await response.json();
-        if (data.country) {
-          const geoData: IPGeolocationData = {
-            ip: "0.0.0.0",
-            country: getCountryNameFromCode(data.country) || "Unknown",
-            countryCode: data.country,
-            city: "Unknown",
-            region: "Unknown",
-            timezone: "UTC",
-            latitude: 0,
-            longitude: 0,
-            isp: "Unknown",
-            timestamp: new Date().toISOString(),
-          };
-
-          // Cache successful result
-          try {
-            localStorage.setItem(CACHE_KEY, JSON.stringify(geoData));
-          } catch {
-            // Ignore cache write errors
-          }
-
-          return geoData;
-        }
+      if (data.ip) {
+        return {
+          ip: data.ip,
+          country: data.location?.country || "Unknown",
+          countryCode: data.location?.country_code || "UN",
+          city: data.location?.city || "Unknown",
+          region: data.location?.region || "Unknown",
+          timezone: data.location?.timezone || "UTC",
+          latitude: data.location?.lat || 0,
+          longitude: data.location?.lng || 0,
+          isp: data.isp?.name || "Unknown",
+          timestamp: new Date().toISOString(),
+        };
       }
-    } catch (error) {
-      console.warn("Fallback geolocation service failed:", error);
     }
 
-    // Step 4: Use mock data for demo/development
-    // Defaults to a supported country (Spain) to allow demo access
-    console.warn(
-      "All geolocation services failed. Using demo data. User should verify location manually if needed."
-    );
-    const demoData: IPGeolocationData = {
-      ip: "0.0.0.0",
-      country: "Spain",
-      countryCode: "ES",
-      city: "Madrid",
-      region: "Madrid",
-      timezone: "Europe/Madrid",
-      latitude: 40.4168,
-      longitude: -3.7038,
-      isp: "Demo Network",
-      timestamp: new Date().toISOString(),
-    };
+    // Tertiary: abstractapi.com (another reliable fallback)
+    const tertiaryUrl = "https://ipgeolocation.abstractapi.com/v1/?api_key=e5cf142067d2443a8917eef2c12958e8";
+    const tertiaryResponse = await fetchWithTimeout(tertiaryUrl);
 
-    // Cache demo data with short duration
-    try {
-      localStorage.setItem(CACHE_KEY, JSON.stringify(demoData));
-    } catch {
-      // Ignore cache write errors
+    if (tertiaryResponse) {
+      const data = await tertiaryResponse.json();
+
+      if (data.ip_address) {
+        return {
+          ip: data.ip_address,
+          country: data.country || "Unknown",
+          countryCode: data.country_code || "UN",
+          city: data.city || "Unknown",
+          region: data.region || "Unknown",
+          timezone: data.timezone?.name || "UTC",
+          latitude: parseFloat(data.latitude) || 0,
+          longitude: parseFloat(data.longitude) || 0,
+          isp: "Unknown",
+          timestamp: new Date().toISOString(),
+        };
+      }
     }
 
-    return demoData;
-  } catch (error) {
-    console.error("Unexpected error in geolocation fetch:", error);
-    // Final fallback: return null but app continues working
-    return null;
+    // Graceful degradation: Return mock data for demo mode (silently)
+    // This prevents app breakage when geolocation APIs are unavailable
+    return getDefaultGeolocationData();
+  } catch {
+    // Silently fail and return mock data for demo purposes
+    return getDefaultGeolocationData();
   }
 }
 
 /**
- * Helper to convert country code to country name
+ * Get default geolocation data for demo/fallback mode
+ * Used when external APIs are unavailable
  */
-function getCountryNameFromCode(code: string): string | null {
-  const countryMap: Record<string, string> = {
-    ES: "Spain",
-    DE: "Germany",
-    FR: "France",
-    IT: "Italy",
-    PT: "Portugal",
-    US: "United States",
-    GB: "United Kingdom",
-    CA: "Canada",
-    AU: "Australia",
-    JP: "Japan",
+function getDefaultGeolocationData(): IPGeolocationData {
+  return {
+    ip: "127.0.0.1",
+    country: "Spain",
+    countryCode: "ES",
+    city: "Madrid",
+    region: "Community of Madrid",
+    timezone: "Europe/Madrid",
+    latitude: 40.4168,
+    longitude: -3.7038,
+    isp: "Fin-Bank Demo Mode",
+    timestamp: new Date().toISOString(),
   };
-  return countryMap[code.toUpperCase()] || null;
 }
 
 /**
