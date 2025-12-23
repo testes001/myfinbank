@@ -21,6 +21,7 @@ import { P2PTransferModal } from "@/components/P2PTransferModal";
 import { SavingsGoals } from "@/components/SavingsGoals";
 import { AIInsights } from "@/components/AIInsights";
 import { JointAccountInviteModal } from "@/components/JointAccountInviteModal";
+import { QuickActions } from "@/components/QuickActions";
 import { getRecentTransactions, formatCurrency, formatDate, getTransactionType } from "@/lib/transactions";
 import { getUserWithAccount } from "@/lib/auth";
 import { getTotalBalance } from "@/lib/multi-account";
@@ -266,6 +267,7 @@ export function Dashboard({ onNavigate }: DashboardProps) {
               {showBalances ? <Eye className="size-5" /> : <EyeOff className="size-5" />}
             </button>
             <NotificationCenter />
+            <QuickActions onAction={(action) => console.log("quick action", action)} />
             <button
               onClick={toggleTheme}
               className="rounded-full p-2 text-white/60 hover:bg-white/10 hover:text-white transition-colors"
