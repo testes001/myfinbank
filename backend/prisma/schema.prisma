@@ -240,6 +240,7 @@ model VirtualCard {
   id              String      @id @default(uuid())
   userId          String      @map("user_id")
   linkedAccountId String      @map("linked_account_id")
+  cardName        String      @map("card_name")
   cardNumber      String      @map("card_number") // Encrypted
   cvv             String      // Encrypted
   expiryDate      String      @map("expiry_date")
@@ -341,6 +342,71 @@ model P2PContact {
 }
 
 // =============================================================================
+// ADMIN USERS
+// =============================================================================
+
+enum AdminRole {
+  SUPERADMIN
+  COMPLIANCE_OFFICER
+  SUPPORT_AGENT
+}
+
+enum AdminStatus {
+  ACTIVE
+  SUSPENDED
+  INACTIVE
+}
+
+model AdminUser {
+  id                String       @id @default(uuid())
+  username          String       @unique
+  email             String       @unique
+  passwordHash      String       @map("password_hash")
+  fullName          String       @map("full_name")
+  role              AdminRole
+  status            AdminStatus  @default(ACTIVE)
+  mfaEnabled        Boolean      @default(false) @map("mfa_enabled")
+  mfaSecret         String?      @map("mfa_secret")
+  lastLogin         DateTime?    @map("last_login")
+  failedLoginCount  Int          @default(0) @map("failed_login_count")
+  lockedUntil       DateTime?    @map("locked_until")
+  createdAt         DateTime     @default(now()) @map("created_at")
+  updatedAt         DateTime     @updatedAt @map("updated_at")
+  createdBy         String?      @map("created_by")
+
+  // Relations
+  adminSessions AdminSession[]
+
+  @@index([username])
+  @@index([email])
+  @@index([status])
+  @@map("admin_users")
+}
+
+// =============================================================================
+// ADMIN SESSIONS
+// =============================================================================
+
+model AdminSession {
+  id               String    @id @default(uuid())
+  adminId          String    @map("admin_id")
+  refreshTokenHash String    @map("refresh_token_hash")
+  deviceInfo       Json      @map("device_info")
+  ipAddress        String    @map("ip_address")
+  userAgent        String?   @map("user_agent") @db.Text
+  expiresAt        DateTime  @map("expires_at")
+  createdAt        DateTime  @default(now()) @map("created_at")
+  lastActivity     DateTime  @default(now()) @map("last_activity")
+
+  // Relations
+  admin AdminUser @relation(fields: [adminId], references: [id], onDelete: Cascade)
+
+  @@index([adminId, expiresAt])
+  @@index([refreshTokenHash])
+  @@map("admin_sessions")
+}
+
+// =============================================================================
 // AUDIT LOGS
 // =============================================================================
 
@@ -369,7 +435,7 @@ model AuditLog {
   createdAt  DateTime    @default(now()) @map("created_at")
 
   // Relations
-  actor User? @relation(fields: [actorId], references: [id])
+  actor User? @relation(fields: [actorId], references: [id], map: "audit_logs_user_fkey")
 
   @@index([actorId, createdAt])
   @@index([action, createdAt])

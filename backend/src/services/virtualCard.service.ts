@@ -482,10 +482,10 @@ export class VirtualCardService {
   /**
    * Generate expiry date (3 years from now)
    */
-  private generateExpiryDate(): Date {
+  private generateExpiryDate(): string {
     const date = new Date();
     date.setFullYear(date.getFullYear() + 3);
-    return date;
+    return date.toISOString();
   }
 
   /**
