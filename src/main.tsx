@@ -6,8 +6,8 @@ import { logConfigWarnings } from "@/lib/config";
 
 // Import the generated route tree
 import { routeTree } from "./routeTree.gen";
-
 import reportWebVitals from "./sdk/core/internal/reportWebVitals.ts";
+import { initializeSpeedInsights } from "./sdk/core/internal/speedInsights.ts";
 import "./styles.css";
 
 // Initialize Creao platform SDK
@@ -28,6 +28,9 @@ const queryClient = new QueryClient({
 
 // Surface configuration issues early in the console
 logConfigWarnings();
+
+// Initialize Vercel Speed Insights
+initializeSpeedInsights();
 
 // Create a new router instance
 const router = createRouter({
