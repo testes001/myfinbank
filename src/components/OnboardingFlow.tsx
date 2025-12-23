@@ -47,6 +47,12 @@ export interface OnboardingData {
   emailVerified: boolean;
   phoneVerified: boolean;
   phoneOtp?: string;
+  employmentStatus?: string;
+  occupation?: string;
+  employerName?: string;
+  annualIncomeRange?: string;
+  sourceOfFunds?: string;
+  taxResidence?: string;
 
   // Step 3: Address
   streetAddress: string;
@@ -122,6 +128,12 @@ export function OnboardingFlow({ onComplete, onCancel }: OnboardingFlowProps) {
     email: "",
     emailVerified: false,
     phoneVerified: false,
+    employmentStatus: "",
+    occupation: "",
+    employerName: "",
+    annualIncomeRange: "",
+    sourceOfFunds: "",
+    taxResidence: "Spain",
     streetAddress: "",
     city: "",
     state: "",
@@ -217,6 +229,33 @@ export function OnboardingFlow({ onComplete, onCancel }: OnboardingFlowProps) {
     }
     if (!formData.phoneVerified) {
       toast.error("Please verify your phone number");
+      return false;
+    }
+    if (!formData.employmentStatus) {
+      toast.error("Please select your employment status");
+      return false;
+    }
+    if (
+      (formData.employmentStatus === "employed" || formData.employmentStatus === "self-employed") &&
+      (!formData.occupation || formData.occupation.length < 2)
+    ) {
+      toast.error("Please enter your occupation");
+      return false;
+    }
+    if (formData.employmentStatus === "employed" && (!formData.employerName || formData.employerName.length < 2)) {
+      toast.error("Please enter your employer name");
+      return false;
+    }
+    if (!formData.annualIncomeRange) {
+      toast.error("Please select your annual income range");
+      return false;
+    }
+    if (!formData.sourceOfFunds) {
+      toast.error("Please select your source of funds");
+      return false;
+    }
+    if (!formData.taxResidence) {
+      toast.error("Please select your tax residence");
       return false;
     }
     return true;
@@ -480,8 +519,8 @@ export function OnboardingFlow({ onComplete, onCancel }: OnboardingFlowProps) {
   const formatPhone = (value: string) => {
     const cleaned = value.replace(/\D/g, '');
     if (cleaned.length <= 3) return cleaned;
-    if (cleaned.length <= 6) return `(${cleaned.slice(0, 3)}) ${cleaned.slice(3)}`;
-    return `(${cleaned.slice(0, 3)}) ${cleaned.slice(3, 6)}-${cleaned.slice(6, 10)}`;
+    if (cleaned.length <= 6) return `${cleaned.slice(0, 3)} ${cleaned.slice(3)}`;
+    return `${cleaned.slice(0, 3)} ${cleaned.slice(3, 6)} ${cleaned.slice(6, 12)}`;
   };
 
   return (
@@ -898,6 +937,108 @@ export function OnboardingFlow({ onComplete, onCancel }: OnboardingFlowProps) {
                         </div>
                       </motion.div>
                     )}
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <Label htmlFor="employmentStatus" className="text-white">Employment Status *</Label>
+                        <Select
+                          value={formData.employmentStatus}
+                          onValueChange={(value) => updateFormData("employmentStatus", value)}
+                        >
+                          <SelectTrigger className="bg-white/5 border-white/10 text-white">
+                            <SelectValue placeholder="Select status" />
+                          </SelectTrigger>
+                          <SelectContent className="bg-slate-800 border-white/10 text-white">
+                            <SelectItem value="employed" className="text-white">Employed</SelectItem>
+                            <SelectItem value="self-employed" className="text-white">Self-employed</SelectItem>
+                            <SelectItem value="student" className="text-white">Student</SelectItem>
+                            <SelectItem value="unemployed" className="text-white">Unemployed</SelectItem>
+                            <SelectItem value="retired" className="text-white">Retired</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div>
+                        <Label htmlFor="annualIncomeRange" className="text-white">Annual Income Range *</Label>
+                        <Select
+                          value={formData.annualIncomeRange}
+                          onValueChange={(value) => updateFormData("annualIncomeRange", value)}
+                        >
+                          <SelectTrigger className="bg-white/5 border-white/10 text-white">
+                            <SelectValue placeholder="Select range" />
+                          </SelectTrigger>
+                          <SelectContent className="bg-slate-800 border-white/10 text-white">
+                            <SelectItem value="<25k" className="text-white">Under €25,000</SelectItem>
+                            <SelectItem value="25-50k" className="text-white">€25,000 - €50,000</SelectItem>
+                            <SelectItem value="50-100k" className="text-white">€50,000 - €100,000</SelectItem>
+                            <SelectItem value="100-250k" className="text-white">€100,000 - €250,000</SelectItem>
+                            <SelectItem value="250k+" className="text-white">Over €250,000</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <Label htmlFor="occupation" className="text-white">Occupation *</Label>
+                        <Input
+                          id="occupation"
+                          value={formData.occupation}
+                          onChange={(e) => updateFormData("occupation", e.target.value)}
+                          placeholder="Software Engineer"
+                          className="bg-white/5 border-white/10 text-white placeholder:text-gray-500"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="employerName" className="text-white">Employer (if employed)</Label>
+                        <Input
+                          id="employerName"
+                          value={formData.employerName}
+                          onChange={(e) => updateFormData("employerName", e.target.value)}
+                          placeholder="Fin-Bank S.A."
+                          className="bg-white/5 border-white/10 text-white placeholder:text-gray-500"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <Label htmlFor="sourceOfFunds" className="text-white">Source of Funds *</Label>
+                        <Select
+                          value={formData.sourceOfFunds}
+                          onValueChange={(value) => updateFormData("sourceOfFunds", value)}
+                        >
+                          <SelectTrigger className="bg-white/5 border-white/10 text-white">
+                            <SelectValue placeholder="Select source" />
+                          </SelectTrigger>
+                          <SelectContent className="bg-slate-800 border-white/10 text-white">
+                            <SelectItem value="salary" className="text-white">Salary</SelectItem>
+                            <SelectItem value="business" className="text-white">Business income</SelectItem>
+                            <SelectItem value="investments" className="text-white">Investments</SelectItem>
+                            <SelectItem value="savings" className="text-white">Savings</SelectItem>
+                            <SelectItem value="family" className="text-white">Family support</SelectItem>
+                            <SelectItem value="other" className="text-white">Other</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div>
+                        <Label htmlFor="taxResidence" className="text-white">Tax Residence *</Label>
+                        <Select
+                          value={formData.taxResidence}
+                          onValueChange={(value) => updateFormData("taxResidence", value)}
+                        >
+                          <SelectTrigger className="bg-white/5 border-white/10 text-white">
+                            <SelectValue placeholder="Select tax residence" />
+                          </SelectTrigger>
+                          <SelectContent className="bg-slate-800 border-white/10 text-white">
+                            {ALLOWED_COUNTRIES.map((c) => (
+                              <SelectItem key={c} value={c} className="text-white">
+                                {c}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
 
                     <Alert className="bg-blue-500/10 border-blue-500/20">
                       <AlertCircle className="h-4 w-4 text-blue-400" />
