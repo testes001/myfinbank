@@ -29,10 +29,11 @@ async function startServer() {
     const app = createApp();
 
     // Start server
-    const server = app.listen(config.port, () => {
+    const port = process.env.PORT ? Number(process.env.PORT) : config.port;
+    const server = app.listen(port, () => {
       log.info(`🚀 Server started successfully`, {
         environment: config.nodeEnv,
-        port: config.port,
+        port,
         apiUrl: config.apiBaseUrl,
         pid: process.pid,
       });
