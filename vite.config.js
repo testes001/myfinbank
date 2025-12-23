@@ -57,7 +57,8 @@ export default defineConfig({
 			"/api/geolocation": {
 				target: "https://ipgeolocation.abstractapi.com",
 				changeOrigin: true,
-				rewrite: (path) => path.replace(/^\/api\/geolocation/, "/v1/?api_key=free"),
+				rewrite: (path) =>
+					path.replace(/^\/api\/geolocation/, "/v1/?api_key=free"),
 				secure: false,
 				headers: {
 					Accept: "application/json",

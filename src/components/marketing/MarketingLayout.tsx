@@ -1,4 +1,4 @@
-import { ReactNode } from "react";
+import type { ReactNode } from "react";
 import { MarketingNavigation } from "./MarketingNavigation";
 import { MarketingFooter } from "./MarketingFooter";
 

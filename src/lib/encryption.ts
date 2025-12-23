@@ -16,6 +16,7 @@
  */
 
 import { config } from "@/lib/config";
+import { logger } from "@/lib/logger";
 
 const ALGORITHM = 'AES-GCM';
 const KEY_LENGTH = 256;
@@ -97,7 +98,7 @@ async function encryptData(plaintext: string): Promise<string> {
     // Return Base64 encoded result
     return btoa(String.fromCharCode(...combined));
   } catch (error) {
-    console.error('Encryption error:', error);
+    logger.error('Encryption failed', error as Error, { operation: 'encrypt' });
     throw new Error('Failed to encrypt data');
   }
 }
@@ -132,7 +133,7 @@ async function decryptData(ciphertext: string): Promise<string> {
     const decoder = new TextDecoder();
     return decoder.decode(decrypted);
   } catch (error) {
-    console.error('Decryption error:', error);
+    logger.error('Decryption failed', error as Error, { operation: 'decrypt' });
     throw new Error('Failed to decrypt data - data may be corrupted or tampered with');
   }
 }
