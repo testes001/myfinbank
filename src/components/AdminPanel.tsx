@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Switch } from "@/components/ui/switch";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
@@ -51,7 +51,7 @@ import {
 } from "@/lib/admin-storage";
 import { getKYCData, updateKYCStatus } from "@/lib/kyc-storage";
 import { UserORM, type UserModel } from "@/components/data/orm/orm_user";
-import { TransactionORM, type TransactionModel, TransactionStatus } from "@/components/data/orm/orm_transaction";
+import { TransactionORM, type TransactionModel } from "@/components/data/orm/orm_transaction";
 import { formatCurrency, formatDate } from "@/lib/transactions";
 import { AdminAccountControls } from "@/components/AdminAccountControls";
 import { exportAuditLogs, downloadSystemReport } from "@/lib/data-export";
@@ -907,6 +907,7 @@ function AuditLogPanel() {
               variant="outline"
               size="sm"
               onClick={() => exportAuditLogs(logs, "csv")}
+              aria-label="Export audit log as CSV"
             >
               <Download className="h-4 w-4 mr-2" />
               Export CSV
@@ -915,6 +916,7 @@ function AuditLogPanel() {
               variant="outline"
               size="sm"
               onClick={() => exportAuditLogs(logs, "json")}
+              aria-label="Export audit log as JSON"
             >
               <FileDown className="h-4 w-4 mr-2" />
               Export JSON

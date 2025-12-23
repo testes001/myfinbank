@@ -1,9 +1,8 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
 import {
   Sparkles,
   TrendingUp,
@@ -15,13 +14,7 @@ import {
   Lightbulb,
   ChevronRight,
   RefreshCw,
-  CreditCard,
-  ShoppingBag,
-  Utensils,
-  Car,
-  Home,
   Zap,
-  CheckCircle2,
   Clock,
   ArrowRight,
   Brain,

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
@@ -130,7 +130,12 @@ export function AdminDepositQueue({ adminUser }: { adminUser: any }) {
             <div className="p-2 border rounded">
               <div className="text-xs text-muted-foreground mb-2">Front</div>
               {selected?.checkFrontImageUrl ? (
-                <img src={selected.checkFrontImageUrl} alt="front" className="w-full max-h-64 object-contain" />
+                <img
+                  src={selected.checkFrontImageUrl}
+                  alt="front"
+                  loading="lazy"
+                  className="w-full max-h-64 object-contain"
+                />
               ) : (
                 <div className="text-sm text-muted-foreground">No front image</div>
               )}
@@ -138,7 +143,12 @@ export function AdminDepositQueue({ adminUser }: { adminUser: any }) {
             <div className="p-2 border rounded">
               <div className="text-xs text-muted-foreground mb-2">Back</div>
               {selected?.checkBackImageUrl ? (
-                <img src={selected.checkBackImageUrl} alt="back" className="w-full max-h-64 object-contain" />
+                <img
+                  src={selected.checkBackImageUrl}
+                  alt="back"
+                  loading="lazy"
+                  className="w-full max-h-64 object-contain"
+                />
               ) : (
                 <div className="text-sm text-muted-foreground">No back image</div>
               )}

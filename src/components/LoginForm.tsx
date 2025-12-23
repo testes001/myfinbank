@@ -109,7 +109,11 @@ export function LoginForm({ onShowLanding }: LoginFormProps) {
                 className="border-white/20 bg-white/10 text-white placeholder:text-white/40"
                 placeholder="you@example.com"
               />
-              {emailError && <p className="text-xs text-red-300 mt-1">{emailError}</p>}
+              {emailError && (
+                <p className="text-xs text-red-300 mt-1" role="alert" aria-live="polite">
+                  {emailError}
+                </p>
+              )}
             </div>
 
             <div className="space-y-2">
@@ -125,7 +129,11 @@ export function LoginForm({ onShowLanding }: LoginFormProps) {
                 className="border-white/20 bg-white/10 text-white placeholder:text-white/40"
                 placeholder="••••••••"
               />
-              {passwordError && <p className="text-xs text-red-300 mt-1">{passwordError}</p>}
+              {passwordError && (
+                <p className="text-xs text-red-300 mt-1" role="alert" aria-live="polite">
+                  {passwordError}
+                </p>
+              )}
             </div>
 
             <Button

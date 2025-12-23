@@ -397,6 +397,7 @@ export function ProfilePage() {
                       <img
                         src={profilePhotoUrl}
                         alt="Profile"
+                        loading="lazy"
                         className="size-24 rounded-full object-cover border-2 border-white/20"
                       />
                     ) : (
@@ -408,6 +409,7 @@ export function ProfilePage() {
                       <Button
                         size="sm"
                         onClick={() => setShowProfilePictureModal(true)}
+                        aria-label="Upload profile photo"
                         className="absolute -bottom-1 -right-1 size-8 rounded-full bg-white/20 p-0 hover:bg-white/30"
                       >
                         <Camera className="size-4" />

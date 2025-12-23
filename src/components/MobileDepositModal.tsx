@@ -42,7 +42,7 @@ export function MobileDepositModal({ open, onOpenChange, onSuccess }: MobileDepo
     amount: "",
     status: "idle",
   });
-  const { loading, run } = useAsync<void>();
+    const { loading, run } = useAsync<void>();
   const [frontError, setFrontError] = useState<string | null>(null);
   const [backError, setBackError] = useState<string | null>(null);
   const [amountError, setAmountError] = useState<string | null>(null);
@@ -313,11 +313,15 @@ export function MobileDepositModal({ open, onOpenChange, onSuccess }: MobileDepo
                     />
                   </div>
                     {state.detectedAmount && (
-                      <p className="text-xs text-green-400">
+                      <p className="text-xs text-green-400" aria-live="polite">
                         ✓ Amount auto-detected from check
                       </p>
                     )}
-                    {amountError && <p className="text-xs text-red-300 mt-1">{amountError}</p>}
+                    {amountError && (
+                      <p className="text-xs text-red-300 mt-1" role="alert" aria-live="polite">
+                        {amountError}
+                      </p>
+                    )}
                 </div>
 
                 {/* Processing Status */}

@@ -290,6 +290,7 @@ export function MobileDepositModalNew({
                         <img
                           src={form.frontImage}
                           alt="Front"
+                          loading="lazy"
                           className="max-h-32 mx-auto rounded"
                         />
                         <p className="text-sm text-green-400">✓ Front image captured</p>
@@ -312,6 +313,7 @@ export function MobileDepositModalNew({
                         <img
                           src={form.backImage}
                           alt="Back"
+                          loading="lazy"
                           className="max-h-32 mx-auto rounded"
                         />
                         <p className="text-sm text-green-400">✓ Back image captured</p>
