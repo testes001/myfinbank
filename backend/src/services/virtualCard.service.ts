@@ -501,7 +501,7 @@ export class VirtualCardService {
       const digits = cardNumber.replace(/-/g, '');
       return digits.slice(-4);
     } catch (error) {
-      log.error('Failed to decrypt card number for masking', error);
+      log.error('Failed to decrypt card number for masking', error as Error);
       return '****';
     }
   }

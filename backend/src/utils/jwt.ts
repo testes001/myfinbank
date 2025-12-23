@@ -23,11 +23,12 @@ export interface DecodedToken extends TokenPayload {
  */
 export function generateAccessToken(payload: TokenPayload): string {
   try {
-    return jwt.sign(payload, config.jwtSecret, {
+    const options: jwt.SignOptions = {
       expiresIn: config.jwtAccessExpiry,
       issuer: 'finbank-api',
       audience: 'finbank-client',
-    });
+    };
+    return jwt.sign(payload, config.jwtSecret as jwt.Secret, options);
   } catch (error) {
     log.error('Failed to generate access token', error as Error);
     throw new Error('Token generation failed');
@@ -39,11 +40,12 @@ export function generateAccessToken(payload: TokenPayload): string {
  */
 export function generateRefreshToken(payload: TokenPayload): string {
   try {
-    return jwt.sign(payload, config.jwtSecret, {
+    const options: jwt.SignOptions = {
       expiresIn: config.jwtRefreshExpiry,
       issuer: 'finbank-api',
       audience: 'finbank-client',
-    });
+    };
+    return jwt.sign(payload, config.jwtSecret as jwt.Secret, options);
   } catch (error) {
     log.error('Failed to generate refresh token', error as Error);
     throw new Error('Token generation failed');
@@ -55,7 +57,7 @@ export function generateRefreshToken(payload: TokenPayload): string {
  */
 export function verifyAccessToken(token: string): DecodedToken {
   try {
-    return jwt.verify(token, config.jwtSecret, {
+    return jwt.verify(token, config.jwtSecret as jwt.Secret, {
       issuer: 'finbank-api',
       audience: 'finbank-client',
     }) as DecodedToken;
@@ -75,7 +77,7 @@ export function verifyAccessToken(token: string): DecodedToken {
  */
 export function verifyRefreshToken(token: string): DecodedToken {
   try {
-    return jwt.verify(token, config.jwtSecret, {
+    return jwt.verify(token, config.jwtSecret as jwt.Secret, {
       issuer: 'finbank-api',
       audience: 'finbank-client',
     }) as DecodedToken;

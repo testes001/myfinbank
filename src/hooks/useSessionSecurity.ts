@@ -20,7 +20,7 @@ export function useSessionSecurity(options: SessionSecurityOptions = {}) {
     lastActivityRef.current = Date.now();
 
     if (inactivityTimerRef.current) {
-      clearTimeout(inactivityTimerRef.current as number);
+      clearTimeout(inactivityTimerRef.current);
     }
 
     inactivityTimerRef.current = setTimeout(() => {

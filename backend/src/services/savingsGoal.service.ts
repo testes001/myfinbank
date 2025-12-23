@@ -3,12 +3,12 @@
  * Handles savings goal creation, contributions, and management
  */
 
-import { PrismaClient, GoalStatus, SavingsGoal } from '@prisma/client';
-import { config } from '@/config';
+import { PrismaClient, SavingsGoalStatus, SavingsGoal } from '@prisma/client';
 import { log } from '@/utils/logger';
 import { errors } from '@/middleware/errorHandler';
 
 const prisma = new PrismaClient();
+const GoalStatus = SavingsGoalStatus;
 
 // =============================================================================
 // Types
@@ -16,6 +16,7 @@ const prisma = new PrismaClient();
 
 export interface CreateSavingsGoalInput {
   userId: string;
+  accountId: string;
   name: string;
   targetAmount: number;
   deadline?: Date;
@@ -34,14 +35,12 @@ export interface UpdateSavingsGoalInput {
 export interface ContributeToGoalInput {
   userId: string;
   goalId: string;
-  accountId: string; // Account to transfer FROM
   amount: number;
 }
 
 export interface WithdrawFromGoalInput {
   userId: string;
   goalId: string;
-  accountId: string; // Account to transfer TO
   amount: number;
 }
 
@@ -54,7 +53,7 @@ export class SavingsGoalService {
    * Create a new savings goal
    */
   async createSavingsGoal(input: CreateSavingsGoalInput): Promise<SavingsGoal> {
-    const { userId, name, targetAmount, deadline, category } = input;
+    const { userId, accountId, name, targetAmount, deadline, category } = input;
 
     // Verify user exists
     const user = await prisma.user.findUnique({
@@ -79,6 +78,19 @@ export class SavingsGoalService {
       throw errors.validation('Deadline must be in the future');
     }
 
+    // Verify account exists and belongs to user
+    const account = await prisma.account.findUnique({
+      where: { id: accountId },
+    });
+
+    if (!account) {
+      throw errors.notFound('Account');
+    }
+
+    if (account.userId !== userId) {
+      throw errors.forbidden('You do not have access to this account');
+    }
+
     // Check if user has reached goal limit (e.g., max 20 goals per user)
     const existingGoals = await prisma.savingsGoal.count({
       where: {
@@ -97,6 +109,7 @@ export class SavingsGoalService {
     const savingsGoal = await prisma.savingsGoal.create({
       data: {
         userId,
+        accountId,
         name,
         targetAmount,
         currentAmount: 0,
@@ -200,7 +213,7 @@ export class SavingsGoalService {
    * Transfers money from account balance to goal
    */
   async contributeToGoal(input: ContributeToGoalInput): Promise<SavingsGoal> {
-    const { userId, goalId, accountId, amount } = input;
+    const { userId, goalId, amount } = input;
 
     if (amount <= 0) {
       throw errors.validation('Contribution amount must be positive');
@@ -221,7 +234,7 @@ export class SavingsGoalService {
 
     // Verify account exists and belongs to user
     const account = await prisma.account.findUnique({
-      where: { id: accountId },
+      where: { id: goal.accountId },
     });
 
     if (!account) {
@@ -246,7 +259,7 @@ export class SavingsGoalService {
     }
 
     // Check if account has sufficient balance
-    if (account.balance < amount) {
+    if (Number(account.balance) < amount) {
       throw errors.validation('Insufficient account balance');
     }
 
@@ -273,7 +286,7 @@ export class SavingsGoalService {
       });
 
       // Check if goal is now completed
-      if (updated.currentAmount >= updated.targetAmount) {
+      if (Number(updated.currentAmount) >= Number(updated.targetAmount)) {
         return await tx.savingsGoal.update({
           where: { id: goalId },
           data: {
@@ -339,7 +352,7 @@ export class SavingsGoalService {
     }
 
     // Check if goal has sufficient balance
-    if (goal.currentAmount < amount) {
+    if (Number(goal.currentAmount) < amount) {
       throw errors.validation('Insufficient goal balance');
     }
 
@@ -366,7 +379,10 @@ export class SavingsGoalService {
       });
 
       // If goal was completed but now is not, change status back to ACTIVE
-      if (goal.status === GoalStatus.COMPLETED && updated.currentAmount < updated.targetAmount) {
+      if (
+        goal.status === GoalStatus.COMPLETED &&
+        Number(updated.currentAmount) < Number(updated.targetAmount)
+      ) {
         return await tx.savingsGoal.update({
           where: { id: goalId },
           data: {
@@ -588,12 +604,12 @@ export class SavingsGoalService {
     // Cancel goal and return funds in transaction
     const updatedGoal = await prisma.$transaction(async (tx) => {
       // If there's money in the goal, return it to the account
-      if (goal.currentAmount > 0) {
+      if (Number(goal.currentAmount) > 0) {
         await tx.account.update({
           where: { id: goal.accountId },
           data: {
             balance: {
-              increment: goal.currentAmount,
+              increment: Number(goal.currentAmount),
             },
           },
         });
