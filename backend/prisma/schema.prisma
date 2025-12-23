@@ -140,6 +140,7 @@ model Transaction {
   userId          String            @map("user_id")
   fromAccountId   String?           @map("from_account_id")
   toAccountId     String?           @map("to_account_id")
+  idempotencyKey  String?           @map("idempotency_key")
   type            TransactionType
   amount          Decimal           @db.Decimal(15, 2)
   currency        String            @default("USD") @db.VarChar(3)
@@ -157,10 +158,12 @@ model Transaction {
   toAccount   Account? @relation("ToAccount", fields: [toAccountId], references: [id])
 
   @@index([userId, createdAt])
+  @@index([userId, status, createdAt])
   @@index([fromAccountId, createdAt])
   @@index([toAccountId, createdAt])
   @@index([status])
   @@index([referenceNumber])
+  @@unique([userId, idempotencyKey])
   @@map("transactions")
 }
 
@@ -322,6 +325,7 @@ model SavingsGoal {
   account Account @relation(fields: [accountId], references: [id], onDelete: Cascade)
 
   @@index([userId])
+  @@index([userId, status])
   @@index([accountId])
   @@map("savings_goals")
 }

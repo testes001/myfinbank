@@ -29,6 +29,7 @@ export interface InternalTransferInput {
   toAccountId: string;
   amount: number;
   description?: string;
+  idempotencyKey?: string;
 }
 
 export interface P2PTransferInput {
@@ -37,6 +38,7 @@ export interface P2PTransferInput {
   fromAccountId: string;
   amount: number;
   memo?: string;
+  idempotencyKey?: string;
 }
 
 export interface TransactionFilters {
@@ -156,7 +158,20 @@ export class TransactionService {
   async internalTransfer(
     input: InternalTransferInput
   ): Promise<Transaction> {
-    const { userId, fromAccountId, toAccountId, amount, description } = input;
+    const { userId, fromAccountId, toAccountId, amount, description, idempotencyKey } = input;
+
+    if (idempotencyKey) {
+      const existing = await prisma.transaction.findFirst({
+        where: {
+          userId,
+          type: TransactionType.TRANSFER,
+          idempotencyKey: { equals: idempotencyKey },
+        } as any,
+      });
+      if (existing) {
+        return existing;
+      }
+    }
 
     // Validate amount and limits
     await this.validateTransactionLimits(userId, amount);
@@ -210,7 +225,8 @@ export class TransactionService {
     const referenceNumber = this.generateReferenceNumber();
 
     // Perform transfer in transaction
-    const transaction = await prisma.$transaction(async (tx: any) => {
+    const transaction = await prisma.$transaction(
+      async (tx: any) => {
       // Create transaction record
       const txn = await tx.transaction.create({
         data: {
@@ -223,6 +239,7 @@ export class TransactionService {
           status: TransactionStatus.PROCESSING,
           description: description || 'Internal account transfer',
           referenceNumber,
+          idempotencyKey,
         },
       });
 
@@ -257,7 +274,9 @@ export class TransactionService {
       });
 
       return completedTxn;
-    });
+    },
+      { isolationLevel: Prisma.TransactionIsolationLevel.Serializable }
+    );
 
     // Create audit log
     await this.createTransactionAudit(userId, 'TRANSFER', transaction.id, {
@@ -274,7 +293,7 @@ export class TransactionService {
    * Perform P2P transfer to another user
    */
   async p2pTransfer(input: P2PTransferInput): Promise<P2PTransfer> {
-    const { senderId, recipientEmail, fromAccountId, amount, memo } = input;
+    const { senderId, recipientEmail, fromAccountId, amount, memo, idempotencyKey } = input;
 
     // Validate amount and limits
     await this.validateTransactionLimits(senderId, amount);
@@ -331,6 +350,23 @@ export class TransactionService {
     const recipientReferenceNumber = this.generateReferenceNumber();
 
     // Perform P2P transfer in transaction
+    if (idempotencyKey) {
+      const existing = await prisma.transaction.findFirst({
+        where: {
+          userId: senderId,
+          type: TransactionType.P2P_TRANSFER,
+          idempotencyKey: { equals: idempotencyKey },
+        } as any,
+      });
+      if (existing) {
+        const linked = await prisma.p2PTransfer.findFirst({
+          where: { id: (existing.metadata as any)?.p2pTransferId },
+          include: { sender: true, recipient: true },
+        });
+        if (linked) return linked;
+      }
+    }
+
     const p2pTransfer = await prisma.$transaction(async (tx: any) => {
       // Create P2P transfer record
       const p2p = await tx.p2PTransfer.create({
@@ -357,6 +393,7 @@ export class TransactionService {
           description: `P2P transfer to ${recipientEmail}`,
           referenceNumber: senderReferenceNumber,
           metadata: { p2pTransferId: p2p.id, recipientEmail, role: 'sender' },
+          idempotencyKey,
         },
       });
 
@@ -372,6 +409,7 @@ export class TransactionService {
           description: `P2P transfer from ${senderAccount.userId}`,
           referenceNumber: recipientReferenceNumber,
           metadata: { p2pTransferId: p2p.id, senderEmail: recipientEmail, role: 'recipient' },
+          idempotencyKey,
         },
       });
 
@@ -419,7 +457,9 @@ export class TransactionService {
       });
 
       return completedP2P;
-    });
+    },
+      { isolationLevel: Prisma.TransactionIsolationLevel.Serializable }
+    );
 
     // Create audit log
     await this.createTransactionAudit(senderId, 'P2P_TRANSFER', p2pTransfer.id, {
