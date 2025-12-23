@@ -17,6 +17,10 @@ import crypto from 'crypto';
 import authRoutes from '@/routes/auth.routes';
 import accountRoutes from '@/routes/account.routes';
 import transactionRoutes from '@/routes/transaction.routes';
+import userRoutes from '@/routes/user.routes';
+import kycRoutes from '@/routes/kyc.routes';
+import virtualCardRoutes from '@/routes/virtualCard.routes';
+import savingsGoalRoutes from '@/routes/savingsGoal.routes';
 
 export function createApp(): Application {
   const app = express();
@@ -113,6 +117,10 @@ export function createApp(): Application {
   app.use('/api/auth', authRoutes);
   app.use('/api/accounts', accountRoutes);
   app.use('/api/transactions', transactionRoutes);
+  app.use('/api/users', userRoutes);
+  app.use('/api/kyc', kycRoutes);
+  app.use('/api/cards', virtualCardRoutes);
+  app.use('/api/savings-goals', savingsGoalRoutes);
 
   // API documentation (Swagger)
   if (config.enableSwagger) {
