@@ -14,10 +14,8 @@ import { httpLoggerStream, log } from '@/utils/logger';
 import crypto from 'crypto';
 
 // Import routes
-// import authRoutes from '@/routes/auth.routes';
-// import userRoutes from '@/routes/user.routes';
-// import accountRoutes from '@/routes/account.routes';
-// import transactionRoutes from '@/routes/transaction.routes';
+import authRoutes from '@/routes/auth.routes';
+import accountRoutes from '@/routes/account.routes';
 
 export function createApp(): Application {
   const app = express();
@@ -111,9 +109,8 @@ export function createApp(): Application {
   });
 
   // API routes
-  app.use('/api/auth', (req, res) => {
-    res.json({ message: 'Auth routes - to be implemented' });
-  });
+  app.use('/api/auth', authRoutes);
+  app.use('/api/accounts', accountRoutes);
 
   // API documentation (Swagger)
   if (config.enableSwagger) {

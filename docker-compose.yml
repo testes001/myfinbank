@@ -1,0 +1,110 @@
+# FinBank Development Environment
+# PostgreSQL + Redis for backend development
+
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:14-alpine
+    container_name: finbank-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: finbank_dev_password
+      POSTGRES_DB: finbank_dev
+      POSTGRES_INITDB_ARGS: "-E UTF8 --locale=en_US.UTF-8"
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./backend/prisma/init.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - finbank-network
+
+  # Redis Cache & Sessions
+  redis:
+    image: redis:7-alpine
+    container_name: finbank-redis
+    restart: unless-stopped
+    command: redis-server --appendonly yes --requirepass finbank_redis_password
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - finbank-network
+
+  # Adminer - Database Management UI (Optional)
+  adminer:
+    image: adminer:latest
+    container_name: finbank-adminer
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    environment:
+      ADMINER_DEFAULT_SERVER: postgres
+    depends_on:
+      - postgres
+    networks:
+      - finbank-network
+    profiles:
+      - tools
+
+  # Redis Commander - Redis Management UI (Optional)
+  redis-commander:
+    image: rediscommander/redis-commander:latest
+    container_name: finbank-redis-commander
+    restart: unless-stopped
+    ports:
+      - "8081:8081"
+    environment:
+      REDIS_HOSTS: local:redis:6379:0:finbank_redis_password
+    depends_on:
+      - redis
+    networks:
+      - finbank-network
+    profiles:
+      - tools
+
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+
+networks:
+  finbank-network:
+    driver: bridge
+
+# Usage:
+# Start databases only:
+#   docker-compose up -d
+#
+# Start databases + management tools:
+#   docker-compose --profile tools up -d
+#
+# Stop all services:
+#   docker-compose down
+#
+# Remove all data (fresh start):
+#   docker-compose down -v
+#
+# View logs:
+#   docker-compose logs -f
+#
+# Access services:
+#   PostgreSQL: localhost:5432
+#   Redis: localhost:6379
+#   Adminer (DB UI): http://localhost:8080
+#   Redis Commander: http://localhost:8081

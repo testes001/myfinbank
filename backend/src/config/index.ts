@@ -218,7 +218,7 @@ export function validateConfig(): void {
 
 // Log configuration warnings
 export function logConfigWarnings(): void {
-  const { log } = require('./utils/logger');
+  const { log } = require('@/utils/logger');
 
   if (!config.sendgridApiKey) {
     log.warn('SENDGRID_API_KEY not set - email notifications will fail');
