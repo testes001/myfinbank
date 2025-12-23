@@ -372,7 +372,7 @@ export class KYCService {
           resourceId,
           status: 'SUCCESS',
           metadata,
-        },
+        } as any,
       });
     } catch (error) {
       console.error('Failed to create audit log:', error);

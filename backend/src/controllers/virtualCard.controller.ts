@@ -45,9 +45,11 @@ export class VirtualCardController {
         throw errors.validation('Invalid request body', validationResult.error.errors);
       }
 
+      const cardPayload = validationResult.data as any;
+
       const virtualCard = await virtualCardService.createVirtualCard({
         userId: req.user.userId,
-        ...validationResult.data,
+        ...cardPayload,
       });
 
       res.status(201).json({

@@ -76,6 +76,11 @@ export function hash(data: string): string {
   return crypto.createHash('sha256').update(data).digest('hex');
 }
 
+// Hash a token for storage/lookup (alias for clarity in auth flows)
+export function hashToken(token: string): string {
+  return hash(token);
+}
+
 /**
  * Generate secure random token
  */

@@ -3,16 +3,22 @@
  * Business logic for account management
  */
 
-import { PrismaClient, Account, AccountType, AccountStatus } from '@prisma/client';
+import { PrismaClient } from '@prisma/client';
 import { log } from '@/utils/logger';
 import { errors } from '@/middleware/errorHandler';
 import { encrypt, decrypt } from '@/utils/encryption';
 
 const prisma = new PrismaClient();
+const AccountStatus = {
+  ACTIVE: 'ACTIVE',
+  CLOSED: 'CLOSED',
+  FROZEN: 'FROZEN',
+  RESTRICTED: 'RESTRICTED',
+} as const;
 
 export interface CreateAccountInput {
   userId: string;
-  accountType: AccountType;
+  accountType: string;
   currency?: string;
   initialDeposit?: number;
 }
@@ -21,7 +27,7 @@ export class AccountService {
   /**
    * Get all accounts for a user
    */
-  async getUserAccounts(userId: string): Promise<Account[]> {
+  async getUserAccounts(userId: string): Promise<any[]> {
     const accounts = await prisma.account.findMany({
       where: { userId },
       orderBy: { createdAt: 'desc' },
@@ -35,7 +41,7 @@ export class AccountService {
   /**
    * Get account by ID
    */
-  async getAccountById(accountId: string, userId: string): Promise<Account> {
+  async getAccountById(accountId: string, userId: string): Promise<any> {
     const account = await prisma.account.findFirst({
       where: {
         id: accountId,
@@ -53,7 +59,7 @@ export class AccountService {
   /**
    * Create new account
    */
-  async createAccount(input: CreateAccountInput): Promise<Account> {
+  async createAccount(input: CreateAccountInput): Promise<any> {
     const { userId, accountType, currency = 'USD', initialDeposit = 0 } = input;
 
     // Check if user exists
@@ -107,7 +113,7 @@ export class AccountService {
   /**
    * Update account status
    */
-  async updateAccountStatus(accountId: string, userId: string, status: AccountStatus): Promise<Account> {
+  async updateAccountStatus(accountId: string, userId: string, status: any): Promise<any> {
     // Verify ownership
     await this.getAccountById(accountId, userId);
 

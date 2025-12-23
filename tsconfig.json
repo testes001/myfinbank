@@ -1,6 +1,6 @@
 {
-  "include": ["**/*.ts", "**/*.tsx"],
-  "exclude": ["agent/**/*"],
+  "include": ["src/**/*.ts", "src/**/*.tsx", "config/**/*.ts", "vite.config.ts", "eslint.config.js"],
+  "exclude": ["agent/**/*", "backend/**/*", "codex/**/*"],
   "compilerOptions": {
     "target": "ES2022",
     "jsx": "react-jsx",

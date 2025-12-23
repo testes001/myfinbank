@@ -3,13 +3,25 @@
  * Handles virtual card creation, management, and operations
  */
 
-import { PrismaClient, CardStatus, CardType, VirtualCard } from '@prisma/client';
+import { PrismaClient } from '@prisma/client';
 import { config } from '@/config';
 import { log } from '@/utils/logger';
 import { errors } from '@/middleware/errorHandler';
 import { encrypt, decrypt } from '@/utils/encryption';
 
 const prisma = new PrismaClient();
+const CardStatus = {
+  ACTIVE: 'ACTIVE',
+  FROZEN: 'FROZEN',
+  EXPIRED: 'EXPIRED',
+  CANCELLED: 'CANCELLED',
+} as const;
+const CardType = {
+  SINGLE_USE: 'SINGLE_USE',
+  MERCHANT_LOCKED: 'MERCHANT_LOCKED',
+  RECURRING: 'RECURRING',
+  STANDARD: 'STANDARD',
+} as const;
 
 // =============================================================================
 // Types
@@ -19,7 +31,7 @@ export interface CreateVirtualCardInput {
   userId: string;
   linkedAccountId: string;
   cardName: string;
-  cardType: CardType;
+  cardType: string;
   spendingLimit?: number;
 }
 
@@ -37,7 +49,7 @@ export class VirtualCardService {
   /**
    * Create a new virtual card
    */
-  async createVirtualCard(input: CreateVirtualCardInput): Promise<VirtualCard> {
+  async createVirtualCard(input: CreateVirtualCardInput): Promise<any> {
     const { userId, linkedAccountId, cardName, cardType, spendingLimit } = input;
 
     // Verify account exists and belongs to user
@@ -137,7 +149,7 @@ export class VirtualCardService {
     });
 
     // Return cards with masked card numbers (don't expose full number)
-    return cards.map((card) => ({
+    return cards.map((card: any) => ({
       id: card.id,
       cardName: card.cardName,
       lastFourDigits: this.getLastFourDigits(card.cardNumber),
@@ -243,7 +255,7 @@ export class VirtualCardService {
   /**
    * Freeze a virtual card
    */
-  async freezeCard(userId: string, cardId: string): Promise<VirtualCard> {
+  async freezeCard(userId: string, cardId: string): Promise<any> {
     const card = await prisma.virtualCard.findUnique({
       where: { id: cardId },
     });
@@ -288,7 +300,7 @@ export class VirtualCardService {
   /**
    * Unfreeze a virtual card
    */
-  async unfreezeCard(userId: string, cardId: string): Promise<VirtualCard> {
+  async unfreezeCard(userId: string, cardId: string): Promise<any> {
     const card = await prisma.virtualCard.findUnique({
       where: { id: cardId },
     });
@@ -333,7 +345,7 @@ export class VirtualCardService {
   /**
    * Cancel a virtual card (permanent action)
    */
-  async cancelCard(userId: string, cardId: string): Promise<VirtualCard> {
+  async cancelCard(userId: string, cardId: string): Promise<any> {
     const card = await prisma.virtualCard.findUnique({
       where: { id: cardId },
     });
@@ -374,7 +386,7 @@ export class VirtualCardService {
   /**
    * Update card spending limit
    */
-  async updateSpendingLimit(input: UpdateSpendingLimitInput): Promise<VirtualCard> {
+  async updateSpendingLimit(input: UpdateSpendingLimitInput): Promise<any> {
     const { userId, cardId, spendingLimit } = input;
 
     if (spendingLimit < 0) {
@@ -524,7 +536,7 @@ export class VirtualCardService {
           resourceId,
           status: 'SUCCESS',
           metadata,
-        },
+        } as any,
       });
     } catch (error) {
       console.error('Failed to create audit log:', error);

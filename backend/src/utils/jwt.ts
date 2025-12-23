@@ -24,7 +24,7 @@ export interface DecodedToken extends TokenPayload {
 export function generateAccessToken(payload: TokenPayload): string {
   try {
     const options: jwt.SignOptions = {
-      expiresIn: config.jwtAccessExpiry,
+      expiresIn: config.jwtAccessExpiry as jwt.SignOptions['expiresIn'],
       issuer: 'finbank-api',
       audience: 'finbank-client',
     };
@@ -41,7 +41,7 @@ export function generateAccessToken(payload: TokenPayload): string {
 export function generateRefreshToken(payload: TokenPayload): string {
   try {
     const options: jwt.SignOptions = {
-      expiresIn: config.jwtRefreshExpiry,
+      expiresIn: config.jwtRefreshExpiry as jwt.SignOptions['expiresIn'],
       issuer: 'finbank-api',
       audience: 'finbank-client',
     };
@@ -106,9 +106,16 @@ export function decodeToken(token: string): DecodedToken | null {
 /**
  * Extract token from Authorization header
  */
-export function extractBearerToken(authHeader: string | undefined): string | null {
-  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+export function extractBearerToken(authHeader: string | { headers?: { authorization?: string } } | undefined): string | null {
+  const headerValue =
+    typeof authHeader === 'string'
+      ? authHeader
+      : authHeader && typeof authHeader === 'object'
+        ? authHeader.headers?.authorization
+        : undefined;
+
+  if (!headerValue || !headerValue.startsWith('Bearer ')) {
     return null;
   }
-  return authHeader.substring(7);
+  return headerValue.substring(7);
 }

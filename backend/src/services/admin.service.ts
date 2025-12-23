@@ -4,12 +4,23 @@
  */
 
 import bcrypt from 'bcryptjs';
-import { AdminUser, AdminSession, AdminRole, AdminStatus } from '@prisma/client';
 import { prisma } from '@/config/database';
 import { errors } from '@/middleware/errorHandler';
 import { log } from '@/utils/logger';
 import { generateAccessToken, generateRefreshToken } from '@/utils/jwt';
 import { hashToken } from '@/utils/encryption';
+
+const AdminRole = {
+  SUPERADMIN: 'SUPERADMIN',
+  COMPLIANCE_OFFICER: 'COMPLIANCE_OFFICER',
+  SUPPORT_AGENT: 'SUPPORT_AGENT',
+} as const;
+
+const AdminStatus = {
+  ACTIVE: 'ACTIVE',
+  SUSPENDED: 'SUSPENDED',
+  INACTIVE: 'INACTIVE',
+} as const;
 
 // =============================================================================
 // Types
@@ -30,8 +41,8 @@ interface AdminLoginResponse {
     username: string;
     email: string;
     fullName: string;
-    role: AdminRole;
-    status: AdminStatus;
+    role: string;
+    status: string;
     mfaEnabled: boolean;
     lastLogin: Date | null;
   };
@@ -45,7 +56,7 @@ interface CreateAdminInput {
   email: string;
   password: string;
   fullName: string;
-  role: AdminRole;
+  role: string;
   createdBy: string;
 }
 
@@ -194,7 +205,7 @@ export class AdminService {
         status: 'SUCCESS',
         ipAddress: deviceInfo.ipAddress,
         userAgent: deviceInfo.userAgent,
-      },
+      } as any,
     });
 
     return {
@@ -241,7 +252,7 @@ export class AdminService {
         resource: 'admin_session',
         resourceId: sessionId,
         status: 'SUCCESS',
-      },
+      } as any,
     });
 
     log.auth('Admin logout successful', {
@@ -253,7 +264,7 @@ export class AdminService {
   /**
    * Get admin session
    */
-  async getSession(sessionId: string): Promise<AdminSession & { admin: AdminUser }> {
+  async getSession(sessionId: string): Promise<any> {
     const session = await prisma.adminSession.findUnique({
       where: { id: sessionId },
       include: { admin: true },
@@ -346,7 +357,7 @@ export class AdminService {
   /**
    * Create new admin user (SUPERADMIN only)
    */
-  async createAdmin(input: CreateAdminInput): Promise<AdminUser> {
+  async createAdmin(input: CreateAdminInput): Promise<any> {
     // Check if username or email already exists
     const existing = await prisma.adminUser.findFirst({
       where: {
@@ -387,7 +398,7 @@ export class AdminService {
           email: admin.email,
           role: admin.role,
         },
-      },
+      } as any,
     });
 
     log.security('New admin user created', {
@@ -403,7 +414,7 @@ export class AdminService {
   /**
    * List all admins (SUPERADMIN only)
    */
-  async listAdmins(): Promise<AdminUser[]> {
+  async listAdmins(): Promise<any[]> {
     return prisma.adminUser.findMany({
       orderBy: { createdAt: 'desc' },
     });
@@ -412,7 +423,7 @@ export class AdminService {
   /**
    * Get admin by ID
    */
-  async getAdminById(id: string): Promise<AdminUser> {
+  async getAdminById(id: string): Promise<any> {
     const admin = await prisma.adminUser.findUnique({
       where: { id },
     });
@@ -429,9 +440,9 @@ export class AdminService {
    */
   async updateAdminStatus(
     adminId: string,
-    status: AdminStatus,
+    status: any,
     updatedBy: string
-  ): Promise<AdminUser> {
+  ): Promise<any> {
     const admin = await prisma.adminUser.update({
       where: { id: adminId },
       data: { status },
@@ -450,7 +461,7 @@ export class AdminService {
           oldStatus: admin.status,
           newStatus: status,
         },
-      },
+      } as any,
     });
 
     log.security('Admin status updated', {

@@ -4,11 +4,16 @@
  */
 
 import { Request, Response, NextFunction } from 'express';
-import { AdminRole } from '@prisma/client';
 import { errors } from './errorHandler';
 import { verifyAccessToken, extractBearerToken } from '@/utils/jwt';
 import { log } from '@/utils/logger';
 import { prisma } from '@/config/database';
+
+const AdminRole = {
+  SUPERADMIN: 'SUPERADMIN',
+  COMPLIANCE_OFFICER: 'COMPLIANCE_OFFICER',
+  SUPPORT_AGENT: 'SUPPORT_AGENT',
+} as const;
 
 // =============================================================================
 // Type Extensions
@@ -21,7 +26,7 @@ declare global {
         adminId: string;
         username: string;
         email: string;
-        role: AdminRole;
+        role: string;
         sessionId: string;
       };
     }
@@ -158,7 +163,7 @@ export async function optionalAdminAuth(
  * Require specific admin role
  * Must be used after authenticateAdmin middleware
  */
-export function requireRole(...roles: AdminRole[]) {
+export function requireRole(...roles: string[]) {
   return (req: Request, res: Response, next: NextFunction): void => {
     if (!req.admin) {
       return next(errors.unauthorized('Admin authentication required'));
@@ -212,7 +217,7 @@ export function requireAnyAdmin(req: Request, res: Response, next: NextFunction)
  */
 export function hasPermission(permission: string): boolean {
   // Permission mapping by role
-  const permissions: Record<AdminRole, string[]> = {
+  const permissions: Record<string, string[]> = {
     SUPERADMIN: [
       'users.read',
       'users.write',

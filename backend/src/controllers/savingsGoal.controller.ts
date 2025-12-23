@@ -173,11 +173,11 @@ export class SavingsGoalController {
         message: 'Contribution successful',
         data: {
           id: goal.id,
-          currentAmount: goal.currentAmount,
-          targetAmount: goal.targetAmount,
+          currentAmount: Number(goal.currentAmount),
+          targetAmount: Number(goal.targetAmount),
           status: goal.status,
-          progress: goal.targetAmount > 0
-            ? Math.round((goal.currentAmount / goal.targetAmount) * 100)
+          progress: Number(goal.targetAmount) > 0
+            ? Math.round((Number(goal.currentAmount) / Number(goal.targetAmount)) * 100)
             : 0,
         },
         meta: {
@@ -221,11 +221,11 @@ export class SavingsGoalController {
         message: 'Withdrawal successful',
         data: {
           id: goal.id,
-          currentAmount: goal.currentAmount,
-          targetAmount: goal.targetAmount,
+          currentAmount: Number(goal.currentAmount),
+          targetAmount: Number(goal.targetAmount),
           status: goal.status,
-          progress: goal.targetAmount > 0
-            ? Math.round((goal.currentAmount / goal.targetAmount) * 100)
+          progress: Number(goal.targetAmount) > 0
+            ? Math.round((Number(goal.currentAmount) / Number(goal.targetAmount)) * 100)
             : 0,
         },
         meta: {

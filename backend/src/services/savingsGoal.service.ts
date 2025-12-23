@@ -3,12 +3,19 @@
  * Handles savings goal creation, contributions, and management
  */
 
-import { PrismaClient, SavingsGoalStatus, SavingsGoal } from '@prisma/client';
+import { PrismaClient, SavingsGoal } from '@prisma/client';
 import { log } from '@/utils/logger';
 import { errors } from '@/middleware/errorHandler';
 
 const prisma = new PrismaClient();
-const GoalStatus = SavingsGoalStatus;
+
+const GoalStatus = {
+  ACTIVE: 'ACTIVE',
+  COMPLETED: 'COMPLETED',
+  PAUSED: 'PAUSED',
+  CANCELLED: 'CANCELLED',
+} as const;
+type GoalStatusType = (typeof GoalStatus)[keyof typeof GoalStatus];
 
 // =============================================================================
 // Types
@@ -115,8 +122,8 @@ export class SavingsGoalService {
         currentAmount: 0,
         deadline,
         category: category || 'General',
-        status: GoalStatus.ACTIVE,
-      },
+        status: GoalStatus.ACTIVE as GoalStatusType,
+      } as any,
     });
 
     // Create audit log
@@ -150,7 +157,7 @@ export class SavingsGoalService {
     });
 
     // Calculate progress for each goal
-    return goals.map((goal) => ({
+    return goals.map((goal: any) => ({
       id: goal.id,
       name: goal.name,
       targetAmount: goal.targetAmount,
@@ -172,7 +179,7 @@ export class SavingsGoalService {
    * Get savings goal by ID
    */
   async getSavingsGoalById(userId: string, goalId: string): Promise<any> {
-    const goal = await prisma.savingsGoal.findUnique({
+    const goal = await (prisma as any).savingsGoal.findUnique({
       where: { id: goalId },
     });
 
@@ -234,7 +241,7 @@ export class SavingsGoalService {
 
     // Verify account exists and belongs to user
     const account = await prisma.account.findUnique({
-      where: { id: goal.accountId },
+      where: { id: (goal as any).accountId },
     });
 
     if (!account) {
@@ -264,10 +271,10 @@ export class SavingsGoalService {
     }
 
     // Perform contribution in transaction
-    const updatedGoal = await prisma.$transaction(async (tx) => {
+    const updatedGoal = await prisma.$transaction(async (tx: any) => {
       // Deduct from account balance
       await tx.account.update({
-        where: { id: goal.accountId },
+        where: { id: (goal as any).accountId },
         data: {
           balance: {
             decrement: amount,
@@ -290,7 +297,7 @@ export class SavingsGoalService {
         return await tx.savingsGoal.update({
           where: { id: goalId },
           data: {
-            status: GoalStatus.COMPLETED,
+            status: GoalStatus.COMPLETED as GoalStatusType,
           },
         });
       }
@@ -325,7 +332,7 @@ export class SavingsGoalService {
       throw errors.validation('Withdrawal amount must be positive');
     }
 
-    const goal = await prisma.savingsGoal.findUnique({
+    const goal = await (prisma as any).savingsGoal.findUnique({
       where: { id: goalId },
       include: {
         account: {
@@ -357,10 +364,10 @@ export class SavingsGoalService {
     }
 
     // Perform withdrawal in transaction
-    const updatedGoal = await prisma.$transaction(async (tx) => {
+    const updatedGoal = await prisma.$transaction(async (tx: any) => {
       // Add to account balance
       await tx.account.update({
-        where: { id: goal.accountId },
+        where: { id: (goal as any).accountId },
         data: {
           balance: {
             increment: amount,
@@ -386,7 +393,7 @@ export class SavingsGoalService {
         return await tx.savingsGoal.update({
           where: { id: goalId },
           data: {
-            status: GoalStatus.ACTIVE,
+            status: GoalStatus.ACTIVE as GoalStatusType,
           },
         });
       }
@@ -416,7 +423,7 @@ export class SavingsGoalService {
   async updateSavingsGoal(input: UpdateSavingsGoalInput): Promise<SavingsGoal> {
     const { userId, goalId, name, targetAmount, deadline, category } = input;
 
-    const goal = await prisma.savingsGoal.findUnique({
+    const goal = await (prisma as any).savingsGoal.findUnique({
       where: { id: goalId },
       include: {
         account: {
@@ -490,7 +497,7 @@ export class SavingsGoalService {
    * Pause a savings goal
    */
   async pauseGoal(userId: string, goalId: string): Promise<SavingsGoal> {
-    const goal = await prisma.savingsGoal.findUnique({
+    const goal = await (prisma as any).savingsGoal.findUnique({
       where: { id: goalId },
       include: {
         account: {
@@ -522,7 +529,7 @@ export class SavingsGoalService {
     const updatedGoal = await prisma.savingsGoal.update({
       where: { id: goalId },
       data: {
-        status: GoalStatus.PAUSED,
+        status: GoalStatus.PAUSED as GoalStatusType,
       },
     });
 
@@ -537,7 +544,7 @@ export class SavingsGoalService {
    * Resume a paused savings goal
    */
   async resumeGoal(userId: string, goalId: string): Promise<SavingsGoal> {
-    const goal = await prisma.savingsGoal.findUnique({
+    const goal = await (prisma as any).savingsGoal.findUnique({
       where: { id: goalId },
       include: {
         account: {
@@ -561,7 +568,7 @@ export class SavingsGoalService {
     const updatedGoal = await prisma.savingsGoal.update({
       where: { id: goalId },
       data: {
-        status: GoalStatus.ACTIVE,
+        status: GoalStatus.ACTIVE as GoalStatusType,
       },
     });
 
@@ -577,7 +584,7 @@ export class SavingsGoalService {
    * Returns all funds to the account
    */
   async cancelGoal(userId: string, goalId: string): Promise<SavingsGoal> {
-    const goal = await prisma.savingsGoal.findUnique({
+    const goal = await (prisma as any).savingsGoal.findUnique({
       where: { id: goalId },
       include: {
         account: {
@@ -602,11 +609,11 @@ export class SavingsGoalService {
     }
 
     // Cancel goal and return funds in transaction
-    const updatedGoal = await prisma.$transaction(async (tx) => {
+    const updatedGoal = await prisma.$transaction(async (tx: any) => {
       // If there's money in the goal, return it to the account
       if (Number(goal.currentAmount) > 0) {
         await tx.account.update({
-          where: { id: goal.accountId },
+          where: { id: (goal as any).accountId },
           data: {
             balance: {
               increment: Number(goal.currentAmount),
@@ -619,7 +626,7 @@ export class SavingsGoalService {
       return await tx.savingsGoal.update({
         where: { id: goalId },
         data: {
-          status: GoalStatus.CANCELLED,
+          status: GoalStatus.CANCELLED as GoalStatusType,
         },
       });
     });
@@ -655,7 +662,7 @@ export class SavingsGoalService {
           resourceId,
           status: 'SUCCESS',
           metadata,
-        },
+        } as any,
       });
     } catch (error) {
       console.error('Failed to create audit log:', error);

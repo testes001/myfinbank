@@ -3,13 +3,19 @@
  * Handles user profile management, password changes, and settings
  */
 
-import { PrismaClient, User, UserStatus } from '@prisma/client';
+import { PrismaClient } from '@prisma/client';
 import bcrypt from 'bcryptjs';
 import { config } from '@/config';
 import { log } from '@/utils/logger';
 import { errors } from '@/middleware/errorHandler';
 
 const prisma = new PrismaClient();
+const UserStatus = {
+  PENDING_KYC: 'PENDING_KYC',
+  ACTIVE: 'ACTIVE',
+  SUSPENDED: 'SUSPENDED',
+  CLOSED: 'CLOSED',
+} as const;
 
 // =============================================================================
 // Types
@@ -135,7 +141,7 @@ export class UserService {
   async updateProfile(
     userId: string,
     input: UpdateProfileInput
-  ): Promise<User> {
+  ): Promise<any> {
     const { fullName, phoneNumber } = input;
 
     // Validate phone number format if provided
@@ -421,12 +427,12 @@ export class UserService {
         endDate: new Date(),
       },
       transactions: {
-        byType: transactionsByType.map((t) => ({
+        byType: transactionsByType.map((t: any) => ({
           type: t.type,
           count: t._count,
           totalAmount: Number(t._sum.amount || 0),
         })),
-        total: transactionsByType.reduce((sum, t) => sum + t._count, 0),
+        total: transactionsByType.reduce((sum: number, t: any) => sum + t._count, 0),
       },
       security: {
         loginCount,
@@ -459,7 +465,7 @@ export class UserService {
 
     // Check if user has any active accounts with balance
     const accountsWithBalance = user.accounts.filter(
-      (account) => Number(account.balance) > 0
+      (account: any) => Number(account.balance) > 0
     );
 
     if (accountsWithBalance.length > 0) {
@@ -522,7 +528,7 @@ export class UserService {
           resourceId: userId,
           status: 'SUCCESS',
           metadata,
-        },
+        } as any,
       });
     } catch (error) {
       // Log error but don't fail the operation

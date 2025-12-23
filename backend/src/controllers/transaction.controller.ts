@@ -70,6 +70,8 @@ export class TransactionController {
         description,
       });
 
+      const txWithAccounts: any = transaction;
+
       res.status(201).json({
         success: true,
         message: 'Transfer completed successfully',
@@ -83,18 +85,18 @@ export class TransactionController {
           description: transaction.description,
           createdAt: transaction.createdAt,
           completedAt: transaction.completedAt,
-          fromAccount: transaction.fromAccount
+          fromAccount: txWithAccounts.fromAccount
             ? {
-                id: transaction.fromAccount.id,
-                accountNumber: `****${transaction.fromAccount.accountNumber.slice(-4)}`,
-                accountType: transaction.fromAccount.accountType,
+                id: txWithAccounts.fromAccount.id,
+                accountNumber: `****${txWithAccounts.fromAccount.accountNumber.slice(-4)}`,
+                accountType: txWithAccounts.fromAccount.accountType,
               }
             : null,
-          toAccount: transaction.toAccount
+          toAccount: txWithAccounts.toAccount
             ? {
-                id: transaction.toAccount.id,
-                accountNumber: `****${transaction.toAccount.accountNumber.slice(-4)}`,
-                accountType: transaction.toAccount.accountType,
+                id: txWithAccounts.toAccount.id,
+                accountNumber: `****${txWithAccounts.toAccount.accountNumber.slice(-4)}`,
+                accountType: txWithAccounts.toAccount.accountType,
               }
             : null,
         },
@@ -132,6 +134,8 @@ export class TransactionController {
         memo,
       });
 
+      const transferWithRelations: any = p2pTransfer;
+
       res.status(201).json({
         success: true,
         message: 'P2P transfer completed successfully',
@@ -143,16 +147,20 @@ export class TransactionController {
           memo: p2pTransfer.memo,
           createdAt: p2pTransfer.createdAt,
           completedAt: p2pTransfer.completedAt,
-          sender: {
-            id: p2pTransfer.sender.id,
-            email: p2pTransfer.sender.email,
-            fullName: p2pTransfer.sender.fullName,
-          },
-          recipient: {
-            id: p2pTransfer.recipient.id,
-            email: p2pTransfer.recipient.email,
-            fullName: p2pTransfer.recipient.fullName,
-          },
+          sender: transferWithRelations.sender
+            ? {
+                id: transferWithRelations.sender.id,
+                email: transferWithRelations.sender.email,
+                fullName: transferWithRelations.sender.fullName,
+              }
+            : null,
+          recipient: transferWithRelations.recipient
+            ? {
+                id: transferWithRelations.recipient.id,
+                email: transferWithRelations.recipient.email,
+                fullName: transferWithRelations.recipient.fullName,
+              }
+            : null,
         },
         meta: {
           requestId: req.requestId,
@@ -179,38 +187,41 @@ export class TransactionController {
       }
 
       const filters = {
-        ...validationResult.data,
+        ...(validationResult.data as any),
         userId: req.user.userId,
-      };
+      } as any;
 
       const result = await transactionService.getTransactionHistory(filters);
 
       // Format transactions for response
-      const formattedTransactions = result.transactions.map((txn) => ({
-        id: txn.id,
-        type: txn.type,
-        amount: Number(txn.amount).toFixed(2),
-        currency: txn.currency,
-        status: txn.status,
-        description: txn.description,
-        referenceNumber: txn.referenceNumber,
-        createdAt: txn.createdAt,
-        completedAt: txn.completedAt,
-        fromAccount: txn.fromAccount
-          ? {
-              id: txn.fromAccount.id,
-              accountNumber: `****${txn.fromAccount.accountNumber.slice(-4)}`,
-              accountType: txn.fromAccount.accountType,
-            }
-          : null,
-        toAccount: txn.toAccount
-          ? {
-              id: txn.toAccount.id,
-              accountNumber: `****${txn.toAccount.accountNumber.slice(-4)}`,
-              accountType: txn.toAccount.accountType,
-            }
-          : null,
-      }));
+      const formattedTransactions = result.transactions.map((txn) => {
+        const txWithAccounts: any = txn;
+        return {
+          id: txn.id,
+          type: txn.type,
+          amount: Number(txn.amount).toFixed(2),
+          currency: txn.currency,
+          status: txn.status,
+          description: txn.description,
+          referenceNumber: txn.referenceNumber,
+          createdAt: txn.createdAt,
+          completedAt: txn.completedAt,
+          fromAccount: txWithAccounts.fromAccount
+            ? {
+                id: txWithAccounts.fromAccount.id,
+                accountNumber: `****${txWithAccounts.fromAccount.accountNumber.slice(-4)}`,
+                accountType: txWithAccounts.fromAccount.accountType,
+              }
+            : null,
+          toAccount: txWithAccounts.toAccount
+            ? {
+                id: txWithAccounts.toAccount.id,
+                accountNumber: `****${txWithAccounts.toAccount.accountNumber.slice(-4)}`,
+                accountType: txWithAccounts.toAccount.accountType,
+              }
+            : null,
+        };
+      });
 
       res.status(200).json({
         success: true,
@@ -250,6 +261,8 @@ export class TransactionController {
         req.user.userId
       );
 
+      const txWithAccounts: any = transaction;
+
       res.status(200).json({
         success: true,
         data: {
@@ -264,18 +277,18 @@ export class TransactionController {
           failureReason: transaction.failureReason,
           createdAt: transaction.createdAt,
           completedAt: transaction.completedAt,
-          fromAccount: transaction.fromAccount
+          fromAccount: txWithAccounts.fromAccount
             ? {
-                id: transaction.fromAccount.id,
-                accountNumber: `****${transaction.fromAccount.accountNumber.slice(-4)}`,
-                accountType: transaction.fromAccount.accountType,
+                id: txWithAccounts.fromAccount.id,
+                accountNumber: `****${txWithAccounts.fromAccount.accountNumber.slice(-4)}`,
+                accountType: txWithAccounts.fromAccount.accountType,
               }
             : null,
-          toAccount: transaction.toAccount
+          toAccount: txWithAccounts.toAccount
             ? {
-                id: transaction.toAccount.id,
-                accountNumber: `****${transaction.toAccount.accountNumber.slice(-4)}`,
-                accountType: transaction.toAccount.accountType,
+                id: txWithAccounts.toAccount.id,
+                accountNumber: `****${txWithAccounts.toAccount.accountNumber.slice(-4)}`,
+                accountType: txWithAccounts.toAccount.accountType,
               }
             : null,
         },

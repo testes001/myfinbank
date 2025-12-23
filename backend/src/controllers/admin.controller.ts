@@ -200,8 +200,10 @@ export class AdminController {
       throw errors.validation('Invalid request body', validationResult.error.errors);
     }
 
+    const adminPayload = validationResult.data as any;
+
     const admin = await adminService.createAdmin({
-      ...validationResult.data,
+      ...adminPayload,
       createdBy: req.admin.adminId,
     });
 
