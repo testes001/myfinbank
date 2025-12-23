@@ -13,6 +13,8 @@ import { config, validateConfig } from '@/config';
 import { errorHandler, errors } from '@/middleware/errorHandler';
 import { httpLoggerStream, log } from '@/utils/logger';
 import crypto from 'crypto';
+import { prisma } from '@/config/database';
+import redisClient from '@/config/redis';
 
 // Import routes
 import authRoutes from '@/routes/auth.routes';
@@ -106,12 +108,39 @@ export function createApp(): Application {
   // =============================================================================
 
   // Health check
-  app.get('/health', (req: Request, res: Response) => {
-    res.json({
-      status: 'healthy',
+  app.get('/health', async (req: Request, res: Response) => {
+    const services: Record<string, string> = {};
+
+    // Check database
+    try {
+      await prisma.$queryRaw`SELECT 1`;
+      services.database = 'up';
+    } catch (error) {
+      services.database = 'down';
+      log.error('Health check database ping failed', error as Error);
+    }
+
+    // Check redis (optional)
+    try {
+      if (redisClient) {
+        await redisClient.ping();
+        services.redis = 'up';
+      } else {
+        services.redis = 'not_configured';
+      }
+    } catch (error) {
+      services.redis = 'down';
+      log.error('Health check redis ping failed', error as Error);
+    }
+
+    const allUp = Object.values(services).every((s) => s === 'up' || s === 'not_configured');
+
+    res.status(allUp ? 200 : 503).json({
+      status: allUp ? 'healthy' : 'degraded',
       timestamp: new Date().toISOString(),
       uptime: process.uptime(),
       environment: config.nodeEnv,
+      services,
     });
   });
 

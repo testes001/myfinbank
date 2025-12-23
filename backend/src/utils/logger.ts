@@ -66,6 +66,32 @@ if (process.env.NODE_ENV === 'production') {
   );
 }
 
+const REDACT_KEYS = ['password', 'pass', 'token', 'authorization', 'cookie', 'ssn', 'cardNumber', 'cvv'];
+
+function sanitizeMeta(meta: any) {
+  if (!meta || typeof meta !== 'object') return meta;
+
+  const isPlainObject = (val: any) => Object.prototype.toString.call(val) === '[object Object]';
+
+  const sanitizeValue = (val: any): any => {
+    if (val == null) return val;
+    if (Array.isArray(val)) return val.map(sanitizeValue);
+    if (isPlainObject(val)) {
+      return Object.fromEntries(
+        Object.entries(val).map(([key, v]) => {
+          if (REDACT_KEYS.includes(key)) {
+            return [key, '[REDACTED]'];
+          }
+          return [key, sanitizeValue(v)];
+        })
+      );
+    }
+    return val;
+  };
+
+  return sanitizeValue(meta);
+}
+
 // Create logger
 export const logger = winston.createLogger({
   level: logLevel,
@@ -83,11 +109,11 @@ export const httpLoggerStream = {
 
 // Helper methods for structured logging
 export const log = {
-  info: (message: string, meta?: any) => logger.info(message, meta),
+  info: (message: string, meta?: any) => logger.info(message, sanitizeMeta(meta)),
   error: (message: string, error?: Error, meta?: any) =>
-    logger.error(message, { error: error?.message, stack: error?.stack, ...meta }),
-  warn: (message: string, meta?: any) => logger.warn(message, meta),
-  debug: (message: string, meta?: any) => logger.debug(message, meta),
+    logger.error(message, sanitizeMeta({ error: error?.message, stack: error?.stack, ...meta })),
+  warn: (message: string, meta?: any) => logger.warn(message, sanitizeMeta(meta)),
+  debug: (message: string, meta?: any) => logger.debug(message, sanitizeMeta(meta)),
 
   // Security events
   security: (event: string, meta: any) =>

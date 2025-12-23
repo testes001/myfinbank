@@ -469,8 +469,11 @@ export function SavingsGoals({ compact = false }: SavingsGoalsProps) {
                   <Label className="text-white/80">Frequency</Label>
                   <Select
                     value={newGoal.autoSaveFrequency}
-                    onValueChange={(value: "" | "daily" | "weekly" | "monthly") =>
-                      setNewGoal({ ...newGoal, autoSaveFrequency: value })
+                    onValueChange={(value) =>
+                      setNewGoal({
+                        ...newGoal,
+                        autoSaveFrequency: value as "" | "daily" | "weekly" | "monthly",
+                      })
                     }
                   >
                     <SelectTrigger className="mt-1 bg-white/10 border-white/20 text-white">
@@ -780,8 +783,11 @@ export function SavingsGoals({ compact = false }: SavingsGoalsProps) {
                 <Label className="text-white/80">Frequency</Label>
                 <Select
                   value={newGoal.autoSaveFrequency}
-                  onValueChange={(value: "" | "daily" | "weekly" | "monthly") =>
-                    setNewGoal({ ...newGoal, autoSaveFrequency: value })
+                  onValueChange={(value) =>
+                    setNewGoal({
+                      ...newGoal,
+                      autoSaveFrequency: value as "" | "daily" | "weekly" | "monthly",
+                    })
                   }
                 >
                   <SelectTrigger className="mt-1 bg-white/10 border-white/20 text-white">

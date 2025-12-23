@@ -77,7 +77,7 @@ export const createClient = (config: Config = {}): Client => {
 
   const request: Client['request'] = async (options) => {
     // 
-    const { opts, url } = await beforeRequest(options);
+    const { opts, url } = await beforeRequest(options as any);
     const requestInit: ReqInit = {
       redirect: 'follow',
       ...opts,
