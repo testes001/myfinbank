@@ -16,6 +16,7 @@ import crypto from 'crypto';
 // Import routes
 import authRoutes from '@/routes/auth.routes';
 import accountRoutes from '@/routes/account.routes';
+import transactionRoutes from '@/routes/transaction.routes';
 
 export function createApp(): Application {
   const app = express();
@@ -111,6 +112,7 @@ export function createApp(): Application {
   // API routes
   app.use('/api/auth', authRoutes);
   app.use('/api/accounts', accountRoutes);
+  app.use('/api/transactions', transactionRoutes);
 
   // API documentation (Swagger)
   if (config.enableSwagger) {
