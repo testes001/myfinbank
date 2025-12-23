@@ -1,3 +1,4 @@
+import { useNavigate } from "@tanstack/react-router";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { FinBankBrand } from "@/lib/brand-config";
@@ -30,6 +31,7 @@ const itemVariants = {
 };
 
 export function MarketingHomePage() {
+  const navigate = useNavigate();
   const [eligible, setEligible] = useState<boolean | null>(null);
 
   useEffect(() => {
@@ -137,6 +139,7 @@ export function MarketingHomePage() {
                   className="bg-blue-600 hover:bg-blue-700 text-white flex items-center gap-2"
                   disabled={eligible === false}
                   aria-disabled={eligible === false}
+                  onClick={() => navigate({ to: "/login" })}
                 >
                   Get Started Now <ArrowRight className="w-5 h-5" />
                 </Button>
@@ -386,6 +389,7 @@ export function MarketingHomePage() {
                 size="lg"
                 className="bg-white hover:bg-slate-100 text-blue-600 font-bold flex items-center gap-2"
                 disabled={eligible === false}
+                onClick={() => navigate({ to: "/login" })}
               >
                 Get Started <ArrowRight className="w-5 h-5" />
               </Button>

@@ -12,6 +12,7 @@
 
 import { Route as rootRoute } from './routes/__root'
 import { Route as MarketingImport } from './routes/marketing'
+import { Route as LoginImport } from './routes/login'
 import { Route as DashboardImport } from './routes/dashboard'
 import { Route as AdminConsoleImport } from './routes/admin-console'
 import { Route as IndexImport } from './routes/index'
@@ -27,6 +28,12 @@ import { Route as MarketingAboutImport } from './routes/marketing/about'
 const MarketingRoute = MarketingImport.update({
   id: '/marketing',
   path: '/marketing',
+  getParentRoute: () => rootRoute,
+} as any)
+
+const LoginRoute = LoginImport.update({
+  id: '/login',
+  path: '/login',
   getParentRoute: () => rootRoute,
 } as any)
 
@@ -109,6 +116,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardImport
       parentRoute: typeof rootRoute
     }
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginImport
+      parentRoute: typeof rootRoute
+    }
     '/marketing': {
       id: '/marketing'
       path: '/marketing'
@@ -189,6 +203,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/admin-console': typeof AdminConsoleRoute
   '/dashboard': typeof DashboardRoute
+  '/login': typeof LoginRoute
   '/marketing': typeof MarketingRouteWithChildren
   '/marketing/about': typeof MarketingAboutRoute
   '/marketing/features': typeof MarketingFeaturesRoute
@@ -202,6 +217,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/admin-console': typeof AdminConsoleRoute
   '/dashboard': typeof DashboardRoute
+  '/login': typeof LoginRoute
   '/marketing/about': typeof MarketingAboutRoute
   '/marketing/features': typeof MarketingFeaturesRoute
   '/marketing/how-it-works': typeof MarketingHowItWorksRoute
@@ -215,6 +231,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/admin-console': typeof AdminConsoleRoute
   '/dashboard': typeof DashboardRoute
+  '/login': typeof LoginRoute
   '/marketing': typeof MarketingRouteWithChildren
   '/marketing/about': typeof MarketingAboutRoute
   '/marketing/features': typeof MarketingFeaturesRoute
@@ -230,6 +247,7 @@ export interface FileRouteTypes {
     | '/'
     | '/admin-console'
     | '/dashboard'
+    | '/login'
     | '/marketing'
     | '/marketing/about'
     | '/marketing/features'
@@ -242,6 +260,7 @@ export interface FileRouteTypes {
     | '/'
     | '/admin-console'
     | '/dashboard'
+    | '/login'
     | '/marketing/about'
     | '/marketing/features'
     | '/marketing/how-it-works'
@@ -253,6 +272,7 @@ export interface FileRouteTypes {
     | '/'
     | '/admin-console'
     | '/dashboard'
+    | '/login'
     | '/marketing'
     | '/marketing/about'
     | '/marketing/features'
@@ -267,6 +287,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AdminConsoleRoute: typeof AdminConsoleRoute
   DashboardRoute: typeof DashboardRoute
+  LoginRoute: typeof LoginRoute
   MarketingRoute: typeof MarketingRouteWithChildren
 }
 
@@ -274,6 +295,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AdminConsoleRoute: AdminConsoleRoute,
   DashboardRoute: DashboardRoute,
+  LoginRoute: LoginRoute,
   MarketingRoute: MarketingRouteWithChildren,
 }
 
@@ -290,6 +312,7 @@ export const routeTree = rootRoute
         "/",
         "/admin-console",
         "/dashboard",
+        "/login",
         "/marketing"
       ]
     },
@@ -301,6 +324,9 @@ export const routeTree = rootRoute
     },
     "/dashboard": {
       "filePath": "dashboard.tsx"
+    },
+    "/login": {
+      "filePath": "login.tsx"
     },
     "/marketing": {
       "filePath": "marketing.tsx",
