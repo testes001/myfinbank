@@ -59,6 +59,7 @@ import {
   Target,
   Zap,
 } from "lucide-react";
+import { useAsync } from "@/hooks/useAsync";
 import { FINBANK_ROUTING_NUMBER } from "@/lib/seed";
 import { toast } from "sonner";
 
@@ -96,6 +97,8 @@ export function Dashboard({ onNavigate }: DashboardProps) {
   const [isP2PTransferOpen, setIsP2PTransferOpen] = useState(false);
   const [isJointInviteOpen, setIsJointInviteOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const { loading: asyncLoading, error: asyncError, run: runAsync, setError: setAsyncError } = useAsync<void>();
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [showBalances, setShowBalances] = useState(true);
 
   // Account details modal state
@@ -128,7 +131,7 @@ export function Dashboard({ onNavigate }: DashboardProps) {
   const loadData = async () => {
     if (!currentUser) return;
 
-    try {
+    await runAsync(async () => {
       const [recentTxs, updatedUser] = await Promise.all([
         getRecentTransactions(currentUser.account.id, 50),
         getUserWithAccount(currentUser.user.id),
@@ -146,11 +149,11 @@ export function Dashboard({ onNavigate }: DashboardProps) {
 
       const activeCards = getActiveCardCount(currentUser.user.id);
       setActiveVirtualCardsCount(activeCards);
-    } catch (error) {
-      console.error("Failed to load dashboard data:", error);
-    } finally {
-      setIsLoading(false);
-    }
+    }).catch((err) => {
+      console.error("Failed to load dashboard data:", err);
+      setLoadError(err instanceof Error ? err.message : String(err));
+      setAsyncError(err instanceof Error ? err : new Error(String(err)));
+    }).finally(() => setIsLoading(false));
   };
 
   useEffect(() => {
@@ -163,6 +166,31 @@ export function Dashboard({ onNavigate }: DashboardProps) {
   };
 
   if (!currentUser) return null;
+
+  if (loadError) {
+    return (
+      <div className="min-h-screen p-4 pt-6">
+        <div className="mx-auto max-w-2xl space-y-6">
+          <div className="rounded-xl border border-red-500/20 bg-red-500/10 p-6">
+            <h3 className="text-lg font-semibold text-red-400">Failed to load dashboard</h3>
+            <p className="text-sm text-red-300 mt-2">{loadError}</p>
+            <div className="mt-4">
+              <button
+                onClick={() => {
+                  setLoadError(null);
+                  setIsLoading(true);
+                  loadData();
+                }}
+                className="inline-flex items-center rounded-md bg-blue-500 px-4 py-2 text-white"
+              >
+                Retry
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   const balance = parseFloat(currentUser.account.balance);
 

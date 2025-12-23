@@ -16,6 +16,7 @@ import {
   FileText,
   Clock,
 } from "lucide-react";
+import { useAsync } from "@/hooks/useAsync";
 
 interface MobileDepositModalProps {
   open: boolean;
@@ -41,6 +42,10 @@ export function MobileDepositModal({ open, onOpenChange, onSuccess }: MobileDepo
     amount: "",
     status: "idle",
   });
+  const { loading, run } = useAsync<void>();
+  const [frontError, setFrontError] = useState<string | null>(null);
+  const [backError, setBackError] = useState<string | null>(null);
+  const [amountError, setAmountError] = useState<string | null>(null);
 
   const handleImageUpload = (side: "front" | "back", file: File | null) => {
     if (!file) return;
@@ -80,15 +85,26 @@ export function MobileDepositModal({ open, onOpenChange, onSuccess }: MobileDepo
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    // Reset errors
+    setFrontError(null);
+    setBackError(null);
+    setAmountError(null);
 
-    if (!state.frontImage || !state.backImage) {
-      toast.error("Please upload both front and back images of the check");
-      return;
+    if (!state.frontImage) {
+      setFrontError("Please upload the front image of the check");
+    }
+
+    if (!state.backImage) {
+      setBackError("Please upload the back image of the check (endorsed)");
     }
 
     const amountNum = parseFloat(state.amount);
     if (isNaN(amountNum) || amountNum <= 0) {
-      toast.error("Please enter a valid amount");
+      setAmountError("Please enter a valid amount");
+    }
+
+    // Stop if validation errors
+    if (!state.frontImage || !state.backImage || isNaN(amountNum) || amountNum <= 0) {
       return;
     }
 
@@ -96,18 +112,21 @@ export function MobileDepositModal({ open, onOpenChange, onSuccess }: MobileDepo
     const depositLimit = getDepositLimit();
 
     if (amountNum > depositLimit) {
-      toast.error(`Deposit amount exceeds your current limit of $${depositLimit.toFixed(2)}`);
+      setAmountError(`Deposit amount exceeds your current limit of $${depositLimit.toFixed(2)}`);
       return;
     }
 
-    setState((prev) => ({ ...prev, status: "uploading" }));
+    try {
+      await run(async () => {
+        setState((prev) => ({ ...prev, status: "uploading" }));
 
-    // Simulate upload
-    setTimeout(() => {
-      setState((prev) => ({ ...prev, status: "processing" }));
+        // Simulate upload
+        await new Promise((res) => setTimeout(res, 1500));
+        setState((prev) => ({ ...prev, status: "processing" }));
 
-      // Simulate processing
-      setTimeout(() => {
+        // Simulate processing
+        await new Promise((res) => setTimeout(res, 2000));
+
         setState((prev) => ({ ...prev, status: "success" }));
         toast.success("Check deposit submitted successfully!");
 
@@ -115,8 +134,11 @@ export function MobileDepositModal({ open, onOpenChange, onSuccess }: MobileDepo
           resetForm();
           onSuccess();
         }, 2500);
-      }, 2000);
-    }, 1500);
+      });
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Deposit failed");
+      setState((prev) => ({ ...prev, status: "failed" }));
+    }
   };
 
   const getDepositLimit = (): number => {
@@ -228,6 +250,7 @@ export function MobileDepositModal({ open, onOpenChange, onSuccess }: MobileDepo
                       </Card>
                     </label>
                   </div>
+                  {frontError && <p className="text-xs text-red-300 mt-2">{frontError}</p>}
                 </div>
 
                 {/* Back Image Upload */}
@@ -266,6 +289,7 @@ export function MobileDepositModal({ open, onOpenChange, onSuccess }: MobileDepo
                       </Card>
                     </label>
                   </div>
+                  {backError && <p className="text-xs text-red-300 mt-2">{backError}</p>}
                 </div>
 
                 {/* Amount */}
@@ -288,11 +312,12 @@ export function MobileDepositModal({ open, onOpenChange, onSuccess }: MobileDepo
                       placeholder="0.00"
                     />
                   </div>
-                  {state.detectedAmount && (
-                    <p className="text-xs text-green-400">
-                      ✓ Amount auto-detected from check
-                    </p>
-                  )}
+                    {state.detectedAmount && (
+                      <p className="text-xs text-green-400">
+                        ✓ Amount auto-detected from check
+                      </p>
+                    )}
+                    {amountError && <p className="text-xs text-red-300 mt-1">{amountError}</p>}
                 </div>
 
                 {/* Processing Status */}

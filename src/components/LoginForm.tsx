@@ -17,10 +17,27 @@ export function LoginForm({ onShowLanding }: LoginFormProps) {
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [emailError, setEmailError] = useState<string | null>(null);
+  const [passwordError, setPasswordError] = useState<string | null>(null);
   const { setCurrentUser } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setEmailError(null);
+    setPasswordError(null);
+
+    // Basic client-side validation
+    const emailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+    if (!emailValid) {
+      setEmailError("Enter a valid email address");
+      return;
+    }
+
+    if (password.length < 6) {
+      setPasswordError("Password must be at least 6 characters");
+      return;
+    }
+
     setIsLoading(true);
 
     try {
@@ -92,6 +109,7 @@ export function LoginForm({ onShowLanding }: LoginFormProps) {
                 className="border-white/20 bg-white/10 text-white placeholder:text-white/40"
                 placeholder="you@example.com"
               />
+              {emailError && <p className="text-xs text-red-300 mt-1">{emailError}</p>}
             </div>
 
             <div className="space-y-2">
@@ -107,6 +125,7 @@ export function LoginForm({ onShowLanding }: LoginFormProps) {
                 className="border-white/20 bg-white/10 text-white placeholder:text-white/40"
                 placeholder="••••••••"
               />
+              {passwordError && <p className="text-xs text-red-300 mt-1">{passwordError}</p>}
             </div>
 
             <Button

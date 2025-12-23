@@ -21,6 +21,8 @@ import {
   calculateTransferFee,
   getProcessingTime,
 } from "@/lib/banking-utils";
+import { useAsync } from "@/hooks/useAsync";
+
 
 interface TransferModalProps {
   open: boolean;
@@ -45,6 +47,11 @@ export function TransferModal({ open, onOpenChange, onSuccess }: TransferModalPr
   const [amount, setAmount] = useState("");
   const [description, setDescription] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const { loading, error, run } = useAsync<void>();
+  const [recipientEmailError, setRecipientEmailError] = useState<string | null>(null);
+  const [routingError, setRoutingError] = useState<string | null>(null);
+  const [accountNumberError, setAccountNumberError] = useState<string | null>(null);
+  const [amountError, setAmountError] = useState<string | null>(null);
   const [showSuccess, setShowSuccess] = useState(false);
   const [transferFee, setTransferFee] = useState(0);
   const [processingTime, setProcessingTime] = useState("");
@@ -221,6 +228,12 @@ export function TransferModal({ open, onOpenChange, onSuccess }: TransferModalPr
     e.preventDefault();
     if (!currentUser) return;
 
+    // Reset field errors
+    setRecipientEmailError(null);
+    setRoutingError(null);
+    setAccountNumberError(null);
+    setAmountError(null);
+
     // Check if fund access is restricted (24-hour delay after password reset from unknown device)
     if (isFundAccessRestricted(currentUser.user.id)) {
       const timeRemaining = getFundRestrictionTimeRemaining(currentUser.user.id);
@@ -234,7 +247,7 @@ export function TransferModal({ open, onOpenChange, onSuccess }: TransferModalPr
 
     const amountNum = parseFloat(amount);
     if (isNaN(amountNum) || amountNum <= 0) {
-      toast.error("Please enter a valid amount");
+      setAmountError("Please enter a valid amount");
       return;
     }
 
@@ -246,44 +259,62 @@ export function TransferModal({ open, onOpenChange, onSuccess }: TransferModalPr
       return;
     }
 
-    setIsLoading(true);
-
     try {
-      let recipientInfo;
+      await run(async () => {
+        let recipientInfo;
 
-      if (transferMethod === "email") {
-        recipientInfo = await handleEmailSubmit();
-      } else {
-        recipientInfo = await handleAccountSubmit();
-      }
+        if (transferMethod === "email") {
+          // validate email
+          if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(recipientEmail.trim())) {
+            setRecipientEmailError("Enter a valid recipient email");
+            throw new Error("validation");
+          }
+          recipientInfo = await handleEmailSubmit();
+        } else {
+          // validate routing/account
+          if (!isValidRoutingNumber(routingNumber)) {
+            setRoutingError("Enter a valid 9-digit routing number");
+            throw new Error("validation");
+          }
 
-      if (!recipientInfo) {
-        setIsLoading(false);
+          if (!isValidAccountNumber(recipientAccountNumber)) {
+            setAccountNumberError("Enter a valid account number (10-12 digits)");
+            throw new Error("validation");
+          }
+
+          recipientInfo = await handleAccountSubmit();
+        }
+
+        if (!recipientInfo) {
+          throw new Error("No recipient info");
+        }
+
+        if (recipientInfo.recipientAccount) {
+          await transferFunds(
+            currentUser.account.id,
+            recipientInfo.recipientAccount.id,
+            amountNum,
+            description || undefined
+          );
+
+          toast.success(`Successfully sent $${amountNum.toFixed(2)} to ${recipientInfo.recipientName}`);
+        } else {
+          toast.success(`Transfer initiated to ${recipientInfo.recipientName}. Processing time: ${processingTime}`);
+        }
+
+        setShowSuccess(true);
+        setTimeout(() => {
+          setShowSuccess(false);
+          resetForm();
+          onSuccess();
+        }, 2000);
+      });
+    } catch (err) {
+      if (err instanceof Error && err.message === "validation") {
+        // validation errors already set inline
         return;
       }
-
-      if (recipientInfo.recipientAccount) {
-        await transferFunds(
-          currentUser.account.id,
-          recipientInfo.recipientAccount.id,
-          amountNum,
-          description || undefined
-        );
-
-        toast.success(`Successfully sent $${amountNum.toFixed(2)} to ${recipientInfo.recipientName}`);
-      } else {
-        toast.success(`Transfer initiated to ${recipientInfo.recipientName}. Processing time: ${processingTime}`);
-      }
-
-      setShowSuccess(true);
-      setTimeout(() => {
-        setShowSuccess(false);
-        resetForm();
-        onSuccess();
-      }, 2000);
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Transfer failed");
-      setIsLoading(false);
+      toast.error(err instanceof Error ? err.message : "Transfer failed");
     }
   };
 
@@ -300,7 +331,7 @@ export function TransferModal({ open, onOpenChange, onSuccess }: TransferModalPr
   };
 
   const handleClose = () => {
-    if (!isLoading && !showSuccess) {
+    if (!loading && !showSuccess) {
       resetForm();
       onOpenChange(false);
     }
@@ -372,9 +403,10 @@ export function TransferModal({ open, onOpenChange, onSuccess }: TransferModalPr
                       className="border-white/20 bg-white/10 text-white placeholder:text-white/40"
                       placeholder="recipient@example.com"
                     />
-                    <p className="text-xs text-white/50">
-                      Try: alice@demo.com, bob@demo.com, or charlie@demo.com
-                    </p>
+                      <p className="text-xs text-white/50">
+                        Try: alice@demo.com, bob@demo.com, or charlie@demo.com
+                      </p>
+                      {recipientEmailError && <p className="text-xs text-red-300 mt-1">{recipientEmailError}</p>}
                   </div>
                 </TabsContent>
 
@@ -399,6 +431,7 @@ export function TransferModal({ open, onOpenChange, onSuccess }: TransferModalPr
                         {bankName}
                       </div>
                     )}
+                    {routingError && <p className="text-xs text-red-300 mt-1">{routingError}</p>}
                     <p className="text-xs text-white/50">
                       FinBank: {FINBANK_ROUTING_NUMBER} (instant transfer)
                     </p>
@@ -424,6 +457,7 @@ export function TransferModal({ open, onOpenChange, onSuccess }: TransferModalPr
                         {recipientName}
                       </div>
                     )}
+                    {accountNumberError && <p className="text-xs text-red-300 mt-1">{accountNumberError}</p>}
                   </div>
 
                   {processingTime && (
@@ -451,6 +485,7 @@ export function TransferModal({ open, onOpenChange, onSuccess }: TransferModalPr
                     className="border-white/20 bg-white/10 text-white placeholder:text-white/40"
                     placeholder="0.00"
                   />
+                  {amountError && <p className="text-xs text-red-300 mt-1">{amountError}</p>}
                   {transferFee > 0 && (
                     <p className="text-sm text-yellow-400">
                       Transfer fee: ${transferFee.toFixed(2)}
@@ -477,17 +512,17 @@ export function TransferModal({ open, onOpenChange, onSuccess }: TransferModalPr
                     type="button"
                     variant="outline"
                     onClick={handleClose}
-                    disabled={isLoading}
+                    disabled={loading}
                     className="flex-1 border-white/20 bg-white/10 text-white hover:bg-white/20"
                   >
                     Cancel
                   </Button>
                   <Button
                     type="submit"
-                    disabled={isLoading || isFundsRestricted}
+                    disabled={loading || isFundsRestricted}
                     className="flex-1 bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    {isLoading ? "Sending..." : isFundsRestricted ? "Security Delay Active" : "Send Money"}
+                    {loading ? "Sending..." : isFundsRestricted ? "Security Delay Active" : "Send Money"}
                   </Button>
                 </div>
               </form>
