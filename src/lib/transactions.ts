@@ -21,7 +21,7 @@ export async function transferFunds(
   amount: number,
   description?: string
 ): Promise<TransactionModel> {
-  // Enforce fund access restrictions if present
+  // Enforce fund access restrictions if present (covers all money movement)
   try {
     const fromAccount = (await accountOrm.getAccountById(fromAccountId))[0];
     if (fromAccount && isFundAccessRestricted(fromAccount.user_id)) {
@@ -123,12 +123,13 @@ export async function transferFunds(
       const toUser = toUsers[0];
 
       // Send emails asynchronously without blocking
+      const currency = (fromAccount.currency || "EUR").toUpperCase();
       Promise.resolve().then(() => {
         sendTransactionConfirmationEmail(
           fromUser.email,
           toUser.full_name,
           amount.toFixed(2),
-          "USD",
+          currency,
           transaction.id,
         ).catch((error) => console.error("Failed to send transaction email to sender:", error));
 
@@ -136,7 +137,7 @@ export async function transferFunds(
           toUser.email,
           fromUser.full_name,
           amount.toFixed(2),
-          "USD",
+          currency,
           transaction.id,
         ).catch((error) => console.error("Failed to send transaction email to recipient:", error));
       });

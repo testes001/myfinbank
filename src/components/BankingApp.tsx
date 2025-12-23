@@ -195,7 +195,7 @@ export function BankingApp() {
               </div>
 
               <p className="text-center text-sm text-gray-400">
-                Need help? Contact us at support@securebank.com or call 1-800-SECURE-1
+                Need help? Contact us at support@finbank.eu or call +34 900 123 456
               </p>
             </CardContent>
           </Card>

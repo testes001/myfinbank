@@ -1,6 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import { FinBankBrand } from "@/lib/brand-config";
-import { Shield, Mail, MapPin, Phone, Linkedin, Twitter } from "lucide-react";
+import { Shield, Mail, MapPin, Phone } from "lucide-react";
 
 export function MarketingFooter() {
   const currentYear = new Date().getFullYear();
@@ -60,15 +60,6 @@ export function MarketingFooter() {
             <p className="text-sm text-slate-500 mb-6">
               {FinBankBrand.company.tagline}
             </p>
-            {/* Social Links */}
-            <div className="flex gap-4">
-              <a href="#" className="text-slate-400 hover:text-white transition">
-                <Linkedin className="w-5 h-5" />
-              </a>
-              <a href="#" className="text-slate-400 hover:text-white transition">
-                <Twitter className="w-5 h-5" />
-              </a>
-            </div>
           </div>
 
           {/* Footer Links */}

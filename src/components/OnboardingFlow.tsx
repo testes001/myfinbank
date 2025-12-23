@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { UserORM } from "@/components/data/orm/orm_user";
 import { motion, AnimatePresence } from "framer-motion";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -79,6 +80,8 @@ export interface OnboardingData {
   externalBankName?: string;
   externalAccountNumber?: string;
   externalRoutingNumber?: string;
+  sponsorEmail?: string;
+  sponsorVerified?: boolean;
 }
 
 interface OnboardingFlowProps {
@@ -143,6 +146,8 @@ export function OnboardingFlow({ onComplete, onCancel }: OnboardingFlowProps) {
     accountTypes: [],
     initialDepositMethod: "",
     initialDepositAmount: "",
+    sponsorEmail: "",
+    sponsorVerified: false,
   });
 
   const totalSteps = 6;
@@ -158,6 +163,31 @@ export function OnboardingFlow({ onComplete, onCancel }: OnboardingFlowProps) {
 
   const updateFormData = (field: keyof OnboardingData, value: any) => {
     setFormData(prev => ({ ...prev, [field]: value }));
+  };
+
+  const sponsorRequired = formData.country === "United States" || Boolean((window as any).__finbankRequireSponsor);
+
+  const verifySponsor = async () => {
+    if (!formData.sponsorEmail || !formData.sponsorEmail.includes("@")) {
+      toast.error("Please enter your sponsor's Fin-Bank email");
+      return;
+    }
+
+    try {
+      const userOrm = UserORM.getInstance();
+      const sponsor = await userOrm.getUserByEmail(formData.sponsorEmail.trim().toLowerCase());
+      if (!sponsor || sponsor.length === 0) {
+        toast.error("Sponsor not found. They must already have a Fin-Bank account.");
+        updateFormData("sponsorVerified", false);
+        return;
+      }
+      updateFormData("sponsorVerified", true);
+      (window as any).__finbankSponsorOverride = true;
+      toast.success("Sponsor verified. You may continue.");
+    } catch (err) {
+      console.error("Sponsor verification failed", err);
+      toast.error("Unable to verify sponsor. Please try again.");
+    }
   };
 
   const validateStep1 = (): boolean => {
@@ -212,6 +242,16 @@ export function OnboardingFlow({ onComplete, onCancel }: OnboardingFlowProps) {
     if (!formData.residencyYears) {
       toast.error("Please indicate how long you've lived at this address");
       return false;
+    }
+    if (sponsorRequired) {
+      if (!formData.sponsorEmail) {
+        toast.error("US citizens must provide a sponsor who is an existing Fin-Bank customer");
+        return false;
+      }
+      if (!formData.sponsorVerified) {
+        toast.error("Please verify your sponsor's Fin-Bank account");
+        return false;
+      }
     }
     return true;
   };
@@ -350,6 +390,10 @@ export function OnboardingFlow({ onComplete, onCancel }: OnboardingFlowProps) {
 
   const handleSubmit = async () => {
     if (!validateStep5()) return;
+    if (sponsorRequired && !formData.sponsorVerified) {
+      toast.error("Sponsor verification required to complete signup");
+      return;
+    }
 
     setIsSubmitting(true);
     try {
@@ -944,6 +988,45 @@ export function OnboardingFlow({ onComplete, onCancel }: OnboardingFlowProps) {
                         </SelectContent>
                       </Select>
                     </div>
+
+                    {sponsorRequired && (
+                      <div className="space-y-2 rounded-lg border border-amber-500/20 bg-amber-500/10 p-4">
+                        <Label htmlFor="sponsorEmail" className="text-amber-100">
+                          Sponsor (required for US citizens) *
+                        </Label>
+                        <div className="flex gap-2 flex-col sm:flex-row">
+                          <Input
+                            id="sponsorEmail"
+                            type="email"
+                            value={formData.sponsorEmail}
+                            onChange={(e) => {
+                              updateFormData("sponsorEmail", e.target.value);
+                              updateFormData("sponsorVerified", false);
+                            }}
+                            placeholder="existing.customer@finbank.eu"
+                            className="bg-amber-50/5 border-amber-500/30 text-white placeholder:text-amber-200/70 flex-1"
+                            aria-describedby="sponsor-help"
+                            required
+                          />
+                          <Button
+                            type="button"
+                            onClick={verifySponsor}
+                            disabled={!formData.sponsorEmail}
+                            className="bg-amber-500 text-white hover:bg-amber-600"
+                          >
+                            Verify sponsor
+                          </Button>
+                        </div>
+                        {formData.sponsorVerified && (
+                          <Badge className="bg-green-500 text-white w-fit">
+                            <CheckCircle2 className="w-4 h-4 mr-1" /> Sponsor verified
+                          </Badge>
+                        )}
+                        <p id="sponsor-help" className="text-xs text-amber-100/80">
+                          US citizens may proceed only when referred by an existing Fin-Bank customer (relative/family/friend).
+                        </p>
+                      </div>
+                    )}
 
                     <Alert className="bg-amber-500/10 border-amber-500/20">
                       <AlertCircle className="h-4 w-4 text-amber-400" />

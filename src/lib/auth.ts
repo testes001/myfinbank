@@ -37,22 +37,22 @@ function ensureDemoUserKYC(userId: string, email: string) {
     saveKYCData(userId, {
       userId,
       dateOfBirth: "1990-01-15",
-      ssn: "***-**-1234",
-      phoneNumber: "+1-555-0100",
+      ssn: "X1234567", // EU ID placeholder
+      phoneNumber: "+34 900 123 456",
       phoneVerified: true,
       emailVerified: true,
-      streetAddress: "123 Demo St",
-      city: "New York",
-      state: "NY",
-      zipCode: "10001",
-      country: "US",
+      streetAddress: "Calle de Alcalá 45",
+      city: "Madrid",
+      state: "Madrid",
+      zipCode: "28014",
+      country: "ES",
       residencyYears: "5+",
       securityQuestions: [
         { question: "What is your mother's maiden name?", answer: "Demo" },
         { question: "What city were you born in?", answer: "Demo" },
         { question: "What is your favorite movie?", answer: "Demo" },
       ],
-      idDocumentType: "drivers_license",
+      idDocumentType: "dni",
       idDocumentFrontUrl: "https://secure-storage.example.com/demo-id-front.jpg",
       idDocumentBackUrl: "https://secure-storage.example.com/demo-id-back.jpg",
       livenessCheckComplete: true,
@@ -88,6 +88,19 @@ export async function registerUser(
   password: string,
   fullName: string
 ): Promise<AuthUser> {
+  // Basic geo-eligibility guard (frontend safety; must be enforced server-side in production)
+  const geoCountry = (window as any).__finbankCountryCode as string | undefined;
+  if (geoCountry) {
+    const upper = geoCountry.toUpperCase();
+    const eligible = ["ES", "DE", "FR", "IT", "PT"];
+    if (!eligible.includes(upper)) {
+      if (upper === "US") {
+        (window as any).__finbankRequireSponsor = true;
+      } else {
+        throw new Error("Fin-Bank currently serves Spain, Germany, France, Italy, and Portugal only");
+      }
+    }
+  }
   const existingUsers = await userOrm.getUserByEmail(email);
   if (existingUsers.length > 0) {
     addAuditLog({

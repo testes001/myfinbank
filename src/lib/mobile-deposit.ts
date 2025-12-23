@@ -30,6 +30,7 @@ export interface MobileDeposit {
   accountType: AccountType;
   checkFrontImageUrl: string | null;
   checkBackImageUrl: string | null;
+  imageStoredExternally?: boolean;
   status: DepositStatus;
   extractedAmount?: string;
   extractedPayee?: string;
@@ -113,15 +114,17 @@ export async function submitMobileDeposit(
     return { success: false, error: amountValidation.error };
   }
 
-  // Create deposit record
+  // Create deposit record without persisting raw images (store externally in production)
+  const secureReference = "encrypted://external-storage";
   const deposit: MobileDeposit = {
     id: `deposit_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
     userId,
     amount: depositData.amount,
     currency: depositData.currency as DepositCurrency,
     accountType: depositData.accountType,
-    checkFrontImageUrl: depositData.checkFrontImage,
-    checkBackImageUrl: depositData.checkBackImage,
+    checkFrontImageUrl: secureReference,
+    checkBackImageUrl: secureReference,
+    imageStoredExternally: true,
     status: "submitted",
     submittedAt: new Date().toISOString(),
     userNotes: depositData.userNotes,

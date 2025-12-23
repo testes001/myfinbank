@@ -1,6 +1,7 @@
 import { useEffect, useRef } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
+import { fetchIPGeolocation } from "@/lib/ip-geolocation";
 
 interface SessionSecurityOptions {
   inactivityTimeout?: number; // in milliseconds, default 15 minutes
@@ -30,22 +31,23 @@ export function useSessionSecurity(options: SessionSecurityOptions = {}) {
     }, inactivityTimeout);
   };
 
-  // Monitor IP address changes (simulated)
+  // Monitor IP address changes (real lookup with graceful fallback)
   const checkIpAddress = async () => {
     if (!enableIpMonitoring) return;
 
     try {
-      // In a real app, you would fetch the actual IP from an API
-      // For simulation, we'll generate a mock IP
-      const mockIp = `192.168.${Math.floor(Math.random() * 255)}.${Math.floor(Math.random() * 255)}`;
+      const geo = await fetchIPGeolocation();
+      if (!geo) return;
 
-      if (ipAddressRef.current && ipAddressRef.current !== mockIp) {
+      if (ipAddressRef.current && ipAddressRef.current !== geo.ip) {
         toast.warning("Login from new location detected", {
-          description: "If this wasn't you, please contact support immediately",
+          description: `${geo.city || "Unknown city"}, ${geo.country || "Unknown country"}`,
         });
       }
 
-      ipAddressRef.current = mockIp;
+      ipAddressRef.current = geo.ip;
+      // expose for signup guard reuse
+      (window as any).__finbankCountryCode = geo.countryCode;
     } catch (error) {
       console.error("Failed to check IP address:", error);
     }

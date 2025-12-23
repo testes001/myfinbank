@@ -20,6 +20,7 @@ import { VirtualCardsModal } from "@/components/VirtualCardsModal";
 import { P2PTransferModal } from "@/components/P2PTransferModal";
 import { SavingsGoals } from "@/components/SavingsGoals";
 import { AIInsights } from "@/components/AIInsights";
+import { JointAccountInviteModal } from "@/components/JointAccountInviteModal";
 import { getRecentTransactions, formatCurrency, formatDate, getTransactionType } from "@/lib/transactions";
 import { getUserWithAccount } from "@/lib/auth";
 import { getTotalBalance } from "@/lib/multi-account";
@@ -93,6 +94,7 @@ export function Dashboard({ onNavigate }: DashboardProps) {
   const [isBalanceAlertsOpen, setIsBalanceAlertsOpen] = useState(false);
   const [isVirtualCardsOpen, setIsVirtualCardsOpen] = useState(false);
   const [isP2PTransferOpen, setIsP2PTransferOpen] = useState(false);
+  const [isJointInviteOpen, setIsJointInviteOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [showBalances, setShowBalances] = useState(true);
 
@@ -457,6 +459,16 @@ export function Dashboard({ onNavigate }: DashboardProps) {
                   <FileText className="size-4 text-white" />
                   <span className="text-xs text-white">History</span>
                 </Button>
+
+                <Button
+                  onClick={() => { setIsJointInviteOpen(true); setIsFabOpen(false); }}
+                  className="h-16 flex-col gap-1 bg-white/10 hover:bg-white/20 border border-white/20 backdrop-blur-xl p-2"
+                  variant="outline"
+                  aria-label="Invite someone to a joint account"
+                >
+                  <Users className="size-4 text-white" />
+                  <span className="text-xs text-white">Joint Invite</span>
+                </Button>
               </div>
             </motion.div>
           )}
@@ -471,6 +483,8 @@ export function Dashboard({ onNavigate }: DashboardProps) {
               : "bg-gradient-to-r from-blue-500 to-purple-500 border-transparent"
           } border backdrop-blur-xl`}
           variant="outline"
+          aria-expanded={isFabOpen}
+          aria-label="Toggle quick actions"
         >
           {isFabOpen ? (
             <>
@@ -619,6 +633,11 @@ export function Dashboard({ onNavigate }: DashboardProps) {
         open={isP2PTransferOpen}
         onOpenChange={setIsP2PTransferOpen}
         onTransferComplete={loadData}
+      />
+
+      <JointAccountInviteModal
+        open={isJointInviteOpen}
+        onOpenChange={setIsJointInviteOpen}
       />
 
       {/* Account Details Modal */}

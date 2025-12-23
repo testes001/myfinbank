@@ -108,49 +108,56 @@ export async function fetchIPGeolocation(): Promise<IPGeolocationData | null> {
       console.warn("Primary geolocation service failed:", error);
     }
 
-    // Fallback: ipify-api.com (CORS-friendly)
-    const fallbackUrl = "https://geo.ipify.org/api/v2/country?apiKey=at_4EiW5yt7Dml7rKjVV5VR8XQX4LJ1Z";
-    const fallbackResponse = await fetchWithTimeout(fallbackUrl);
+    // Fallback: ipify-api.com (CORS-friendly) if key provided
+    const ipifyKey = (import.meta as any).env?.VITE_IPIFY_API_KEY || (import.meta as any).env?.IPIFY_API_KEY;
+    if (ipifyKey) {
+      const fallbackUrl = `https://geo.ipify.org/api/v2/country?apiKey=${ipifyKey}`;
+      const fallbackResponse = await fetchWithTimeout(fallbackUrl);
 
-    if (fallbackResponse) {
-      const data = await fallbackResponse.json();
+      if (fallbackResponse) {
+        const data = await fallbackResponse.json();
 
-      if (data.ip) {
-        return {
-          ip: data.ip,
-          country: data.location?.country || "Unknown",
-          countryCode: data.location?.country_code || "UN",
-          city: data.location?.city || "Unknown",
-          region: data.location?.region || "Unknown",
-          timezone: data.location?.timezone || "UTC",
-          latitude: data.location?.lat || 0,
-          longitude: data.location?.lng || 0,
-          isp: data.isp?.name || "Unknown",
-          timestamp: new Date().toISOString(),
-        };
+        if (data.ip) {
+          return {
+            ip: data.ip,
+            country: data.location?.country || "Unknown",
+            countryCode: data.location?.country_code || "UN",
+            city: data.location?.city || "Unknown",
+            region: data.location?.region || "Unknown",
+            timezone: data.location?.timezone || "UTC",
+            latitude: data.location?.lat || 0,
+            longitude: data.location?.lng || 0,
+            isp: data.isp?.name || "Unknown",
+            timestamp: new Date().toISOString(),
+          };
+        }
       }
     }
 
-    // Tertiary: abstractapi.com (another reliable fallback)
-    const tertiaryUrl = "https://ipgeolocation.abstractapi.com/v1/?api_key=e5cf142067d2443a8917eef2c12958e8";
-    const tertiaryResponse = await fetchWithTimeout(tertiaryUrl);
+    // Tertiary: abstractapi.com only when env key present
+    const abstractApiKey =
+      (import.meta as any).env?.VITE_ABSTRACT_API_KEY || (import.meta as any).env?.ABSTRACT_API_KEY;
+    if (abstractApiKey) {
+      const tertiaryUrl = `https://ipgeolocation.abstractapi.com/v1/?api_key=${abstractApiKey}`;
+      const tertiaryResponse = await fetchWithTimeout(tertiaryUrl);
 
-    if (tertiaryResponse) {
-      const data = await tertiaryResponse.json();
+      if (tertiaryResponse) {
+        const data = await tertiaryResponse.json();
 
-      if (data.ip_address) {
-        return {
-          ip: data.ip_address,
-          country: data.country || "Unknown",
-          countryCode: data.country_code || "UN",
-          city: data.city || "Unknown",
-          region: data.region || "Unknown",
-          timezone: data.timezone?.name || "UTC",
-          latitude: parseFloat(data.latitude) || 0,
-          longitude: parseFloat(data.longitude) || 0,
-          isp: "Unknown",
-          timestamp: new Date().toISOString(),
-        };
+        if (data.ip_address) {
+          return {
+            ip: data.ip_address,
+            country: data.country || "Unknown",
+            countryCode: data.country_code || "UN",
+            city: data.city || "Unknown",
+            region: data.region || "Unknown",
+            timezone: data.timezone?.name || "UTC",
+            latitude: parseFloat(data.latitude) || 0,
+            longitude: parseFloat(data.longitude) || 0,
+            isp: "Unknown",
+            timestamp: new Date().toISOString(),
+          };
+        }
       }
     }
 
@@ -249,6 +256,16 @@ export function registerKnownDevice(
   knownDevices.push(device);
   localStorage.setItem(`${STORAGE_KEY_KNOWN_DEVICES}_${userId}`, JSON.stringify(knownDevices));
 
+  const deviceSink =
+    (import.meta as any).env?.VITE_DEVICE_ENDPOINT || (import.meta as any).env?.DEVICE_ENDPOINT;
+  if (deviceSink) {
+    fetch(deviceSink, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(device),
+    }).catch((err) => console.error("Failed to persist device to backend:", err));
+  }
+
   return device;
 }
 
@@ -296,6 +313,18 @@ export function logSecurityEvent(event: Omit<SecurityEvent, "id">): SecurityEven
     `${STORAGE_KEY_SECURITY_EVENTS}_${event.userId}`,
     JSON.stringify(recentEvents),
   );
+
+  // Optional: forward to backend for durable audit storage
+  const sink = (import.meta as any).env?.VITE_SECURITY_EVENT_ENDPOINT || (import.meta as any).env?.SECURITY_EVENT_ENDPOINT;
+  if (sink) {
+    fetch(sink, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(securityEvent),
+    }).catch((err) => console.error("Failed to send security event to backend:", err));
+  }
 
   return securityEvent;
 }
@@ -397,6 +426,24 @@ export function applyFundRestriction(
       `${STORAGE_KEY_FUND_RESTRICTIONS}_${userId}`,
       JSON.stringify(restrictions),
     );
+
+    // Optional: persist to backend for enforcement
+    const restrictionSink =
+      (import.meta as any).env?.VITE_FUND_RESTRICTION_ENDPOINT ||
+      (import.meta as any).env?.FUND_RESTRICTION_ENDPOINT;
+    if (restrictionSink) {
+      fetch(restrictionSink, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          userId,
+          reason,
+          appliedAt: new Date().toISOString(),
+          expiresAt,
+          hoursDelay,
+        }),
+      }).catch((err) => console.error("Failed to persist fund restriction to backend:", err));
+    }
   } catch (error) {
     console.error("Error applying fund restriction:", error);
   }
