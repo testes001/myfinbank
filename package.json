@@ -8,7 +8,7 @@
     "build": "npm run check:safe && vite build",
     "serve": "vite preview",
     "test": "vitest run",
-    "check": "tsgo --noEmit && npm run lint:radix -- --fix && npm run format",
+    "check": "tsc --noEmit && npm run lint:radix -- --fix && npm run format",
     "check:safe": "timeout 20 npm run check || (echo 'Check timed out after 20 seconds' && exit 1)",
     "format": "biome check --write --unsafe",
     "format:quiet": "biome check --write --unsafe --log-level=warn",

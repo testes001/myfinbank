@@ -40,6 +40,14 @@ export default defineConfig({
 		host: "0.0.0.0",
 		port: 3000,
 		allowedHosts: true, // respond to *any* Host header
+		headers: {
+			"X-Content-Type-Options": "nosniff",
+			"X-Frame-Options": "DENY",
+			"X-XSS-Protection": "1; mode=block",
+			"Strict-Transport-Security": "max-age=31536000; includeSubDomains",
+			"Content-Security-Policy":
+				"default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'",
+		},
 		watch: {
 			usePolling: true,
 			interval: 300, // ms; tune if CPU gets high
