@@ -4,13 +4,9 @@
 
 
 ♻️  Generating routes...
-✅ Processed routes in 141ms
+✅ Processed routes in 209ms
 
-  ROLLDOWN-VITE v7.1.20  ready in 1031 ms
+  ROLLDOWN-VITE v7.3.0  ready in 1162 ms
 
   ➜  Local:   http://localhost:3000/
   ➜  Network: http://192.168.0.2:3000/
-
-♻️  Regenerating routes...
-✅ Processed routes in 58ms
-7:04:42 PM [vite] (client) hmr update /src/routes/__root.tsx, /src/styles.css
