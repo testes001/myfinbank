@@ -188,15 +188,16 @@ export const FinBankBrand = {
 
   // Regional specificity
   regions: {
-    eligible: ["ES", "DE", "FR", "IT", "PT"],
+    eligible: ["ES", "DE", "FR", "IT", "PT", "KR"],
     descriptions: {
       ES: "Spain",
       DE: "Germany",
       FR: "France",
       IT: "Italy",
       PT: "Portugal",
+      KR: "Korea",
     },
-    eligibleCountries: ["Spain", "Germany", "France", "Italy", "Portugal"],
+    eligibleCountries: ["Spain", "Germany", "France", "Italy", "Portugal", "Korea"],
     ibanFormats: {
       ES: "ESxx XXXX XXXX XXXX XXXX XXXX",
       DE: "DExx XXXX XXXX XXXX XXXX XX",

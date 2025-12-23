@@ -491,7 +491,7 @@ export function assessLoginRisk(
 /**
  * Get EU eligible countries
  */
-export const EU_ELIGIBLE_COUNTRIES = ["ES", "DE", "FR", "IT", "PT"];
+export const EU_ELIGIBLE_COUNTRIES = ["ES", "DE", "FR", "IT", "PT", "KR"];
 
 /**
  * Check if a country code is eligible for Fin-Bank

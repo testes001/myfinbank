@@ -33,7 +33,7 @@ export function LandingPage({ onSignupClick }: { onSignupClick: () => void }) {
 
           if (!eligible) {
             toast.error(
-              `Fin-Bank is currently available only in Spain, Germany, France, Italy, and Portugal. (Detected: ${geoData.country})`,
+              `Fin-Bank is currently available only in Spain, Germany, France, Italy, Portugal, and Korea. (Detected: ${geoData.country})`,
             );
           }
         }
@@ -52,7 +52,7 @@ export function LandingPage({ onSignupClick }: { onSignupClick: () => void }) {
   const handleSignupClick = () => {
     if (locationCheck && !locationCheck.eligible) {
       toast.error(
-        `Fin-Bank is not available in ${locationCheck.country}. We currently serve Spain, Germany, France, Italy, and Portugal.`,
+        `Fin-Bank is not available in ${locationCheck.country}. We currently serve Spain, Germany, France, Italy, Portugal, and Korea.`,
       );
       return;
     }

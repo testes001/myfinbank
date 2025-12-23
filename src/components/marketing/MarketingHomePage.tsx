@@ -124,13 +124,10 @@ export function MarketingHomePage() {
             <motion.div variants={itemVariants} className="space-y-6">
               <div className="space-y-3">
                 <h1 className="text-5xl lg:text-6xl font-bold text-slate-900 dark:text-white leading-tight">
-                  European Banking,{" "}
-                  <span className="bg-gradient-to-r from-blue-600 to-blue-500 bg-clip-text text-transparent">
-                    Reimagined
-                  </span>
+                  Modern Banking for Europe & Korea
                 </h1>
                 <p className="text-xl text-slate-600 dark:text-slate-300">
-                  Modern, transparent banking with instant transfers, multiple currencies, and complete security. Licensed in Europe.
+                  Licensed digital banking headquartered in Spain with branches across Europe—now welcoming customers from Korea—with SEPA, ES IBANs, 3D Secure cards, and GDPR-grade privacy.
                 </p>
               </div>
 
@@ -139,6 +136,7 @@ export function MarketingHomePage() {
                   size="lg"
                   className="bg-blue-600 hover:bg-blue-700 text-white flex items-center gap-2"
                   disabled={eligible === false}
+                  aria-disabled={eligible === false}
                 >
                   Get Started Now <ArrowRight className="w-5 h-5" />
                 </Button>
@@ -157,6 +155,7 @@ export function MarketingHomePage() {
                   { icon: "🔒", text: "EU Banking License" },
                   { icon: "✓", text: "GDPR Compliant" },
                   { icon: "💰", text: "€100k Insured" },
+                  { icon: "🌐", text: "Eligible: ES, DE, FR, IT, PT, KR" },
                 ].map((badge) => (
                   <div
                     key={badge.text}

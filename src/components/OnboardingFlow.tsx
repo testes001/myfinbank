@@ -41,6 +41,7 @@ export interface OnboardingData {
   fullName: string;
   dateOfBirth: string;
   ssn: string;
+  nationality?: string;
   phoneNumber: string;
   email: string;
   emailVerified: boolean;
@@ -100,13 +101,7 @@ const SECURITY_QUESTIONS = [
   "What is your favorite food?",
 ];
 
-const US_STATES = [
-  "AL", "AK", "AZ", "AR", "CA", "CO", "CT", "DE", "FL", "GA",
-  "HI", "ID", "IL", "IN", "IA", "KS", "KY", "LA", "ME", "MD",
-  "MA", "MI", "MN", "MS", "MO", "MT", "NE", "NV", "NH", "NJ",
-  "NM", "NY", "NC", "ND", "OH", "OK", "OR", "PA", "RI", "SC",
-  "SD", "TN", "TX", "UT", "VT", "VA", "WA", "WV", "WI", "WY"
-];
+const ALLOWED_COUNTRIES = ["Spain", "Germany", "France", "Italy", "Portugal", "Korea", "United States"];
 
 export function OnboardingFlow({ onComplete, onCancel }: OnboardingFlowProps) {
   const [currentStep, setCurrentStep] = useState(1);
@@ -122,6 +117,7 @@ export function OnboardingFlow({ onComplete, onCancel }: OnboardingFlowProps) {
     fullName: "",
     dateOfBirth: "",
     ssn: "",
+    nationality: "Spain",
     phoneNumber: "",
     email: "",
     emailVerified: false,
@@ -130,7 +126,7 @@ export function OnboardingFlow({ onComplete, onCancel }: OnboardingFlowProps) {
     city: "",
     state: "",
     zipCode: "",
-    country: "United States",
+    country: "Spain",
     residencyYears: "",
     username: "",
     password: "",
@@ -199,11 +195,15 @@ export function OnboardingFlow({ onComplete, onCancel }: OnboardingFlowProps) {
       toast.error("Please enter your date of birth");
       return false;
     }
-    if (!formData.ssn || formData.ssn.length !== 11) {
-      toast.error("Please enter a valid SSN (XXX-XX-XXXX)");
+    if (!formData.nationality) {
+      toast.error("Please select your nationality");
       return false;
     }
-    if (!formData.phoneNumber || formData.phoneNumber.length < 10) {
+    if (!formData.ssn || formData.ssn.length < 6) {
+      toast.error("Please enter your national ID or passport number");
+      return false;
+    }
+    if (!formData.phoneNumber || formData.phoneNumber.replace(/\D/g, "").length < 9) {
       toast.error("Please enter a valid phone number");
       return false;
     }
@@ -231,12 +231,12 @@ export function OnboardingFlow({ onComplete, onCancel }: OnboardingFlowProps) {
       toast.error("Please enter your city");
       return false;
     }
-    if (!formData.state) {
-      toast.error("Please select your state");
+    if (!formData.state || formData.state.length < 2) {
+      toast.error("Please enter your province/region");
       return false;
     }
-    if (!formData.zipCode || formData.zipCode.length !== 5) {
-      toast.error("Please enter a valid 5-digit ZIP code");
+    if (!formData.zipCode || formData.zipCode.length < 3) {
+      toast.error("Please enter a valid postal code");
       return false;
     }
     if (!formData.residencyYears) {
@@ -475,12 +475,7 @@ export function OnboardingFlow({ onComplete, onCancel }: OnboardingFlowProps) {
     }, 3000);
   };
 
-  const formatSSN = (value: string) => {
-    const cleaned = value.replace(/\D/g, '');
-    if (cleaned.length <= 3) return cleaned;
-    if (cleaned.length <= 5) return `${cleaned.slice(0, 3)}-${cleaned.slice(3)}`;
-    return `${cleaned.slice(0, 3)}-${cleaned.slice(3, 5)}-${cleaned.slice(5, 9)}`;
-  };
+  const formatNationalId = (value: string) => value.replace(/\s+/g, "").toUpperCase();
 
   const formatPhone = (value: string) => {
     const cleaned = value.replace(/\D/g, '');
@@ -499,7 +494,7 @@ export function OnboardingFlow({ onComplete, onCancel }: OnboardingFlowProps) {
           className="text-center mb-8"
         >
           <h1 className="text-4xl font-bold text-white mb-2">Account Opening</h1>
-          <p className="text-gray-300">Complete your application to join SecureBank</p>
+          <p className="text-gray-300">Complete your application to join Fin-Bank</p>
         </motion.div>
 
         {/* Progress Bar */}
@@ -779,16 +774,32 @@ export function OnboardingFlow({ onComplete, onCancel }: OnboardingFlowProps) {
                     </div>
 
                     <div>
-                      <Label htmlFor="ssn" className="text-white">Social Security Number *</Label>
+                      <Label htmlFor="nationality" className="text-white">Nationality *</Label>
+                      <select
+                        id="nationality"
+                        value={formData.nationality}
+                        onChange={(e) => updateFormData("nationality", e.target.value)}
+                        className="w-full rounded-md border border-white/10 bg-white/5 px-3 py-2 text-white"
+                      >
+                        <option value="" disabled>Select your nationality</option>
+                        {ALLOWED_COUNTRIES.map((c) => (
+                          <option key={c} value={c}>{c}</option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div>
+                      <Label htmlFor="ssn" className="text-white">National ID / Passport Number *</Label>
                       <Input
                         id="ssn"
                         value={formData.ssn}
-                        onChange={(e) => updateFormData("ssn", formatSSN(e.target.value))}
-                        placeholder="XXX-XX-XXXX"
-                        maxLength={11}
+                        onChange={(e) => updateFormData("ssn", formatNationalId(e.target.value))}
+                        placeholder="AA1234567"
+                        maxLength={20}
                         className="bg-white/5 border-white/10 text-white placeholder:text-gray-500"
+                        aria-describedby="id-help"
                       />
-                      <p className="text-xs text-gray-400 mt-1">Required for tax and regulatory compliance</p>
+                      <p id="id-help" className="text-xs text-gray-400 mt-1">Use the number exactly as on your government ID.</p>
                     </div>
 
                     <Separator className="bg-white/10" />
@@ -831,7 +842,7 @@ export function OnboardingFlow({ onComplete, onCancel }: OnboardingFlowProps) {
                           id="phoneNumber"
                           value={formData.phoneNumber}
                           onChange={(e) => updateFormData("phoneNumber", formatPhone(e.target.value))}
-                          placeholder="(555) 123-4567"
+                          placeholder="+34 600 000 000"
                           maxLength={14}
                           className="bg-white/5 border-white/10 text-white placeholder:text-gray-500 flex-1"
                           disabled={formData.phoneVerified}
@@ -918,34 +929,26 @@ export function OnboardingFlow({ onComplete, onCancel }: OnboardingFlowProps) {
                           id="city"
                           value={formData.city}
                           onChange={(e) => updateFormData("city", e.target.value)}
-                          placeholder="New York"
+                          placeholder="Madrid"
                           className="bg-white/5 border-white/10 text-white placeholder:text-gray-500"
                         />
                       </div>
 
                       <div>
-                        <Label htmlFor="state" className="text-white">State *</Label>
-                        <Select
+                        <Label htmlFor="state" className="text-white">Province / Region *</Label>
+                        <Input
+                          id="state"
                           value={formData.state}
-                          onValueChange={(value) => updateFormData("state", value)}
-                        >
-                          <SelectTrigger className="bg-white/5 border-white/10 text-white">
-                            <SelectValue placeholder="Select state" />
-                          </SelectTrigger>
-                          <SelectContent className="bg-slate-800 border-white/10">
-                            {US_STATES.map(state => (
-                              <SelectItem key={state} value={state} className="text-white">
-                                {state}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
+                          onChange={(e) => updateFormData("state", e.target.value)}
+                          placeholder="Community of Madrid"
+                          className="bg-white/5 border-white/10 text-white placeholder:text-gray-500"
+                        />
                       </div>
                     </div>
 
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <Label htmlFor="zipCode" className="text-white">ZIP Code *</Label>
+                        <Label htmlFor="zipCode" className="text-white">Postal Code *</Label>
                         <Input
                           id="zipCode"
                           value={formData.zipCode}
@@ -953,20 +956,25 @@ export function OnboardingFlow({ onComplete, onCancel }: OnboardingFlowProps) {
                             const cleaned = e.target.value.replace(/\D/g, '');
                             updateFormData("zipCode", cleaned);
                           }}
-                          placeholder="10001"
-                          maxLength={5}
+                          placeholder="28014"
+                          maxLength={10}
                           className="bg-white/5 border-white/10 text-white placeholder:text-gray-500"
                         />
                       </div>
 
                       <div>
                         <Label htmlFor="country" className="text-white">Country *</Label>
-                        <Input
+                        <select
                           id="country"
                           value={formData.country}
-                          disabled
-                          className="bg-white/5 border-white/10 text-white"
-                        />
+                          onChange={(e) => updateFormData("country", e.target.value)}
+                          className="w-full rounded-md border border-white/10 bg-white/5 px-3 py-2 text-white"
+                        >
+                          <option value="" disabled>Select country</option>
+                          {ALLOWED_COUNTRIES.map((c) => (
+                            <option key={c} value={c}>{c}</option>
+                          ))}
+                        </select>
                       </div>
                     </div>
 

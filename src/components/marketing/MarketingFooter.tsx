@@ -19,27 +19,27 @@ export function MarketingFooter() {
       title: "Company",
       links: [
         { label: "About", href: "/marketing/about" },
-        { label: "Blog", href: "#" },
-        { label: "Careers", href: "#" },
-        { label: "Contact", href: "#" },
+        { label: "Blog", href: "/marketing/about" },
+        { label: "Careers", href: "/marketing/about" },
+        { label: "Contact", href: "/marketing/about" },
       ],
     },
     {
       title: "Legal",
       links: [
-        { label: "Privacy Policy", href: "#" },
-        { label: "Terms of Service", href: "#" },
-        { label: "GDPR Compliance", href: "#" },
-        { label: "Cookie Policy", href: "#" },
+        { label: "Privacy Policy", href: "/marketing/security" },
+        { label: "Terms of Service", href: "/marketing/security" },
+        { label: "GDPR Compliance", href: "/marketing/security" },
+        { label: "Cookie Policy", href: "/marketing/security" },
       ],
     },
     {
       title: "Support",
       links: [
-        { label: "Help Center", href: "#" },
-        { label: "Contact Us", href: "#" },
-        { label: "Status Page", href: "#" },
-        { label: "FAQs", href: "#" },
+        { label: "Help Center", href: "/marketing/how-it-works" },
+        { label: "Contact Us", href: "/marketing/about" },
+        { label: "Status Page", href: "/marketing/security" },
+        { label: "FAQs", href: "/marketing/how-it-works" },
       ],
     },
   ];
