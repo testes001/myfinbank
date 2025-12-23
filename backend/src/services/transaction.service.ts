@@ -3,42 +3,21 @@
  * Handles internal transfers, P2P transfers, and transaction history
  */
 
-import { PrismaClient } from '@prisma/client';
+import {
+  PrismaClient,
+  Transaction,
+  TransactionType,
+  TransactionStatus,
+  P2PTransfer,
+  P2PTransferStatus,
+  AccountStatus,
+  Prisma,
+} from '@prisma/client';
 import { config } from '@/config';
 import { errors } from '@/middleware/errorHandler';
 import crypto from 'crypto';
 
 const prisma = new PrismaClient();
-const TxStatus = {
-  PENDING: 'PENDING',
-  PROCESSING: 'PROCESSING',
-  COMPLETED: 'COMPLETED',
-  FAILED: 'FAILED',
-  REVERSED: 'REVERSED',
-  CANCELLED: 'CANCELLED',
-} as const;
-const TransactionType = {
-  TRANSFER: 'TRANSFER',
-  P2P_TRANSFER: 'P2P_TRANSFER',
-  DEPOSIT: 'DEPOSIT',
-  WITHDRAWAL: 'WITHDRAWAL',
-  PAYMENT: 'PAYMENT',
-  REFUND: 'REFUND',
-  FEE: 'FEE',
-  INTEREST: 'INTEREST',
-} as const;
-const P2PStatus = {
-  PENDING: 'PENDING',
-  COMPLETED: 'COMPLETED',
-  FAILED: 'FAILED',
-  CANCELLED: 'CANCELLED',
-} as const;
-const AccountStatus = {
-  ACTIVE: 'ACTIVE',
-  CLOSED: 'CLOSED',
-  FROZEN: 'FROZEN',
-  RESTRICTED: 'RESTRICTED',
-} as const;
 
 // =============================================================================
 // Types
@@ -63,8 +42,8 @@ export interface P2PTransferInput {
 export interface TransactionFilters {
   userId: string;
   accountId?: string;
-  type?: string;
-  status?: string;
+  type?: TransactionType;
+  status?: TransactionStatus;
   startDate?: Date;
   endDate?: Date;
   minAmount?: number;
@@ -112,7 +91,7 @@ export class TransactionService {
       where: {
         userId,
         createdAt: { gte: today },
-        status: { in: [TxStatus.COMPLETED, TxStatus.PROCESSING] } as any,
+        status: { in: [TransactionStatus.COMPLETED, TransactionStatus.PROCESSING] },
         type: { in: [TransactionType.TRANSFER, TransactionType.P2P_TRANSFER] },
       },
       _sum: { amount: true },
@@ -131,7 +110,7 @@ export class TransactionService {
       where: {
         userId,
         createdAt: { gte: monthStart },
-        status: { in: [TxStatus.COMPLETED, TxStatus.PROCESSING] } as any,
+        status: { in: [TransactionStatus.COMPLETED, TransactionStatus.PROCESSING] },
         type: { in: [TransactionType.TRANSFER, TransactionType.P2P_TRANSFER] },
       },
       _sum: { amount: true },
@@ -176,7 +155,7 @@ export class TransactionService {
    */
   async internalTransfer(
     input: InternalTransferInput
-  ): Promise<any> {
+  ): Promise<Transaction> {
     const { userId, fromAccountId, toAccountId, amount, description } = input;
 
     // Validate amount and limits
@@ -241,7 +220,7 @@ export class TransactionService {
           type: TransactionType.TRANSFER,
           amount,
           currency: fromAccount.currency,
-          status: TxStatus.PROCESSING as any,
+          status: TransactionStatus.PROCESSING,
           description: description || 'Internal account transfer',
           referenceNumber,
         },
@@ -268,7 +247,7 @@ export class TransactionService {
       const completedTxn = await tx.transaction.update({
         where: { id: txn.id },
         data: {
-          status: TxStatus.COMPLETED as any,
+          status: TransactionStatus.COMPLETED,
           completedAt: new Date(),
         },
         include: {
@@ -294,7 +273,7 @@ export class TransactionService {
   /**
    * Perform P2P transfer to another user
    */
-  async p2pTransfer(input: P2PTransferInput): Promise<any> {
+  async p2pTransfer(input: P2PTransferInput): Promise<P2PTransfer> {
     const { senderId, recipientEmail, fromAccountId, amount, memo } = input;
 
     // Validate amount and limits
@@ -361,7 +340,7 @@ export class TransactionService {
           amount,
           currency: senderAccount.currency,
           memo: memo || 'P2P transfer',
-          status: P2PStatus.PENDING as any,
+          status: P2PTransferStatus.PENDING,
         },
       });
 
@@ -374,7 +353,7 @@ export class TransactionService {
           type: TransactionType.P2P_TRANSFER,
           amount,
           currency: senderAccount.currency,
-          status: TxStatus.PROCESSING as any,
+          status: TransactionStatus.PROCESSING,
           description: `P2P transfer to ${recipientEmail}`,
           referenceNumber: senderReferenceNumber,
           metadata: { p2pTransferId: p2p.id, recipientEmail, role: 'sender' },
@@ -389,7 +368,7 @@ export class TransactionService {
           type: TransactionType.P2P_TRANSFER,
           amount,
           currency: senderAccount.currency,
-          status: TxStatus.PROCESSING as any,
+          status: TransactionStatus.PROCESSING,
           description: `P2P transfer from ${senderAccount.userId}`,
           referenceNumber: recipientReferenceNumber,
           metadata: { p2pTransferId: p2p.id, senderEmail: recipientEmail, role: 'recipient' },
@@ -417,7 +396,7 @@ export class TransactionService {
       const completedP2P = await tx.p2PTransfer.update({
         where: { id: p2p.id },
         data: {
-          status: P2PStatus.COMPLETED as any,
+          status: P2PTransferStatus.COMPLETED,
           completedAt: new Date(),
         },
         include: {
@@ -434,7 +413,7 @@ export class TransactionService {
           },
         },
         data: {
-          status: TxStatus.COMPLETED as any,
+          status: TransactionStatus.COMPLETED,
           completedAt: new Date(),
         },
       });
@@ -458,7 +437,7 @@ export class TransactionService {
    */
   async getTransactionHistory(
     filters: TransactionFilters
-  ): Promise<{ transactions: any[]; total: number; page: number; totalPages: number }> {
+  ): Promise<{ transactions: Transaction[]; total: number; page: number; totalPages: number }> {
     const {
       userId,
       accountId,
@@ -473,7 +452,7 @@ export class TransactionService {
     } = filters;
 
     // Build where clause
-    const where: any = {
+    const where: Prisma.TransactionWhereInput = {
       userId,
     };
 
@@ -553,7 +532,7 @@ export class TransactionService {
   async getTransactionById(
     transactionId: string,
     userId: string
-  ): Promise<any> {
+  ): Promise<Transaction> {
     const transaction = await prisma.transaction.findUnique({
       where: { id: transactionId },
       include: {
@@ -611,7 +590,7 @@ export class TransactionService {
           { fromAccountId: accountId },
           { toAccountId: accountId },
         ],
-        status: TxStatus.COMPLETED as any,
+        status: TransactionStatus.COMPLETED,
         createdAt: { gte: startDate },
       },
       orderBy: { createdAt: 'asc' },

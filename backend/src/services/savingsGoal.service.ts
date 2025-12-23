@@ -3,19 +3,11 @@
  * Handles savings goal creation, contributions, and management
  */
 
-import { PrismaClient, SavingsGoal } from '@prisma/client';
+import { PrismaClient, SavingsGoal, SavingsGoalStatus } from '@prisma/client';
 import { log } from '@/utils/logger';
 import { errors } from '@/middleware/errorHandler';
 
 const prisma = new PrismaClient();
-
-const GoalStatus = {
-  ACTIVE: 'ACTIVE',
-  COMPLETED: 'COMPLETED',
-  PAUSED: 'PAUSED',
-  CANCELLED: 'CANCELLED',
-} as const;
-type GoalStatusType = (typeof GoalStatus)[keyof typeof GoalStatus];
 
 // =============================================================================
 // Types
@@ -103,7 +95,7 @@ export class SavingsGoalService {
       where: {
         userId,
         status: {
-          not: GoalStatus.CANCELLED,
+          not: SavingsGoalStatus.CANCELLED,
         },
       },
     });
@@ -122,7 +114,7 @@ export class SavingsGoalService {
         currentAmount: 0,
         deadline,
         category: category || 'General',
-        status: GoalStatus.ACTIVE as GoalStatusType,
+        status: SavingsGoalStatus.ACTIVE,
       } as any,
     });
 
@@ -253,15 +245,15 @@ export class SavingsGoalService {
     }
 
     // Check goal status
-    if (goal.status === GoalStatus.CANCELLED) {
+    if (goal.status === SavingsGoalStatus.CANCELLED) {
       throw errors.validation('Cannot contribute to a cancelled goal');
     }
 
-    if (goal.status === GoalStatus.PAUSED) {
+    if (goal.status === SavingsGoalStatus.PAUSED) {
       throw errors.validation('Cannot contribute to a paused goal');
     }
 
-    if (goal.status === GoalStatus.COMPLETED) {
+    if (goal.status === SavingsGoalStatus.COMPLETED) {
       throw errors.validation('Goal is already completed');
     }
 
@@ -297,7 +289,7 @@ export class SavingsGoalService {
         return await tx.savingsGoal.update({
           where: { id: goalId },
           data: {
-            status: GoalStatus.COMPLETED as GoalStatusType,
+            status: SavingsGoalStatus.COMPLETED,
           },
         });
       }
@@ -354,7 +346,7 @@ export class SavingsGoalService {
     }
 
     // Check goal status
-    if (goal.status === GoalStatus.CANCELLED) {
+    if (goal.status === SavingsGoalStatus.CANCELLED) {
       throw errors.validation('Cannot withdraw from a cancelled goal');
     }
 
@@ -387,13 +379,13 @@ export class SavingsGoalService {
 
       // If goal was completed but now is not, change status back to ACTIVE
       if (
-        goal.status === GoalStatus.COMPLETED &&
+        goal.status === SavingsGoalStatus.COMPLETED &&
         Number(updated.currentAmount) < Number(updated.targetAmount)
       ) {
         return await tx.savingsGoal.update({
           where: { id: goalId },
           data: {
-            status: GoalStatus.ACTIVE as GoalStatusType,
+            status: SavingsGoalStatus.ACTIVE,
           },
         });
       }
@@ -441,7 +433,7 @@ export class SavingsGoalService {
       throw errors.forbidden('You do not have access to this goal');
     }
 
-    if (goal.status === GoalStatus.CANCELLED) {
+    if (goal.status === SavingsGoalStatus.CANCELLED) {
       throw errors.validation('Cannot update a cancelled goal');
     }
 
@@ -514,22 +506,22 @@ export class SavingsGoalService {
       throw errors.forbidden('You do not have access to this goal');
     }
 
-    if (goal.status === GoalStatus.CANCELLED) {
+    if (goal.status === SavingsGoalStatus.CANCELLED) {
       throw errors.validation('Cannot pause a cancelled goal');
     }
 
-    if (goal.status === GoalStatus.COMPLETED) {
+    if (goal.status === SavingsGoalStatus.COMPLETED) {
       throw errors.validation('Cannot pause a completed goal');
     }
 
-    if (goal.status === GoalStatus.PAUSED) {
+    if (goal.status === SavingsGoalStatus.PAUSED) {
       throw errors.validation('Goal is already paused');
     }
 
     const updatedGoal = await prisma.savingsGoal.update({
       where: { id: goalId },
       data: {
-        status: GoalStatus.PAUSED as GoalStatusType,
+        status: SavingsGoalStatus.PAUSED,
       },
     });
 
@@ -561,14 +553,14 @@ export class SavingsGoalService {
       throw errors.forbidden('You do not have access to this goal');
     }
 
-    if (goal.status !== GoalStatus.PAUSED) {
+    if (goal.status !== SavingsGoalStatus.PAUSED) {
       throw errors.validation('Goal is not paused');
     }
 
     const updatedGoal = await prisma.savingsGoal.update({
       where: { id: goalId },
       data: {
-        status: GoalStatus.ACTIVE as GoalStatusType,
+        status: SavingsGoalStatus.ACTIVE,
       },
     });
 
@@ -604,7 +596,7 @@ export class SavingsGoalService {
       throw errors.forbidden('You do not have access to this goal');
     }
 
-    if (goal.status === GoalStatus.CANCELLED) {
+    if (goal.status === SavingsGoalStatus.CANCELLED) {
       throw errors.validation('Goal is already cancelled');
     }
 
@@ -626,7 +618,7 @@ export class SavingsGoalService {
       return await tx.savingsGoal.update({
         where: { id: goalId },
         data: {
-          status: GoalStatus.CANCELLED as GoalStatusType,
+          status: SavingsGoalStatus.CANCELLED,
         },
       });
     });

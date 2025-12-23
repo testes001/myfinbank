@@ -3,19 +3,14 @@
  * Handles user profile management, password changes, and settings
  */
 
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient, UserStatus } from '@prisma/client';
+import type { User } from '@prisma/client';
 import bcrypt from 'bcryptjs';
 import { config } from '@/config';
 import { log } from '@/utils/logger';
 import { errors } from '@/middleware/errorHandler';
 
 const prisma = new PrismaClient();
-const UserStatus = {
-  PENDING_KYC: 'PENDING_KYC',
-  ACTIVE: 'ACTIVE',
-  SUSPENDED: 'SUSPENDED',
-  CLOSED: 'CLOSED',
-} as const;
 
 // =============================================================================
 // Types

@@ -9,18 +9,8 @@ import { errors } from '@/middleware/errorHandler';
 import { log } from '@/utils/logger';
 import { generateAccessToken, generateRefreshToken } from '@/utils/jwt';
 import { hashToken } from '@/utils/encryption';
-
-const AdminRole = {
-  SUPERADMIN: 'SUPERADMIN',
-  COMPLIANCE_OFFICER: 'COMPLIANCE_OFFICER',
-  SUPPORT_AGENT: 'SUPPORT_AGENT',
-} as const;
-
-const AdminStatus = {
-  ACTIVE: 'ACTIVE',
-  SUSPENDED: 'SUSPENDED',
-  INACTIVE: 'INACTIVE',
-} as const;
+import { AdminRole, AdminStatus } from '@prisma/client';
+import type { AdminUser, AdminSession } from '@prisma/client';
 
 // =============================================================================
 // Types
@@ -56,7 +46,7 @@ interface CreateAdminInput {
   email: string;
   password: string;
   fullName: string;
-  role: string;
+  role: AdminRole;
   createdBy: string;
 }
 

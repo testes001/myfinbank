@@ -3,7 +3,8 @@
  * Business logic for user authentication
  */
 
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient, UserRole, UserStatus, KYCStatus } from '@prisma/client';
+import type { User } from '@prisma/client';
 import bcrypt from 'bcryptjs';
 import { config } from '@/config';
 import { log } from '@/utils/logger';
@@ -12,24 +13,6 @@ import { hash } from '@/utils/encryption';
 import { errors } from '@/middleware/errorHandler';
 
 const prisma = new PrismaClient();
-const UserRole = {
-  CUSTOMER: 'CUSTOMER',
-  ADMIN: 'ADMIN',
-  SUPPORT: 'SUPPORT',
-  COMPLIANCE_OFFICER: 'COMPLIANCE_OFFICER',
-} as const;
-const UserStatus = {
-  PENDING_KYC: 'PENDING_KYC',
-  ACTIVE: 'ACTIVE',
-  SUSPENDED: 'SUSPENDED',
-  CLOSED: 'CLOSED',
-} as const;
-const KYCStatus = {
-  PENDING: 'PENDING',
-  UNDER_REVIEW: 'UNDER_REVIEW',
-  APPROVED: 'APPROVED',
-  REJECTED: 'REJECTED',
-} as const;
 
 export interface RegisterInput {
   email: string;

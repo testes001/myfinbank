@@ -3,17 +3,12 @@
  * Verify admin JWT tokens and enforce role-based access control
  */
 
-import { Request, Response, NextFunction } from 'express';
+import type { Request, Response, NextFunction } from 'express';
 import { errors } from './errorHandler';
 import { verifyAccessToken, extractBearerToken } from '@/utils/jwt';
 import { log } from '@/utils/logger';
 import { prisma } from '@/config/database';
-
-const AdminRole = {
-  SUPERADMIN: 'SUPERADMIN',
-  COMPLIANCE_OFFICER: 'COMPLIANCE_OFFICER',
-  SUPPORT_AGENT: 'SUPPORT_AGENT',
-} as const;
+import { AdminRole } from '@prisma/client';
 
 // =============================================================================
 // Type Extensions
@@ -26,7 +21,7 @@ declare global {
         adminId: string;
         username: string;
         email: string;
-        role: string;
+        role: AdminRole;
         sessionId: string;
       };
     }
@@ -163,7 +158,7 @@ export async function optionalAdminAuth(
  * Require specific admin role
  * Must be used after authenticateAdmin middleware
  */
-export function requireRole(...roles: string[]) {
+export function requireRole(...roles: AdminRole[]) {
   return (req: Request, res: Response, next: NextFunction): void => {
     if (!req.admin) {
       return next(errors.unauthorized('Admin authentication required'));

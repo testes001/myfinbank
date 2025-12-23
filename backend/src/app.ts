@@ -2,7 +2,8 @@
  * Express Application Setup
  */
 
-import express, { Application, Request, Response, NextFunction } from 'express';
+import express from 'express';
+import type { Application, Request, Response, NextFunction } from 'express';
 import helmet from 'helmet';
 import cors from 'cors';
 import compression from 'compression';

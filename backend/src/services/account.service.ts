@@ -3,22 +3,17 @@
  * Business logic for account management
  */
 
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient, AccountStatus, AccountType } from '@prisma/client';
+import type { Account } from '@prisma/client';
 import { log } from '@/utils/logger';
 import { errors } from '@/middleware/errorHandler';
 import { encrypt, decrypt } from '@/utils/encryption';
 
 const prisma = new PrismaClient();
-const AccountStatus = {
-  ACTIVE: 'ACTIVE',
-  CLOSED: 'CLOSED',
-  FROZEN: 'FROZEN',
-  RESTRICTED: 'RESTRICTED',
-} as const;
 
 export interface CreateAccountInput {
   userId: string;
-  accountType: string;
+  accountType: AccountType;
   currency?: string;
   initialDeposit?: number;
 }
@@ -27,7 +22,7 @@ export class AccountService {
   /**
    * Get all accounts for a user
    */
-  async getUserAccounts(userId: string): Promise<any[]> {
+  async getUserAccounts(userId: string): Promise<Account[]> {
     const accounts = await prisma.account.findMany({
       where: { userId },
       orderBy: { createdAt: 'desc' },
@@ -41,7 +36,7 @@ export class AccountService {
   /**
    * Get account by ID
    */
-  async getAccountById(accountId: string, userId: string): Promise<any> {
+  async getAccountById(accountId: string, userId: string): Promise<Account> {
     const account = await prisma.account.findFirst({
       where: {
         id: accountId,
@@ -59,7 +54,7 @@ export class AccountService {
   /**
    * Create new account
    */
-  async createAccount(input: CreateAccountInput): Promise<any> {
+  async createAccount(input: CreateAccountInput): Promise<Account> {
     const { userId, accountType, currency = 'USD', initialDeposit = 0 } = input;
 
     // Check if user exists
@@ -113,7 +108,7 @@ export class AccountService {
   /**
    * Update account status
    */
-  async updateAccountStatus(accountId: string, userId: string, status: any): Promise<any> {
+  async updateAccountStatus(accountId: string, userId: string, status: AccountStatus): Promise<Account> {
     // Verify ownership
     await this.getAccountById(accountId, userId);
 
