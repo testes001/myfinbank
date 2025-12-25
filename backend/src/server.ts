@@ -5,6 +5,8 @@
 import { createApp } from './app';
 import { config, logConfigWarnings } from './config';
 import { log } from './utils/logger';
+import { prisma } from './config/database';
+import redisClient from './config/redis';
 
 // Handle uncaught exceptions
 process.on('uncaughtException', (error: Error) => {
@@ -24,6 +26,9 @@ async function startServer() {
 
     // Log configuration warnings
     logConfigWarnings();
+
+    // Connectivity checks
+    await verifyServiceConnectivity();
 
     // Create Express app
     const app = createApp();
@@ -71,3 +76,47 @@ async function startServer() {
 
 // Start server
 startServer();
+
+async function verifyServiceConnectivity() {
+  // Database
+  try {
+    await prisma.$queryRaw`SELECT 1`;
+    log.info('✅ Database reachable');
+  } catch (err) {
+    log.error('❌ Database connectivity failed', err as Error);
+  }
+
+  // Redis
+  if (redisClient) {
+    try {
+      await redisClient.ping();
+      log.info('✅ Redis reachable');
+    } catch (err) {
+      log.error('❌ Redis connectivity failed', err as Error);
+    }
+  } else {
+    log.warn('Redis client not initialized (check REDIS_URL/credentials)');
+  }
+
+  // Resend
+  if (config.resendApiKey) {
+    try {
+      const response = await fetch('https://api.resend.com/domains', {
+        headers: { Authorization: `Bearer ${config.resendApiKey}` },
+      });
+      if (response.ok) {
+        log.info('✅ Resend API reachable for transactional emails');
+      } else {
+        const text = await response.text();
+        log.error('❌ Resend API check failed', {
+          status: response.status,
+          body: text.slice(0, 200),
+        });
+      }
+    } catch (err) {
+      log.error('❌ Resend connectivity failed', err as Error);
+    }
+  } else {
+    log.warn('RESEND_API_KEY not set - email sending disabled');
+  }
+}
