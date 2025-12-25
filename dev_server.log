@@ -4,9 +4,13 @@
 
 
 ♻️  Generating routes...
-✅ Processed routes in 209ms
+✅ Processed routes in 375ms
 
-  ROLLDOWN-VITE v7.3.0  ready in 1162 ms
+  ROLLDOWN-VITE v7.3.0  ready in 2206 ms
 
   ➜  Local:   http://localhost:3000/
   ➜  Network: http://192.168.0.2:3000/
+
+♻️  Regenerating routes...
+✅ Processed routes in 142ms
+10:55:07 PM [vite] (client) page reload src/routes/login.tsx

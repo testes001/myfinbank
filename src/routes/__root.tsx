@@ -22,9 +22,6 @@ function Root() {
 							<Outlet />
 						</ErrorBoundary>
 						<Toaster />
-						<TanStackRouterDevtools position="bottom-right" />
-						<FloatingBanner position="bottom-left" />
-						<Analytics />
 					</div>
 				</AuthProvider>
 			</ThemeProvider>
