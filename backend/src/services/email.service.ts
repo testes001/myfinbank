@@ -1,15 +1,19 @@
 import config from '@/config';
 import { log } from '@/utils/logger';
+import { issueVerificationCode, checkVerificationRateLimit } from './verification.service';
 
 interface VerificationEmailPayload {
   email: string;
-  code: string;
+  ip?: string;
 }
 
-export async function sendVerificationEmail({ email, code }: VerificationEmailPayload): Promise<void> {
+export async function sendVerificationEmail({ email, ip }: VerificationEmailPayload): Promise<void> {
   if (!config.resendApiKey) {
     throw new Error('RESEND_API_KEY not configured');
   }
+
+  await checkVerificationRateLimit(email, ip || 'unknown');
+  const { code } = await issueVerificationCode(email);
 
   const body = {
     from: `${config.emailFromName} <${config.emailFrom}>`,

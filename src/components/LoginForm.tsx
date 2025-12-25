@@ -8,12 +8,13 @@ import { motion } from "framer-motion";
 import { toast } from "sonner";
 import { PasswordStrengthIndicator } from "@/components/PasswordStrengthIndicator";
 import { validatePasswordStrength } from "@/lib/password-validation";
-import { issueVerificationCode, verifyEmailCode } from "@/lib/email-verification";
 import { getAuthThrottle, recordAuthAttempt, resetAuthThrottle } from "@/lib/rate-limit";
 
 interface LoginFormProps {
   onShowLanding?: () => void;
 }
+
+const API_BASE = import.meta.env.VITE_API_BASE_URL || "";
 
 export function LoginForm({ onShowLanding }: LoginFormProps) {
   const [isLogin, setIsLogin] = useState(true);
@@ -31,12 +32,18 @@ export function LoginForm({ onShowLanding }: LoginFormProps) {
   const [lockUntil, setLockUntil] = useState<number | null>(() => getAuthThrottle().lockUntil);
   const { setCurrentUser } = useAuth();
 
-  const deliverVerificationCode = async (emailToSend: string, code: string) => {
+  const deliverVerificationCode = async (emailToSend: string) => {
+    // Demo accounts skip verification entirely
+    if (emailToSend.toLowerCase().endsWith("@demo.com")) {
+      markUserEmailVerified(emailToSend);
+      return;
+    }
+
     try {
-      const response = await fetch("/api/auth/verification-code", {
+      const response = await fetch(`${API_BASE}/api/auth/verification-code`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: emailToSend, code }),
+        body: JSON.stringify({ email: emailToSend }),
       });
       if (!response.ok) {
         throw new Error(`Failed with status ${response.status}`);
@@ -45,7 +52,6 @@ export function LoginForm({ onShowLanding }: LoginFormProps) {
     } catch (err) {
       console.error("Verification email send failed:", err);
       toast.error("Failed to send verification email; showing code instead.");
-      toast.info(`Code: ${code}`);
     }
   };
 
@@ -97,7 +103,7 @@ export function LoginForm({ onShowLanding }: LoginFormProps) {
         setVerificationEmail(email);
         setStep("verify");
         toast.success("Account created! Enter the verification code we just sent.");
-        void deliverVerificationCode(email, authUser.verificationCode);
+        void deliverVerificationCode(email);
       }
     } catch (error) {
       const message = error instanceof Error ? error.message : "An error occurred";
@@ -109,8 +115,7 @@ export function LoginForm({ onShowLanding }: LoginFormProps) {
       if (message.toLowerCase().includes("not verified")) {
         setVerificationEmail(email);
         setStep("verify");
-        const code = issueVerificationCode(email);
-        void deliverVerificationCode(email, code);
+        void deliverVerificationCode(email);
       }
     } finally {
       setIsLoading(false);
@@ -124,12 +129,22 @@ export function LoginForm({ onShowLanding }: LoginFormProps) {
       return;
     }
 
-    if (!verifyEmailCode(verificationEmail, verificationCode)) {
-      toast.error("Invalid or expired code. Please try again.");
-      return;
+    if (!verificationEmail.toLowerCase().endsWith("@demo.com")) {
+      try {
+        const response = await fetch(`${API_BASE}/api/auth/verify`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email: verificationEmail, code: verificationCode }),
+        });
+        if (!response.ok) {
+          throw new Error("Invalid or expired code");
+        }
+      } catch (err) {
+        toast.error(err instanceof Error ? err.message : "Verification failed");
+        return;
+      }
     }
 
-    markUserEmailVerified(verificationEmail);
     toast.success("Email verified! Signing you in.");
 
     if (pendingUser) {
@@ -200,17 +215,16 @@ export function LoginForm({ onShowLanding }: LoginFormProps) {
                 </Button>
                 <Button
                   type="button"
-                  variant="outline"
-                  className="border-white/30 text-white"
-                  onClick={() => {
-                    if (!verificationEmail) return;
-                    const code = issueVerificationCode(verificationEmail);
-                    void deliverVerificationCode(verificationEmail, code);
-                  }}
-                >
-                  Resend
-                </Button>
-              </div>
+                variant="outline"
+                className="border-white/30 text-white"
+                onClick={() => {
+                  if (!verificationEmail) return;
+                  void deliverVerificationCode(verificationEmail);
+                }}
+              >
+                Resend
+              </Button>
+            </div>
             </form>
           </div>
         </motion.div>

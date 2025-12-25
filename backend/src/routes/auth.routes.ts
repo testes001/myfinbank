@@ -50,4 +50,11 @@ router.get('/me', authenticate, authController.me);
  */
 router.post('/verification-code', authController.sendVerificationCode);
 
+/**
+ * @route   POST /api/auth/verify
+ * @desc    Verify email with code
+ * @access  Public
+ */
+router.post('/verify', authController.verify);
+
 export default router;

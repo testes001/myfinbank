@@ -8,6 +8,7 @@ import { z } from 'zod';
 import { authService } from '@/services/auth.service';
 import { asyncHandler, errors } from '@/middleware/errorHandler';
 import { sendVerificationEmail } from '@/services/email.service';
+import { verifyCode, isVerified } from '@/services/verification.service';
 
 // Validation schemas
 const registerSchema = z.object({
@@ -34,7 +35,7 @@ const refreshTokenSchema = z.object({
 
 const verificationSchema = z.object({
   email: z.string().email('Invalid email format'),
-  code: z.string().min(4).max(10),
+  code: z.string().min(4).max(10).optional(),
 });
 
 export class AuthController {
@@ -215,13 +216,43 @@ export class AuthController {
       throw errors.validation('Invalid input', validationResult.error.format());
     }
 
-    const { email, code } = validationResult.data;
+    const { email } = validationResult.data;
 
-    await sendVerificationEmail({ email, code });
+    await sendVerificationEmail({ email, ip: req.ip || req.socket.remoteAddress || 'unknown' });
 
     res.status(200).json({
       success: true,
       message: 'Verification code sent',
+      meta: {
+        requestId: req.requestId,
+        timestamp: new Date().toISOString(),
+      },
+    });
+  });
+
+  /**
+   * POST /api/auth/verify
+   * Verify code and mark email as verified
+   */
+  verify = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
+    const validationResult = verificationSchema.safeParse(req.body);
+    if (!validationResult.success) {
+      throw errors.validation('Invalid input', validationResult.error.format());
+    }
+
+    const { email, code } = validationResult.data;
+    if (!code) {
+      throw errors.validation('Verification code is required');
+    }
+
+    const ok = await verifyCode(email, code);
+    if (!ok) {
+      throw errors.validation('Invalid or expired verification code');
+    }
+
+    res.status(200).json({
+      success: true,
+      message: 'Email verified',
       meta: {
         requestId: req.requestId,
         timestamp: new Date().toISOString(),

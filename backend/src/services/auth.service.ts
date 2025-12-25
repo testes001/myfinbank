@@ -11,6 +11,7 @@ import { log } from '@/utils/logger';
 import { generateAccessToken, generateRefreshToken, TokenPayload } from '@/utils/jwt';
 import { hash } from '@/utils/encryption';
 import { errors } from '@/middleware/errorHandler';
+import { isVerified } from './verification.service';
 
 const prisma = new PrismaClient();
 
@@ -133,6 +134,14 @@ export class AuthService {
       await this.recordLoginAttempt(email, user.id, false, ipAddress, userAgent, 'Invalid password');
       log.auth('Login failed - invalid password', { userId: user.id, email, ipAddress });
       throw errors.unauthorized('Invalid email or password');
+    }
+
+    // Require email verification except for demo accounts
+    const isDemo = email.toLowerCase().endsWith('@demo.com');
+    const verified = await isVerified(email);
+    if (!isDemo && !verified) {
+      await this.recordLoginAttempt(email, user.id, false, ipAddress, userAgent, 'Email not verified');
+      throw errors.forbidden('Email not verified. Please complete verification.');
     }
 
     // Check user status

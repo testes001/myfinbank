@@ -14,7 +14,7 @@ import {
   sendPasswordResetEmail,
   sendPasswordResetCompletedEmail,
 } from "@/lib/email-service";
-import { issueVerificationCode, isEmailVerified, markEmailVerified } from "@/lib/email-verification";
+// Email verification is now handled server-side via /api/auth/verify and checked during login
 
 const userOrm = UserORM.getInstance();
 const accountOrm = AccountORM.getInstance();
@@ -88,7 +88,7 @@ export async function registerUser(
   email: string,
   password: string,
   fullName: string
-): Promise<AuthUser & { verificationCode: string }> {
+): Promise<AuthUser> {
   // Basic geo-eligibility guard (frontend safety; must be enforced server-side in production)
   const geoCountry = (window as any).__finbankCountryCode as string | undefined;
   if (geoCountry) {
@@ -158,9 +158,7 @@ export async function registerUser(
     status: "success",
   });
 
-  const verificationCode = issueVerificationCode(email);
-
-  return { user: newUser, account, verificationCode };
+  return { user: newUser, account };
 }
 
 export async function loginUser(email: string, password: string): Promise<AuthUser> {
@@ -197,20 +195,6 @@ export async function loginUser(email: string, password: string): Promise<AuthUs
   const accounts = await accountOrm.getAccountByUserId(user.id);
   if (accounts.length === 0) {
     throw new Error("No account found for user");
-  }
-
-  // Require email verification except for demo users
-  if (!DEMO_USER_EMAILS.includes(email) && !isEmailVerified(email)) {
-    addAuditLog({
-      actor: user.id,
-      actorType: "user",
-      action: "login_blocked_unverified",
-      resource: "user",
-      resourceId: user.id,
-      details: { email },
-      status: "failed",
-    });
-    throw new Error("Email not verified. Please check your inbox for the code.");
   }
 
   // Auto-approve KYC for demo users so they can access dashboard
@@ -337,7 +321,7 @@ export async function updateUserTheme(userId: string, theme: string): Promise<vo
   });
 }
 
-// Utility to mark email verified externally (e.g., after code entry)
-export function markUserEmailVerified(email: string) {
-  markEmailVerified(email);
+// Utility retained for compatibility (no-op; verification handled server-side)
+export function markUserEmailVerified(_email: string) {
+  return;
 }
