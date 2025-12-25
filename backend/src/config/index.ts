@@ -199,6 +199,11 @@ export const config: Config = {
   kycAutoApproveDemo: getEnvBoolean('KYC_AUTO_APPROVE_DEMO', false),
 };
 
+// Ensure the configured frontend URL is always allowed for CORS
+if (!config.corsOrigin.includes(config.frontendUrl)) {
+  config.corsOrigin.push(config.frontendUrl);
+}
+
 // Validation
 export function validateConfig(): void {
   const isDev = config.nodeEnv === 'development';

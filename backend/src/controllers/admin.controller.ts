@@ -77,8 +77,9 @@ export class AdminController {
     res.cookie('admin_refresh_token', result.refreshToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
+      sameSite: 'none',
       maxAge: 8 * 60 * 60 * 1000, // 8 hours
+      domain: undefined,
     });
 
     res.status(200).json({
@@ -183,8 +184,9 @@ export class AdminController {
     res.cookie('admin_refresh_token', result.refreshToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
+      sameSite: 'none',
       maxAge: 8 * 60 * 60 * 1000, // 8 hours
+      domain: undefined,
     });
 
     res.status(200).json({
