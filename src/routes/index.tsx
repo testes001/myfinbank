@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { createFileRoute } from "@tanstack/react-router";
-import { useCreaoAuth } from "@/sdk/core/auth";
+import { useAuth } from "@/contexts/AuthContext";
 
 export const Route = createFileRoute("/")({
 	component: App,
@@ -9,15 +9,15 @@ export const Route = createFileRoute("/")({
 
 function App() {
 	const navigate = useNavigate();
-	const { isAuthenticated } = useCreaoAuth();
+	const { currentUser } = useAuth();
 
 	useEffect(() => {
-		if (isAuthenticated) {
+		if (currentUser) {
 			navigate({ to: "/dashboard" });
 		} else {
 			navigate({ to: "/marketing" });
 		}
-	}, [isAuthenticated, navigate]);
+	}, [currentUser, navigate]);
 
 	return null;
 }

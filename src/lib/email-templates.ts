@@ -121,7 +121,57 @@ Complete your profile to unlock all features: ${data.appUrl}
 
 Fin-Bank - Secure Digital Banking
 Available in Spain, Germany, France, Italy, and Portugal
-EU Banking License: ES-2024-001-FINBANK`,
+      EU Banking License: ES-2024-001-FINBANK`,
+  }),
+
+  /**
+   * Email Verification Code
+   */
+  verificationCode: (data: { code: string; email: string }): EmailTemplate => ({
+    name: "email_verification",
+    subject: "Verify your email to finish setting up Fin-Bank",
+    html: `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Verify your email</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; color: #1A1A1A; background: #F5F7FB; }
+    .container { max-width: 520px; margin: 0 auto; background: #FFFFFF; border-radius: 12px; overflow: hidden; box-shadow: 0 12px 40px rgba(0,0,0,0.08); }
+    .header { background: linear-gradient(135deg, #003366 0%, #004D99 100%); padding: 28px 24px; color: #FFFFFF; }
+    .title { font-size: 22px; font-weight: 700; }
+    .content { padding: 28px 24px; }
+    .code { font-size: 32px; letter-spacing: 8px; font-weight: 700; color: #003366; text-align: center; padding: 18px; background: #F2F6FF; border-radius: 10px; margin: 16px 0; }
+    .muted { color: #4A4A4A; font-size: 14px; line-height: 1.6; }
+    .footer { padding: 20px 24px; background: #F7F9FC; color: #6B7280; font-size: 12px; text-align: center; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <div class="title">Verify your email</div>
+      <div style="margin-top:6px; opacity: 0.85;">Complete verification to secure your Fin-Bank account</div>
+    </div>
+    <div class="content">
+      <p class="muted">Enter the code below in the app to finish setting up your account. This code expires in 10 minutes.</p>
+      <div class="code">${data.code}</div>
+      <p class="muted">If you didn’t request this, you can ignore this email.</p>
+    </div>
+    <div class="footer">
+      <div>Sent to ${data.email}</div>
+      <div>Fin-Bank • PSD2 + GDPR compliant • €100k deposit guarantee</div>
+    </div>
+  </div>
+</body>
+</html>`,
+    plainText: `Verify your email to finish setting up Fin-Bank.
+
+Your verification code: ${data.code}
+This code expires in 10 minutes.
+
+If you didn't request this, you can ignore this email.`,
   }),
 
   /**

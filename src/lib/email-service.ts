@@ -12,7 +12,8 @@ const MAILGUN_API_KEY =
   import.meta.env?.VITE_MAILGUN_API_KEY || import.meta.env?.MAILGUN_API_KEY || "";
 const MAILGUN_DOMAIN =
   import.meta.env?.VITE_MAILGUN_DOMAIN || import.meta.env?.MAILGUN_DOMAIN || "";
-const RESEND_API_KEY = import.meta.env?.VITE_RESEND_API_KEY || import.meta.env?.RESEND_API_KEY || "";
+const RESEND_API_KEY =
+  import.meta.env?.VITE_RESEND_API_KEY || import.meta.env?.RESEND_API_KEY || "";
 
 const FROM_EMAIL =
   import.meta.env?.VITE_EMAIL_FROM || import.meta.env?.EMAIL_FROM || "alerts@finbank.eu";
@@ -25,12 +26,19 @@ export interface EmailSendResult {
 }
 
 /**
- * Send email via available provider (SendGrid → Mailgun → Resend)
+ * Send email via available provider (Resend → SendGrid → Mailgun)
  */
 export async function sendEmail(
   to: string,
   template: EmailTemplate,
 ): Promise<EmailSendResult> {
+  if (RESEND_API_KEY) {
+    const rsResult = await sendWithResend(to, template);
+    if (rsResult.success || (!SENDGRID_API_KEY && !MAILGUN_API_KEY)) {
+      return rsResult;
+    }
+  }
+
   if (SENDGRID_API_KEY) {
     const sgResult = await sendWithSendGrid(to, template);
     if (sgResult.success || !MAILGUN_API_KEY) return sgResult;
@@ -249,6 +257,14 @@ export async function sendNewLoginAlertEmail(
     timestamp,
     isUnknownDevice,
   });
+  return sendEmail(email, template);
+}
+
+/**
+ * Send verification code email
+ */
+export async function sendVerificationCodeEmail(email: string, code: string): Promise<EmailSendResult> {
+  const template = EmailTemplates.verificationCode({ code, email });
   return sendEmail(email, template);
 }
 

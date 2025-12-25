@@ -43,4 +43,11 @@ router.post('/logout', authenticate, authController.logout);
  */
 router.get('/me', authenticate, authController.me);
 
+/**
+ * @route   POST /api/auth/verification-code
+ * @desc    Send verification code email
+ * @access  Public
+ */
+router.post('/verification-code', authController.sendVerificationCode);
+
 export default router;

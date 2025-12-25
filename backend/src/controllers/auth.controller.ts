@@ -7,6 +7,7 @@ import { Request, Response, NextFunction } from 'express';
 import { z } from 'zod';
 import { authService } from '@/services/auth.service';
 import { asyncHandler, errors } from '@/middleware/errorHandler';
+import { sendVerificationEmail } from '@/services/email.service';
 
 // Validation schemas
 const registerSchema = z.object({
@@ -29,6 +30,11 @@ const loginSchema = z.object({
 
 const refreshTokenSchema = z.object({
   refreshToken: z.string().min(1, 'Refresh token is required'),
+});
+
+const verificationSchema = z.object({
+  email: z.string().email('Invalid email format'),
+  code: z.string().min(4).max(10),
 });
 
 export class AuthController {
@@ -192,6 +198,30 @@ export class AuthController {
         email: req.user.email,
         role: req.user.role,
       },
+      meta: {
+        requestId: req.requestId,
+        timestamp: new Date().toISOString(),
+      },
+    });
+  });
+
+  /**
+   * POST /api/auth/verification-code
+   * Send verification code email via Resend
+   */
+  sendVerificationCode = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
+    const validationResult = verificationSchema.safeParse(req.body);
+    if (!validationResult.success) {
+      throw errors.validation('Invalid input', validationResult.error.format());
+    }
+
+    const { email, code } = validationResult.data;
+
+    await sendVerificationEmail({ email, code });
+
+    res.status(200).json({
+      success: true,
+      message: 'Verification code sent',
       meta: {
         requestId: req.requestId,
         timestamp: new Date().toISOString(),

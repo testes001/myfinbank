@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useSessionSecurity } from "@/hooks/useSessionSecurity";
-import { LoginForm } from "@/components/LoginForm";
+import { AuthenticationGateway } from "@/components/AuthenticationGateway";
 import { Dashboard } from "@/components/Dashboard";
 import { TransactionHistory } from "@/components/TransactionHistory";
 import { ProfilePage } from "@/components/ProfilePage";
@@ -14,6 +14,7 @@ import { toast } from "sonner";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Loader2, Clock, CheckCircle2, AlertCircle } from "lucide-react";
+import { useEffect, useRef, useState as useReactState } from "react";
 
 export type ActivePage = "dashboard" | "transfer" | "history" | "profile" | "deposit";
 
@@ -21,6 +22,14 @@ export function BankingApp() {
   const { currentUser, isLoading, userStatus, refreshUserStatus } = useAuth();
   const [activePage, setActivePage] = useState<ActivePage>("dashboard");
   const [isMobileDepositOpen, setIsMobileDepositOpen] = useState(false);
+  const scrollContainerRef = useRef<HTMLDivElement | null>(null);
+  const [scrollPositions, setScrollPositions] = useReactState<Record<ActivePage, number>>({
+    dashboard: 0,
+    transfer: 0,
+    history: 0,
+    profile: 0,
+    deposit: 0,
+  });
 
   // Initialize session security (auto-logout after 15 minutes of inactivity)
   useSessionSecurity({
@@ -37,7 +46,7 @@ export function BankingApp() {
   }
 
   if (!currentUser) {
-    return <LoginForm />;
+    return <AuthenticationGateway />;
   }
 
   // Handle onboarding flow
@@ -204,10 +213,33 @@ export function BankingApp() {
     );
   }
 
+  // Preserve scroll position per tab to keep mobile navigation smooth
+  useEffect(() => {
+    const container = scrollContainerRef.current;
+    if (!container) return;
+
+    const handleScroll = () => {
+      setScrollPositions((prev) => ({
+        ...prev,
+        [activePage]: container.scrollTop,
+      }));
+    };
+
+    container.addEventListener("scroll", handleScroll);
+    return () => container.removeEventListener("scroll", handleScroll);
+  }, [activePage]);
+
+  useEffect(() => {
+    const container = scrollContainerRef.current;
+    if (!container) return;
+    const nextTop = scrollPositions[activePage] ?? 0;
+    container.scrollTo({ top: nextTop, behavior: "auto" });
+  }, [activePage, scrollPositions]);
+
   // Show main banking app for active users
   return (
     <div className="flex h-screen flex-col bg-gradient-to-br from-blue-950 via-slate-900 to-purple-950 dark:from-blue-950 dark:via-slate-900 dark:to-purple-950 light:from-blue-50 light:via-slate-50 light:to-purple-50">
-      <div className="flex-1 overflow-y-auto pb-20">
+      <div className="flex-1 overflow-y-auto pb-20" ref={scrollContainerRef}>
         <AnimatePresence mode="wait">
           <motion.div
             key={activePage}

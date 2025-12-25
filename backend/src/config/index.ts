@@ -66,6 +66,7 @@ interface Config {
 
   // Email
   sendgridApiKey?: string;
+  resendApiKey?: string;
   emailFrom: string;
   emailFromName: string;
 
@@ -174,6 +175,7 @@ export const config: Config = {
 
   // Email
   sendgridApiKey: process.env.SENDGRID_API_KEY,
+  resendApiKey: process.env.RESEND_API_KEY,
   emailFrom: getEnv('EMAIL_FROM', 'noreply@yourfinbank.com'),
   emailFromName: getEnv('EMAIL_FROM_NAME', 'FinBank'),
 
@@ -222,6 +224,9 @@ export function logConfigWarnings(): void {
 
   if (!config.sendgridApiKey) {
     log.warn('SENDGRID_API_KEY not set - email notifications will fail');
+  }
+  if (!config.resendApiKey) {
+    log.warn('RESEND_API_KEY not set - verification emails will fail');
   }
 
   if (!config.sentryDsn) {

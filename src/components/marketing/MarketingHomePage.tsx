@@ -1,7 +1,5 @@
-import { useNavigate } from "@tanstack/react-router";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { FinBankBrand } from "@/lib/brand-config";
 import {
   Shield,
   TrendingUp,
@@ -32,9 +30,9 @@ const itemVariants = {
 };
 
 export function MarketingHomePage() {
-  const navigate = useNavigate();
   const [eligible, setEligible] = useState<boolean | null>(null);
   const navigate = useNavigate();
+  const demoUrl = import.meta.env.VITE_DEMO_URL || "https://example.com/demo";
 
   useEffect(() => {
     const checkEligibility = async () => {
@@ -120,7 +118,7 @@ export function MarketingHomePage() {
   return (
     <div className="pt-16">
       {/* Hero Section */}
-      <section className="min-h-[90vh] flex items-center py-20 px-4 sm:px-6 lg:px-8">
+      <section className="min-h-[90vh] flex items-center py-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-slate-50 via-white to-blue-50 dark:from-slate-950 dark:via-slate-900 dark:to-blue-950">
         <div className="max-w-7xl mx-auto w-full">
           <motion.div
             variants={containerVariants}
@@ -131,8 +129,11 @@ export function MarketingHomePage() {
             {/* Left Content */}
             <motion.div variants={itemVariants} className="space-y-6">
               <div className="space-y-3">
-                <h1 className="text-5xl lg:text-6xl font-bold text-slate-900 dark:text-white leading-tight">
-                  Modern Banking for Europe & Korea
+                <p className="text-sm font-semibold uppercase tracking-[0.2em] text-blue-600 dark:text-blue-300">
+                  EU Licensed • PSD2 Compliant • €100k Insured
+                </p>
+                <h1 className="text-5xl lg:text-6xl font-bold text-slate-900 dark:text-white leading-tight font-[\"Space Grotesk\",_Inter,_sans-serif]">
+                  Banking that moves as fast as you do
                 </h1>
                 <p className="text-xl text-slate-600 dark:text-slate-300">
                   Licensed digital banking headquartered in Spain with branches across Europe—now welcoming customers from Korea—with SEPA, ES IBANs, 3D Secure cards, and GDPR-grade privacy.
@@ -145,11 +146,7 @@ export function MarketingHomePage() {
                   className="bg-blue-600 hover:bg-blue-700 text-white flex items-center gap-2"
                   disabled={eligible === false}
                   aria-disabled={eligible === false}
-<<<<<<< HEAD
-                  onClick={() => navigate({ to: "/login" })}
-=======
                   onClick={handleGetStarted}
->>>>>>> 77d8961 (update)
                 >
                   Get Started Now <ArrowRight className="w-5 h-5" />
                 </Button>
@@ -157,17 +154,42 @@ export function MarketingHomePage() {
                   size="lg"
                   variant="outline"
                   className="border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white hover:bg-slate-50 dark:hover:bg-slate-800"
+                  onClick={() => window.open(demoUrl, "_blank")}
                 >
-                  Watch Demo
+                  Watch 60s Demo
                 </Button>
+              </div>
+
+              {/* Social proof */}
+              <div className="flex flex-wrap items-center gap-4 pt-4 text-sm text-slate-500 dark:text-slate-400">
+                <div className="flex items-center gap-2">
+                  <Star className="w-4 h-4 text-amber-500" />
+                  4.9/5 • 12k+ reviews
+                </div>
+                <span className="hidden sm:inline text-slate-400">•</span>
+                <div className="flex items-center gap-3">
+                  <span className="uppercase tracking-wide text-xs text-slate-400">Trusted by teams at</span>
+                  <div className="flex items-center gap-2 text-slate-700 dark:text-slate-200 font-semibold">
+                    <span>Rappi</span>
+                    <span>Cabify</span>
+                    <span>N26</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="mt-2 inline-flex items-center gap-2 px-3 py-2 bg-slate-100 dark:bg-slate-800 rounded-full text-xs text-slate-600 dark:text-slate-300">
+                <span className="font-semibold">Demo login</span>
+                <span>alice@demo.com</span>
+                <span className="text-slate-400">/</span>
+                <span>demo123</span>
               </div>
 
               {/* Trust Badges */}
               <motion.div variants={itemVariants} className="flex flex-wrap gap-4 pt-6">
                 {[
-                  { icon: "🔒", text: "EU Banking License" },
+                  { icon: "🔒", text: "PSD2 + 3D Secure" },
                   { icon: "✓", text: "GDPR Compliant" },
-                  { icon: "💰", text: "€100k Insured" },
+                  { icon: "💰", text: "€100k Deposit Guarantee" },
                   { icon: "🌐", text: "Eligible: ES, DE, FR, IT, PT, KR" },
                 ].map((badge) => (
                   <div
@@ -186,11 +208,14 @@ export function MarketingHomePage() {
               variants={itemVariants}
               className="relative h-[500px] hidden lg:block"
             >
-              <div className="absolute inset-0 bg-gradient-to-br from-blue-400/20 to-purple-400/20 rounded-2xl blur-3xl"></div>
-              <div className="relative h-full bg-gradient-to-br from-slate-800 to-slate-900 rounded-2xl p-6 border border-slate-700 shadow-2xl flex items-center justify-center">
-                <div className="text-center">
+              <div className="absolute inset-0 bg-gradient-to-br from-blue-400/25 via-blue-500/10 to-purple-400/25 rounded-2xl blur-3xl"></div>
+              <div className="relative h-full bg-gradient-to-br from-slate-800 to-slate-900 rounded-2xl p-6 border border-slate-700 shadow-2xl flex items-center justify-center overflow-hidden">
+                <div className="absolute -left-10 top-10 w-64 h-64 bg-blue-500/20 rounded-full blur-3xl" />
+                <div className="absolute -right-10 bottom-8 w-56 h-56 bg-purple-500/20 rounded-full blur-3xl" />
+                <div className="relative text-center">
                   <Shield className="w-16 h-16 text-blue-400 mx-auto mb-4" />
-                  <p className="text-white font-semibold">Secure Banking Interface</p>
+                  <p className="text-white font-semibold text-lg">Secure Banking Interface</p>
+                  <p className="text-white/60 text-sm mt-2">Real-time fraud monitoring, device fingerprinting, and encrypted card vault.</p>
                 </div>
               </div>
             </motion.div>

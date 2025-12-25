@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
-import { loginUser, registerUser } from "@/lib/auth";
+import { loginUser, registerUser, markUserEmailVerified } from "@/lib/auth";
 import { checkRateLimit, recordLoginAttempt, clearRateLimit } from "@/lib/rate-limiter";
 import { validatePasswordStrength } from "@/lib/password-validation";
 import { PasswordStrengthIndicator } from "@/components/PasswordStrengthIndicator";
@@ -13,6 +13,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Eye, EyeOff, AlertTriangle, Shield, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
+import { getAuthThrottle, recordAuthAttempt, resetAuthThrottle } from "@/lib/rate-limit";
 
 export function EnhancedLoginForm() {
   const { setCurrentUser } = useAuth();
@@ -25,6 +26,7 @@ export function EnhancedLoginForm() {
   const [loginPassword, setLoginPassword] = useState("");
   const [loginError, setLoginError] = useState("");
   const [rateLimitInfo, setRateLimitInfo] = useState<{ allowed: boolean; remainingAttempts: number; message?: string; resetTime?: number }>({ allowed: true, remainingAttempts: 5 });
+  const [authThrottle, setAuthThrottle] = useState(() => getAuthThrottle());
 
   // Register state
   const [registerEmail, setRegisterEmail] = useState("");
@@ -35,6 +37,12 @@ export function EnhancedLoginForm() {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoginError("");
+
+    const now = Date.now();
+    if (authThrottle.lockUntil && now < authThrottle.lockUntil) {
+      setLoginError(`Too many attempts. Try again in ${Math.ceil((authThrottle.lockUntil - now) / 1000)}s.`);
+      return;
+    }
 
     // Check rate limiting
     const limitCheck = checkRateLimit(loginEmail);
@@ -53,6 +61,8 @@ export function EnhancedLoginForm() {
       clearRateLimit(loginEmail);
       setCurrentUser(authUser);
       toast.success("Welcome back!");
+      resetAuthThrottle();
+      setAuthThrottle(getAuthThrottle());
     } catch (error) {
       recordLoginAttempt(loginEmail, false);
       const limitCheckAfter = checkRateLimit(loginEmail);
@@ -65,6 +75,8 @@ export function EnhancedLoginForm() {
       } else {
         setLoginError(error instanceof Error ? error.message : "Login failed");
       }
+      const next = recordAuthAttempt();
+      setAuthThrottle(next);
     } finally {
       setIsLoading(false);
     }
@@ -81,14 +93,26 @@ export function EnhancedLoginForm() {
       return;
     }
 
+    const now = Date.now();
+    if (authThrottle.lockUntil && now < authThrottle.lockUntil) {
+      setRegisterError("Too many attempts. Please wait a few seconds.");
+      return;
+    }
+
     setIsLoading(true);
 
     try {
       const authUser = await registerUser(registerEmail, registerPassword, registerFullName);
+      // This enhanced form auto-verifies for demo purposes
+      markUserEmailVerified(registerEmail);
       setCurrentUser(authUser);
       toast.success("Account created successfully!");
+      resetAuthThrottle();
+      setAuthThrottle(getAuthThrottle());
     } catch (error) {
       setRegisterError(error instanceof Error ? error.message : "Registration failed");
+      const next = recordAuthAttempt();
+      setAuthThrottle(next);
     } finally {
       setIsLoading(false);
     }
