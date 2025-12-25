@@ -105,6 +105,10 @@ export class AdminController {
       throw errors.unauthorized();
     }
 
+    if (!req.admin.sessionId) {
+      throw errors.unauthorized('Admin session missing');
+    }
+
     await adminService.logout(req.admin.sessionId);
 
     // Clear refresh token cookie
@@ -127,6 +131,10 @@ export class AdminController {
   getSession = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
     if (!req.admin) {
       throw errors.unauthorized();
+    }
+
+    if (!req.admin.sessionId) {
+      throw errors.unauthorized('Admin session missing');
     }
 
     const session = await adminService.getSession(req.admin.sessionId);

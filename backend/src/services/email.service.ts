@@ -34,7 +34,7 @@ export async function sendVerificationEmail({ email, ip }: VerificationEmailPayl
 
   if (!response.ok) {
     const text = await response.text();
-    log.error('Resend verification email failed', { status: response.status, body: text });
+    log.error('Resend verification email failed', undefined, { status: response.status, body: text });
     throw new Error('Failed to send verification email');
   }
 

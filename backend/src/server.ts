@@ -108,10 +108,14 @@ async function verifyServiceConnectivity() {
         log.info('✅ Resend API reachable for transactional emails');
       } else {
         const text = await response.text();
-        log.error('❌ Resend API check failed', {
-          status: response.status,
-          body: text.slice(0, 200),
-        });
+        log.error(
+          '❌ Resend API check failed',
+          undefined,
+          {
+            status: response.status,
+            body: text.slice(0, 200),
+          }
+        );
       }
     } catch (err) {
       log.error('❌ Resend connectivity failed', err as Error);
