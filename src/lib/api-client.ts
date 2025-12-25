@@ -108,8 +108,3 @@ export async function apiFetch(path: string, options: ApiFetchOptions = {}): Pro
 
   return exec(refreshed);
 }
-    credentials: "include",
-    ...rest,
-    headers: requestHeaders,
-  });
-}

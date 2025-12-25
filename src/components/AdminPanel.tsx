@@ -42,7 +42,6 @@ import {
   getAdminSession,
   hasAdminPermission,
   initializeAdminAccounts,
-  getAuditLogs,
   getSuspiciousActivityFlags,
   reviewSuspiciousActivity,
   getSystemStatus,
@@ -51,12 +50,15 @@ import {
   fetchPendingKyc,
   approveKycAdmin,
   rejectKycAdmin,
+  getAdminAccessToken,
+  moderateTransaction,
 } from "@/lib/admin-storage";
 import { UserORM, type UserModel } from "@/components/data/orm/orm_user";
 import { formatCurrency, formatDate } from "@/lib/transactions";
 import { AdminAccountControls } from "@/components/AdminAccountControls";
 import { exportAuditLogs, downloadSystemReport } from "@/lib/data-export";
 import AdminDepositQueue from "@/components/AdminDepositQueue";
+import { apiFetch } from "@/lib/api-client";
 
 export function AdminPanel() {
   const [adminUser, setAdminUser] = useState<AdminUser | null>(null);
@@ -102,18 +104,24 @@ function AdminLogin({ onLogin }: { onLogin: (user: AdminUser) => void }) {
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
     setIsLoading(true);
 
-    const admin = adminLogin(username, password);
-    if (admin) {
-      onLogin(admin);
-    } else {
-      setError("Invalid username or password");
+    try {
+      const admin = await adminLogin(username, password);
+      if (admin) {
+        onLogin(admin);
+      } else {
+        setError("Invalid username or password");
+      }
+    } catch (err) {
+      console.error(err);
+      setError("Login failed");
+    } finally {
+      setIsLoading(false);
     }
-    setIsLoading(false);
   };
 
   return (
@@ -589,7 +597,7 @@ function TransactionApprovalPanel({ adminUser }: { adminUser: AdminUser }) {
     }
   };
 
-  const handleReview = (transaction: TransactionModel, action: "approve" | "reject") => {
+  const handleReview = (transaction: any, action: "approve" | "reject") => {
     setSelectedTransaction(transaction);
     setActionType(action);
     setShowDialog(true);
@@ -899,7 +907,7 @@ function AuditLogPanel() {
     const token = getAdminAccessToken();
     if (!token) return;
     apiFetch("/api/admin/audit-logs", { tokenOverride: token })
-      .then(async (resp) => {
+      .then(async (resp: Response) => {
         if (!resp.ok) throw new Error("Failed to load audit logs");
         const data = await resp.json();
         let auditLogs: any[] = data.data || [];
@@ -913,7 +921,7 @@ function AuditLogPanel() {
         }
         setLogs(auditLogs);
       })
-      .catch((err) => {
+      .catch((err: unknown) => {
         console.error(err);
         toast.error("Failed to load audit logs");
       });

@@ -58,12 +58,12 @@ export function TransferModal({ open, onOpenChange, onSuccess }: TransferModalPr
   const [isFundsRestricted, setIsFundsRestricted] = useState(false);
   const [restrictionTimeRemaining, setRestrictionTimeRemaining] = useState(0);
 
-    // Check fund access restrictions when modal opens
-    useEffect(() => {
-      if (open && currentUser) {
-        const restricted = isFundAccessRestricted(currentUser.user.id);
-        setIsFundsRestricted(restricted);
-        if (restricted) {
+  // Check fund access restrictions when modal opens
+  useEffect(() => {
+    if (open && currentUser) {
+      const restricted = isFundAccessRestricted(currentUser.user.id);
+      setIsFundsRestricted(restricted);
+      if (restricted) {
         const timeRemaining = getFundRestrictionTimeRemaining(currentUser.user.id);
         setRestrictionTimeRemaining(timeRemaining);
       }
@@ -84,7 +84,7 @@ export function TransferModal({ open, onOpenChange, onSuccess }: TransferModalPr
 
         // Auto-lookup account if we have a valid account number and internal transfer
         if (isInternal && recipientAccountNumber && isValidAccountNumber(recipientAccountNumber)) {
-          handleAccountNumberLookup(recipientAccountNumber);
+          handleAccountNumberChange(recipientAccountNumber);
         }
       } else {
         setBankName("Unknown Bank");

@@ -339,7 +339,7 @@ export function ProfilePage() {
         await updateProfile(
           {
             address: {
-              streetAddress: newAddressData.streetAddress,
+              street: newAddressData.streetAddress,
               city: newAddressData.city,
               state: newAddressData.state,
               zipCode: newAddressData.zipCode,

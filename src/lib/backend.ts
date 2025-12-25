@@ -101,7 +101,21 @@ export async function uploadKycDocument(
   return resp.json();
 }
 
-export async function updateProfile(payload: { fullName?: string; phoneNumber?: string }, token?: string) {
+export interface UpdateProfilePayload {
+  fullName?: string;
+  phoneNumber?: string;
+  secondaryEmail?: string;
+  secondaryPhone?: string;
+  address?: {
+    street?: string;
+    city?: string;
+    state?: string;
+    zipCode?: string;
+    country?: string;
+  };
+}
+
+export async function updateProfile(payload: UpdateProfilePayload, token?: string) {
   const resp = await apiFetch("/api/users/me", {
     method: "PATCH",
     headers: { "Content-Type": "application/json" },
