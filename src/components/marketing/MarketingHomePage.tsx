@@ -424,11 +424,7 @@ export function MarketingHomePage() {
                 size="lg"
                 className="bg-white hover:bg-slate-100 text-blue-600 font-bold flex items-center gap-2"
                 disabled={eligible === false}
-<<<<<<< HEAD
-                onClick={() => navigate({ to: "/login" })}
-=======
                 onClick={handleGetStarted}
->>>>>>> 77d8961 (update)
               >
                 Get Started <ArrowRight className="w-5 h-5" />
               </Button>
