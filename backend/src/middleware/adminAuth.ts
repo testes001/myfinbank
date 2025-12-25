@@ -8,7 +8,7 @@ import { errors } from './errorHandler';
 import { verifyAccessToken, extractBearerToken } from '@/utils/jwt';
 import { log } from '@/utils/logger';
 import { prisma } from '@/config/database';
-import { AdminRole } from '@prisma/client';
+import { AdminRole, UserRole } from '@prisma/client';
 
 // =============================================================================
 // Type Extensions
@@ -21,8 +21,8 @@ declare global {
         adminId: string;
         username: string;
         email: string;
-        role: AdminRole;
-        sessionId: string;
+        role: AdminRole | UserRole;
+        sessionId: string | null;
       };
     }
   }
@@ -56,57 +56,67 @@ export async function authenticateAdmin(
       throw errors.unauthorized('Invalid or expired admin token');
     }
 
-    // Verify this is an admin user (check if adminId exists in admin_users table)
+    // Try admin_users table first (legacy)
     const admin = await prisma.adminUser.findUnique({
       where: { id: payload.userId },
     });
 
-    if (!admin) {
-      log.security('Admin authentication failed - user not found in admin_users', {
+    if (admin) {
+      if (admin.status !== 'ACTIVE') {
+        log.security('Admin authentication failed - account not active', {
+          adminId: admin.id,
+          status: admin.status,
+          ipAddress: req.ip,
+        });
+        throw errors.forbidden('Admin account is not active');
+      }
+
+      const session = await prisma.adminSession.findUnique({
+        where: { id: payload.sessionId },
+      });
+
+      if (!session || session.expiresAt < new Date()) {
+        if (session) {
+          await prisma.adminSession.delete({ where: { id: session.id } });
+        }
+        throw errors.unauthorized('Admin session expired');
+      }
+
+      req.admin = {
+        adminId: admin.id,
+        username: admin.username,
+        email: admin.email,
+        role: admin.role,
+        sessionId: session.id,
+      };
+      return next();
+    }
+
+    // Fallback: allow platform users with admin-capable roles
+    const allowedUserRoles: UserRole[] = [
+      UserRole.ADMIN,
+      UserRole.SUPPORT,
+      UserRole.COMPLIANCE_OFFICER,
+    ];
+    const user = await prisma.user.findUnique({
+      where: { id: payload.userId },
+    });
+
+    if (!user || !allowedUserRoles.includes(user.role)) {
+      log.security('Admin authentication failed - user not authorized', {
         userId: payload.userId,
         ipAddress: req.ip,
+        role: user?.role,
       });
       throw errors.unauthorized('Invalid admin credentials');
     }
 
-    // Check if admin is active
-    if (admin.status !== 'ACTIVE') {
-      log.security('Admin authentication failed - account not active', {
-        adminId: admin.id,
-        status: admin.status,
-        ipAddress: req.ip,
-      });
-      throw errors.forbidden('Admin account is not active');
-    }
-
-    // Verify session exists
-    const session = await prisma.adminSession.findUnique({
-      where: { id: payload.sessionId },
-    });
-
-    if (!session) {
-      log.security('Admin authentication failed - session not found', {
-        adminId: admin.id,
-        sessionId: payload.sessionId,
-      });
-      throw errors.unauthorized('Admin session not found');
-    }
-
-    // Check if session expired
-    if (session.expiresAt < new Date()) {
-      await prisma.adminSession.delete({
-        where: { id: session.id },
-      });
-      throw errors.unauthorized('Admin session expired');
-    }
-
-    // Attach admin info to request
     req.admin = {
-      adminId: admin.id,
-      username: admin.username,
-      email: admin.email,
-      role: admin.role,
-      sessionId: session.id,
+      adminId: user.id,
+      username: user.email,
+      email: user.email,
+      role: user.role,
+      sessionId: payload.sessionId || null,
     };
 
     next();
@@ -143,6 +153,24 @@ export async function optionalAdminAuth(
             role: admin.role,
             sessionId: payload.sessionId,
           };
+        } else {
+          const allowedUserRoles: UserRole[] = [
+            UserRole.ADMIN,
+            UserRole.SUPPORT,
+            UserRole.COMPLIANCE_OFFICER,
+          ];
+          const user = await prisma.user.findUnique({
+            where: { id: payload.userId },
+          });
+          if (user && allowedUserRoles.includes(user.role)) {
+            req.admin = {
+              adminId: user.id,
+              username: user.email,
+              email: user.email,
+              role: user.role,
+              sessionId: payload.sessionId || null,
+            };
+          }
         }
       }
     }
@@ -164,10 +192,13 @@ export function requireRole(...roles: AdminRole[]) {
       return next(errors.unauthorized('Admin authentication required'));
     }
 
-    if (!roles.includes(req.admin.role)) {
+    const normalizedRole = String(req.admin.role).toUpperCase();
+    const allowed = roles.map((r) => String(r).toUpperCase());
+
+    if (!allowed.includes(normalizedRole)) {
       log.security('Admin authorization failed - insufficient role', {
         adminId: req.admin.adminId,
-        currentRole: req.admin.role,
+        currentRole: normalizedRole,
         requiredRoles: roles,
         path: req.path,
       });
@@ -199,11 +230,19 @@ export function requireComplianceOfficer(req: Request, res: Response, next: Next
  * Require any admin role (authenticated admin)
  */
 export function requireAnyAdmin(req: Request, res: Response, next: NextFunction): void {
-  return requireRole(
+  const allowed = [
     AdminRole.SUPERADMIN,
     AdminRole.COMPLIANCE_OFFICER,
-    AdminRole.SUPPORT_AGENT
-  )(req, res, next);
+    AdminRole.SUPPORT_AGENT,
+  ];
+  const role = req.admin?.role ? String(req.admin.role).toUpperCase() : null;
+  if (!role) {
+    return next(errors.unauthorized('Admin authentication required'));
+  }
+  if (role === 'ADMIN' || role === 'SUPPORT' || role === 'COMPLIANCE_OFFICER' || allowed.map((r) => String(r).toUpperCase()).includes(role)) {
+    return next();
+  }
+  return next(errors.forbidden('This action requires admin privileges'));
 }
 
 /**

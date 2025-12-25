@@ -105,20 +105,29 @@ export function initializeAdminAccounts() {
 }
 
 // Admin authentication
-export async function adminLogin(username: string, password: string): Promise<AdminUser | null> {
+export async function adminLogin(email: string, password: string): Promise<AdminUser | null> {
   try {
-    const resp = await apiFetch("/api/admin/login", {
+    const resp = await apiFetch("/api/auth/login", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ username, password }),
+      body: JSON.stringify({ email, password }),
       skipAuth: true,
     });
     if (!resp.ok) {
       return null;
     }
     const data = await resp.json();
-    const admin = data.data.admin as AdminUser;
+    const user = data.data.user as { userId: string; email: string; fullName: string; role: string };
     const accessToken = data.data.accessToken as string;
+    const admin: AdminUser = {
+      id: user.userId,
+      username: user.email,
+      email: user.email,
+      fullName: user.fullName || user.email,
+      role: user.role as any,
+      passwordHash: "",
+      createdAt: new Date().toISOString(),
+    };
     localStorage.setItem(ADMIN_SESSION_KEY, JSON.stringify(admin));
     localStorage.setItem(ADMIN_ACCESS_TOKEN_KEY, accessToken);
     return admin;

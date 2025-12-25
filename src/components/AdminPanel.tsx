@@ -99,7 +99,7 @@ export function AdminPanel() {
 }
 
 function AdminLogin({ onLogin }: { onLogin: (user: AdminUser) => void }) {
-  const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -110,7 +110,7 @@ function AdminLogin({ onLogin }: { onLogin: (user: AdminUser) => void }) {
     setIsLoading(true);
 
     try {
-      const admin = await adminLogin(username, password);
+      const admin = await adminLogin(email, password);
       if (admin) {
         onLogin(admin);
       } else {
@@ -139,13 +139,13 @@ function AdminLogin({ onLogin }: { onLogin: (user: AdminUser) => void }) {
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="username">Username</Label>
+              <Label htmlFor="username">Email</Label>
               <Input
                 id="username"
-                type="text"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                placeholder="Enter your username"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="admin@example.com"
                 required
               />
             </div>
@@ -173,9 +173,8 @@ function AdminLogin({ onLogin }: { onLogin: (user: AdminUser) => void }) {
           <div className="mt-6 p-4 bg-muted rounded-lg text-sm">
             <p className="font-semibold mb-2">Demo Credentials:</p>
             <p className="text-xs text-muted-foreground">
-              superadmin / Admin@2024<br />
-              compliance / Compliance@2024<br />
-              approver / Approver@2024
+              Use any account with an admin-capable role (ADMIN / COMPLIANCE_OFFICER / SUPPORT).<br />
+              Example: admin@finbank.local / AdminPass123!@#$
             </p>
           </div>
         </CardContent>
