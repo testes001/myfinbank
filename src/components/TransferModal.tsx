@@ -1,8 +1,6 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
-import { UserORM } from "@/components/data/orm/orm_user";
-import { AccountORM } from "@/components/data/orm/orm_account";
-import { transferFunds } from "@/lib/transactions";
+import { p2pTransfer } from "@/lib/transactions";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -98,77 +96,18 @@ export function TransferModal({ open, onOpenChange, onSuccess }: TransferModalPr
     }
   };
 
-  const handleAccountNumberLookup = async (accountNum: string) => {
-    if (!isInternalTransfer(routingNumber) || !isValidAccountNumber(accountNum)) {
-      setRecipientName("");
-      return;
-    }
-
-    try {
-      const accountOrm = AccountORM.getInstance();
-      const recipientAccounts = await accountOrm.getAccountById(accountNum);
-
-      if (recipientAccounts.length > 0) {
-        const recipientAccount = recipientAccounts[0];
-        const userOrm = UserORM.getInstance();
-        const recipientUsers = await userOrm.getUserById(recipientAccount.user_id);
-
-        if (recipientUsers.length > 0) {
-          const fullName = recipientUsers[0].full_name;
-          setRecipientName(fullName);
-          toast.success(`Account found: ${fullName} - ${recipientAccount.account_type}`);
-        }
-      } else {
-        setRecipientName("");
-        toast.error("Account not found at FinBank");
-      }
-    } catch (error) {
-      console.error("Error looking up account:", error);
-      setRecipientName("");
-    }
-  };
-
   const handleAccountNumberChange = (value: string) => {
     setRecipientAccountNumber(value);
 
     // Auto-lookup if we have a valid internal routing number and complete account number
-    if (isInternalTransfer(routingNumber) && isValidAccountNumber(value)) {
-      handleAccountNumberLookup(value);
-    } else {
-      setRecipientName("");
-    }
+    setRecipientName("");
   };
 
   const handleEmailSubmit = async () => {
     if (!currentUser) return;
-
-    const userOrm = UserORM.getInstance();
-    const accountOrm = AccountORM.getInstance();
-
-    const recipientUsers = await userOrm.getUserByEmail(recipientEmail.trim().toLowerCase());
-
-    if (recipientUsers.length === 0) {
-      toast.error("Recipient not found. Please check the email address.");
-      return null;
-    }
-
-    const recipientUser = recipientUsers[0];
-
-    if (recipientUser.id === currentUser.user.id) {
-      toast.error("You cannot send money to yourself");
-      return null;
-    }
-
-    const recipientAccounts = await accountOrm.getAccountByUserId(recipientUser.id);
-
-    if (recipientAccounts.length === 0) {
-      toast.error("Recipient account not found");
-      return null;
-    }
-
     return {
-      recipientAccount: recipientAccounts[0],
-      recipientName: recipientUser.full_name,
+      recipientAccount: null,
+      recipientName: recipientEmail.trim().toLowerCase(),
     };
   };
 
@@ -190,38 +129,8 @@ export function TransferModal({ open, onOpenChange, onSuccess }: TransferModalPr
       return null;
     }
 
-    const isInternal = isInternalTransfer(routingNumber);
-
-    if (isInternal) {
-      const accountOrm = AccountORM.getInstance();
-      const recipientAccounts = await accountOrm.getAccountById(recipientAccountNumber);
-
-      if (recipientAccounts.length === 0) {
-        toast.error("Recipient account not found at FinBank");
-        return null;
-      }
-
-      const recipientAccount = recipientAccounts[0];
-
-      if (recipientAccount.id === currentUser.account.id) {
-        toast.error("You cannot send money to yourself");
-        return null;
-      }
-
-      const userOrm = UserORM.getInstance();
-      const recipientUsers = await userOrm.getUserById(recipientAccount.user_id);
-
-      return {
-        recipientAccount: recipientAccount,
-        recipientName: recipientUsers[0]?.full_name || "FinBank Customer",
-      };
-    } else {
-      toast.info("External transfers would be processed via ACH in 1-3 business days");
-      return {
-        recipientAccount: null,
-        recipientName: `External Account at ${bankName}`,
-      };
-    }
+    toast.error("Direct account number transfers are not yet supported. Please use email/P2P.");
+    return null;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -261,45 +170,25 @@ export function TransferModal({ open, onOpenChange, onSuccess }: TransferModalPr
 
     try {
       await run(async () => {
-        let recipientInfo;
-
         if (transferMethod === "email") {
           // validate email
           if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(recipientEmail.trim())) {
             setRecipientEmailError("Enter a valid recipient email");
             throw new Error("validation");
           }
-          recipientInfo = await handleEmailSubmit();
-        } else {
-          // validate routing/account
-          if (!isValidRoutingNumber(routingNumber)) {
-            setRoutingError("Enter a valid 9-digit routing number");
-            throw new Error("validation");
+          if (!currentUser.account?.id) {
+            throw new Error("Account info unavailable; please reload.");
           }
-
-          if (!isValidAccountNumber(recipientAccountNumber)) {
-            setAccountNumberError("Enter a valid account number (10-12 digits)");
-            throw new Error("validation");
-          }
-
-          recipientInfo = await handleAccountSubmit();
-        }
-
-        if (!recipientInfo) {
-          throw new Error("No recipient info");
-        }
-
-        if (recipientInfo.recipientAccount) {
-          await transferFunds(
+          await p2pTransfer(
             currentUser.account.id,
-            recipientInfo.recipientAccount.id,
+            recipientEmail.trim().toLowerCase(),
             amountNum,
             description || undefined
           );
-
-          toast.success(`Successfully sent $${amountNum.toFixed(2)} to ${recipientInfo.recipientName}`);
+          toast.success(`Successfully sent $${amountNum.toFixed(2)} to ${recipientEmail}`);
         } else {
-          toast.success(`Transfer initiated to ${recipientInfo.recipientName}. Processing time: ${processingTime}`);
+          toast.error("Direct account number transfers are not yet supported. Please use email/P2P.");
+          throw new Error("validation");
         }
 
         setShowSuccess(true);

@@ -9,6 +9,7 @@ import { toast } from "sonner";
 import { PasswordStrengthIndicator } from "@/components/PasswordStrengthIndicator";
 import { validatePasswordStrength } from "@/lib/password-validation";
 import { getAuthThrottle, recordAuthAttempt, resetAuthThrottle } from "@/lib/rate-limit";
+import { apiFetch } from "@/lib/api-client";
 
 interface LoginFormProps {
   onShowLanding?: () => void;
@@ -40,7 +41,7 @@ export function LoginForm({ onShowLanding }: LoginFormProps) {
     }
 
     try {
-      const response = await fetch(`${API_BASE}/api/auth/verification-code`, {
+      const response = await apiFetch(`/api/auth/verification-code`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email: emailToSend }),
@@ -91,11 +92,11 @@ export function LoginForm({ onShowLanding }: LoginFormProps) {
 
     try {
       if (isLogin) {
-        const resp = await fetch(`${API_BASE}/api/auth/login`, {
+        const resp = await apiFetch(`/api/auth/login`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ email, password }),
-          credentials: "include",
+          skipAuth: true,
         });
         if (!resp.ok) {
           const msg = (await resp.json().catch(() => null))?.message || "Invalid email or password";
@@ -111,11 +112,11 @@ export function LoginForm({ onShowLanding }: LoginFormProps) {
         setAttemptCount(0);
         setLockUntil(null);
       } else {
-        const resp = await fetch(`${API_BASE}/api/auth/register`, {
+        const resp = await apiFetch(`/api/auth/register`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ email, password, fullName }),
-          credentials: "include",
+          skipAuth: true,
         });
         if (!resp.ok) {
           const msg = (await resp.json().catch(() => null))?.message || "Registration failed";
@@ -159,11 +160,11 @@ export function LoginForm({ onShowLanding }: LoginFormProps) {
 
     if (!verificationEmail.toLowerCase().endsWith("@demo.com")) {
       try {
-        const response = await fetch(`${API_BASE}/api/auth/verify`, {
+        const response = await apiFetch(`/api/auth/verify`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ email: verificationEmail, code: verificationCode }),
-          credentials: "include",
+          skipAuth: true,
         });
         if (!response.ok) {
           throw new Error("Invalid or expired code");
@@ -178,11 +179,11 @@ export function LoginForm({ onShowLanding }: LoginFormProps) {
 
   if (email && password) {
     try {
-      const resp = await fetch(`${API_BASE}/api/auth/login`, {
+      const resp = await apiFetch(`/api/auth/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
-        credentials: "include",
+        skipAuth: true,
       });
       if (!resp.ok) {
         throw new Error("Login failed after verification");

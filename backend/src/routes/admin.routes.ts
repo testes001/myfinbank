@@ -10,6 +10,7 @@ import {
   requireSuperAdmin,
   requireAnyAdmin,
 } from '@/middleware/adminAuth';
+import { adminKycController } from '@/controllers/adminKyc.controller';
 
 const router = Router();
 
@@ -73,5 +74,13 @@ router.post('/create', authenticateAdmin, requireSuperAdmin, adminController.cre
  * @access  Private (SUPERADMIN only)
  */
 router.get('/list', authenticateAdmin, requireSuperAdmin, adminController.listAdmins);
+
+// =============================================================================
+// KYC Review (Admin)
+// =============================================================================
+router.get('/kyc/pending', authenticateAdmin, requireAnyAdmin, adminKycController.listPending);
+router.get('/kyc/:id', authenticateAdmin, requireAnyAdmin, adminKycController.getById);
+router.post('/kyc/:id/approve', authenticateAdmin, requireAnyAdmin, adminKycController.approve);
+router.post('/kyc/:id/reject', authenticateAdmin, requireAnyAdmin, adminKycController.reject);
 
 export default router;

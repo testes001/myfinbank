@@ -238,6 +238,39 @@ export class KYCService {
   }
 
   /**
+   * Admin: List pending/under_review KYC submissions
+   */
+  async listPending(): Promise<any[]> {
+    const pending = await prisma.kYCVerification.findMany({
+      where: { status: { in: [KYCStatus.PENDING, KYCStatus.UNDER_REVIEW] } },
+      orderBy: { submittedAt: 'asc' },
+      include: { user: true },
+    });
+    return pending.map((kyc) => ({
+      id: kyc.id,
+      userId: kyc.userId,
+      email: kyc.user?.email,
+      status: kyc.status,
+      submittedAt: kyc.submittedAt,
+      idDocumentType: kyc.idDocumentType,
+    }));
+  }
+
+  /**
+   * Admin: Get KYC by ID
+   */
+  async getById(id: string): Promise<any> {
+    const kyc = await prisma.kYCVerification.findUnique({
+      where: { id },
+      include: { user: true },
+    });
+    if (!kyc) {
+      throw errors.notFound('KYC verification');
+    }
+    return kyc;
+  }
+
+  /**
    * Approve KYC (admin/system function)
    */
   async approveKYC(kycId: string, reviewerId: string): Promise<KYCVerification> {

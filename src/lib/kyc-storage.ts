@@ -178,15 +178,14 @@ export function deleteKYCData(userId: string): void {
 
 /**
  * Simulate document upload to cloud storage
- * In production, this would upload to S3/Azure/GCP
+ * In production, this would upload to S3/Azure/GCP. We return a data URL so it can be sent to the backend.
  */
 export function uploadDocument(file: File): Promise<string> {
-  return new Promise((resolve) => {
-    // Simulate upload delay
-    setTimeout(() => {
-      const mockUrl = `https://secure-storage.example.com/kyc-docs/${Date.now()}_${file.name}`;
-      resolve(mockUrl);
-    }, 1500);
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result as string);
+    reader.onerror = () => reject(reader.error || new Error("Failed to read file"));
+    reader.readAsDataURL(file);
   });
 }
 

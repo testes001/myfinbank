@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
 import type { AuthUser } from "@/lib/auth";
 import { fetchAccounts, fetchKycStatus, fetchProfile, type KycStatusResponse } from "@/lib/backend";
-import { getStoredAccessToken, persistAccessToken } from "@/lib/api-client";
+import { getStoredAccessToken, persistAccessToken, refreshAccessToken } from "@/lib/api-client";
 
 export type UserStatus = "onboarding" | "pending_kyc" | "active" | "suspended";
 
@@ -46,6 +46,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       return;
     }
     try {
+      const nextToken = await refreshAccessToken();
+      if (nextToken && currentUser.accessToken !== nextToken) {
+        setCurrentUser((prev) => (prev ? { ...prev, accessToken: nextToken } : prev));
+      }
       const status = await fetchKycStatus(currentUser.accessToken);
       setUserStatus(deriveStatusFromKyc(status));
     } catch (err) {
@@ -56,10 +60,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const establishSession = async (accessToken: string, bootstrapUser?: any) => {
     setIsLoading(true);
     try {
+      const tokenToUse = (await refreshAccessToken()) || accessToken;
       const [profile, accounts, kyc] = await Promise.all([
-        fetchProfile(accessToken),
-        fetchAccounts(accessToken).catch(() => []),
-        fetchKycStatus(accessToken).catch(() => null),
+        fetchProfile(tokenToUse),
+        fetchAccounts(tokenToUse).catch(() => []),
+        fetchKycStatus(tokenToUse).catch(() => null),
       ]);
 
       const primaryAccount = accounts[0] || { id: "", user_id: profile.id };
@@ -67,11 +72,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         user: bootstrapUser || profile,
         account: primaryAccount,
         accounts,
-        accessToken,
+        accessToken: tokenToUse,
       };
 
       setCurrentUser(nextUser);
-      persistAccessToken(accessToken);
+      persistAccessToken(tokenToUse);
       setUserStatus(deriveStatusFromKyc(kyc));
       localStorage.setItem("bankingUser", JSON.stringify(nextUser));
     } catch (err) {
@@ -112,6 +117,29 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     handleSetCurrentUser(null);
     setUserStatus(null);
   };
+
+  // Keep tokens fresh in the background
+  useEffect(() => {
+    if (!currentUser?.accessToken) return;
+    const interval = setInterval(async () => {
+      const next = await refreshAccessToken();
+      if (next && next !== currentUser.accessToken) {
+        setCurrentUser((prev) => (prev ? { ...prev, accessToken: next } : prev));
+      }
+    }, 10 * 60 * 1000); // every 10 minutes
+    return () => clearInterval(interval);
+  }, [currentUser?.accessToken]);
+
+  useEffect(() => {
+    const onFocus = async () => {
+      const next = await refreshAccessToken();
+      if (next && next !== currentUser?.accessToken) {
+        setCurrentUser((prev) => (prev ? { ...prev, accessToken: next } : prev));
+      }
+    };
+    window.addEventListener("focus", onFocus);
+    return () => window.removeEventListener("focus", onFocus);
+  }, [currentUser?.accessToken]);
 
   return (
     <AuthContext.Provider

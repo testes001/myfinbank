@@ -100,3 +100,46 @@ export async function uploadKycDocument(
   }
   return resp.json();
 }
+
+export async function updateProfile(payload: { fullName?: string; phoneNumber?: string }, token?: string) {
+  const resp = await apiFetch("/api/users/me", {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+    tokenOverride: token,
+  });
+  if (!resp.ok) {
+    const msg = (await resp.json().catch(() => null))?.message || "Failed to update profile";
+    throw new Error(msg);
+  }
+  const data = await resp.json();
+  return data.data;
+}
+
+export async function updateSettings(payload: any, token?: string) {
+  const resp = await apiFetch("/api/users/me/settings", {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+    tokenOverride: token,
+  });
+  if (!resp.ok) {
+    const msg = (await resp.json().catch(() => null))?.message || "Failed to update settings";
+    throw new Error(msg);
+  }
+  const data = await resp.json();
+  return data.data;
+}
+
+export async function changePassword(payload: { currentPassword: string; newPassword: string }, token?: string) {
+  const resp = await apiFetch("/api/users/me/password", {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+    tokenOverride: token,
+  });
+  if (!resp.ok) {
+    const msg = (await resp.json().catch(() => null))?.message || "Failed to change password";
+    throw new Error(msg);
+  }
+}

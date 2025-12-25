@@ -103,3 +103,20 @@ export function formatDate(timestamp: string): string {
 export function getTransactionType(transaction: TransactionModel, currentAccountId: string): "sent" | "received" {
   return transaction.from_account_id === currentAccountId ? "sent" : "received";
 }
+
+export async function p2pTransfer(
+  fromAccountId: string,
+  recipientEmail: string,
+  amount: number,
+  memo?: string,
+): Promise<void> {
+  const resp = await apiFetch(`/api/transactions/p2p`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ fromAccountId, recipientEmail, amount, memo }),
+  });
+  if (!resp.ok) {
+    const msg = (await resp.json().catch(() => null))?.message || "P2P transfer failed";
+    throw new Error(msg);
+  }
+}

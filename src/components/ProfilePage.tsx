@@ -65,7 +65,7 @@ import {
 import { FINBANK_ROUTING_NUMBER } from "@/lib/seed";
 import { maskAccountNumber, formatRoutingNumber, generateMockCreditScore } from "@/lib/banking-utils";
 import { Textarea } from "@/components/ui/textarea";
-import { fetchKycStatus, uploadKycDocument } from "@/lib/backend";
+import { fetchKycStatus, fetchProfile, updateProfile, uploadKycDocument } from "@/lib/backend";
 
 export function ProfilePage() {
   const { currentUser, logout } = useAuth();
@@ -81,8 +81,8 @@ export function ProfilePage() {
   // Profile editing
   const [editingProfile, setEditingProfile] = useState(false);
   const [profileData, setProfileData] = useState({
-    phone: "+1-555-0101",
-    address: "123 Main St, New York, NY 10001",
+    phone: "",
+    address: "",
     email: currentUser?.user.email || "",
   });
   const [showProfilePictureModal, setShowProfilePictureModal] = useState(false);
@@ -121,7 +121,10 @@ export function ProfilePage() {
     if (!currentUser?.accessToken) return;
     const loadKyc = async () => {
       try {
-        const status = await fetchKycStatus(currentUser.accessToken);
+        const [status, profile] = await Promise.all([
+          fetchKycStatus(currentUser.accessToken),
+          fetchProfile(currentUser.accessToken),
+        ]);
         setKycData({
           kycStatus: status.kycStatus?.toLowerCase?.() || status.kycStatus,
           verification: status.verification,
@@ -130,12 +133,17 @@ export function ProfilePage() {
         });
         setProfilePhotoUploaded(Boolean(status?.verification));
         setProfilePhotoUrl(status?.verification?.id ? "KYC verification submitted" : "");
+        setProfileData({
+          phone: profile.phoneNumber || "",
+          address: profile.address || "",
+          email: profile.email || currentUser.user.email,
+        });
       } catch (error) {
-        console.error("Failed to load KYC status", error);
+        console.error("Failed to load KYC status/profile", error);
       }
     };
     void loadKyc();
-  }, [currentUser?.accessToken]);
+  }, [currentUser?.accessToken, currentUser?.user.email]);
 
   const accountType: PrimaryAccountType =
     kycData?.primaryAccountType ||
@@ -329,6 +337,21 @@ export function ProfilePage() {
       toast.success("Address change request submitted for review");
     } catch (error) {
       toast.error("Failed to submit address change request");
+    }
+  };
+
+  const handleProfileUpdate = async () => {
+    if (!currentUser?.accessToken) return;
+    try {
+      await updateProfile(
+        {
+          phoneNumber: profileData.phone || undefined,
+        },
+        currentUser.accessToken
+      );
+      toast.success("Profile updated");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to update profile");
     }
   };
 
