@@ -1,6 +1,6 @@
 import { jest } from "@jest/globals";
 
-const mockPrisma = {
+const mockPrisma: any = {
   user: {
     findUnique: jest.fn(),
     create: jest.fn(),
@@ -70,6 +70,7 @@ jest.mock("@/utils/logger", () => ({
     auth: jest.fn(),
     security: jest.fn(),
     info: jest.fn(),
+    error: jest.fn(),
     debug: jest.fn(),
   },
 }));

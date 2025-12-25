@@ -1,18 +1,13 @@
 import { jest } from "@jest/globals";
 
-declare global {
-  // eslint-disable-next-line no-var
-  var fetch: any;
-}
-
 // Prevent external HTTP calls during tests
-const mockFetch = jest.fn().mockResolvedValue({
+const mockFetch = jest.fn(async () => ({
   ok: true,
   json: async () => ({}),
   text: async () => "",
-});
+})) as unknown as typeof fetch;
 
-globalThis.fetch = mockFetch;
+global.fetch = mockFetch;
 
 afterEach(() => {
   jest.clearAllMocks();
