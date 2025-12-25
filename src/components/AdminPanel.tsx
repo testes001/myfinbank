@@ -53,7 +53,6 @@ import {
   rejectKycAdmin,
 } from "@/lib/admin-storage";
 import { UserORM, type UserModel } from "@/components/data/orm/orm_user";
-import { TransactionORM, type TransactionModel } from "@/components/data/orm/orm_transaction";
 import { formatCurrency, formatDate } from "@/lib/transactions";
 import { AdminAccountControls } from "@/components/AdminAccountControls";
 import { exportAuditLogs, downloadSystemReport } from "@/lib/data-export";
@@ -569,6 +568,7 @@ function TransactionApprovalPanel({ adminUser }: { adminUser: AdminUser }) {
   const [selectedTransaction, setSelectedTransaction] = useState<any | null>(null);
   const [showDialog, setShowDialog] = useState(false);
   const [actionType, setActionType] = useState<"approve" | "reject" | null>(null);
+  const [moderationNotes, setModerationNotes] = useState("");
 
   useEffect(() => {
     loadPendingTransactions();
@@ -598,13 +598,21 @@ function TransactionApprovalPanel({ adminUser }: { adminUser: AdminUser }) {
   const confirmReview = async () => {
     if (!selectedTransaction || !actionType) return;
 
-    // Placeholder until backend adds admin transaction moderation endpoints
-    toast.info("Transaction review actions will be wired when moderation endpoints are available.");
-
-    setShowDialog(false);
-    setSelectedTransaction(null);
-    setActionType(null);
-    loadPendingTransactions();
+    try {
+      await moderateTransaction(
+        selectedTransaction.id,
+        actionType === "approve" ? "APPROVED" : "REJECTED",
+        moderationNotes
+      );
+      toast.success(`Transaction ${actionType === "approve" ? "approved" : "rejected"}`);
+      setShowDialog(false);
+      setSelectedTransaction(null);
+      setActionType(null);
+      setModerationNotes("");
+      loadPendingTransactions();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to update transaction");
+    }
   };
 
   if (transactions.length === 0) {
@@ -683,6 +691,15 @@ function TransactionApprovalPanel({ adminUser }: { adminUser: AdminUser }) {
               Amount: {selectedTransaction && formatCurrency(selectedTransaction.amount)}
             </DialogDescription>
           </DialogHeader>
+          <div className="space-y-3">
+            <Label htmlFor="moderation-notes">Notes</Label>
+            <Textarea
+              id="moderation-notes"
+              placeholder="Add reviewer notes (optional)"
+              value={moderationNotes}
+              onChange={(e) => setModerationNotes(e.target.value)}
+            />
+          </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowDialog(false)}>
               Cancel

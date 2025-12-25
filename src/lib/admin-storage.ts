@@ -164,6 +164,21 @@ export function getAdminAccessToken(): string | null {
   }
 }
 
+export async function moderateTransaction(id: string, status: "APPROVED" | "REJECTED", notes?: string): Promise<void> {
+  const token = getAdminAccessToken();
+  if (!token) throw new Error("Admin not authenticated");
+  const resp = await apiFetch(`/api/admin/transactions/${id}/moderate`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ status, notes }),
+    tokenOverride: token,
+  });
+  if (!resp.ok) {
+    const msg = (await resp.json().catch(() => null))?.message || "Failed to update transaction";
+    throw new Error(msg);
+  }
+}
+
 // Backend-backed KYC admin helpers
 export async function fetchPendingKyc(): Promise<any[]> {
   const token = getAdminAccessToken();

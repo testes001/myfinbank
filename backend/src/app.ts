@@ -26,6 +26,7 @@ import virtualCardRoutes from '@/routes/virtualCard.routes';
 import savingsGoalRoutes from '@/routes/savingsGoal.routes';
 import adminRoutes from '@/routes/admin.routes';
 import uploadRoutes from '@/routes/upload.routes';
+import path from 'path';
 
 export function createApp(): Application {
   const app = express();
@@ -155,6 +156,7 @@ export function createApp(): Application {
   app.use('/api/savings-goals', savingsGoalRoutes);
   app.use('/api/admin', adminRoutes);
   app.use('/api/upload', uploadRoutes);
+  app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
 
   // API documentation (Swagger)
   if (config.enableSwagger) {
