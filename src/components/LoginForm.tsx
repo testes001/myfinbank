@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
-import { loginUser, registerUser, markUserEmailVerified, type AuthUser } from "@/lib/auth";
+import { markUserEmailVerified, type AuthUser } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -14,7 +14,7 @@ interface LoginFormProps {
   onShowLanding?: () => void;
 }
 
-const API_BASE = import.meta.env.VITE_API_BASE_URL || "";
+const API_BASE = import.meta.env.VITE_API_BASE_URL || window.location.origin;
 
 export function LoginForm({ onShowLanding }: LoginFormProps) {
   const [isLogin, setIsLogin] = useState(true);
@@ -91,15 +91,35 @@ export function LoginForm({ onShowLanding }: LoginFormProps) {
 
     try {
       if (isLogin) {
-        const authUser = await loginUser(email, password);
-        setCurrentUser(authUser);
+        const resp = await fetch(`${API_BASE}/api/auth/login`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email, password }),
+          credentials: "include",
+        });
+        if (!resp.ok) {
+          const msg = (await resp.json().catch(() => null))?.message || "Invalid email or password";
+          throw new Error(msg);
+        }
+        const data = await resp.json();
+        setCurrentUser({ user: data.data.user, account: { id: "", user_id: data.data.user.userId } as any });
         toast.success("Welcome back!");
         resetAuthThrottle();
         setAttemptCount(0);
         setLockUntil(null);
       } else {
-        const authUser = await registerUser(email, password, fullName);
-        setPendingUser(authUser);
+        const resp = await fetch(`${API_BASE}/api/auth/register`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email, password, fullName }),
+          credentials: "include",
+        });
+        if (!resp.ok) {
+          const msg = (await resp.json().catch(() => null))?.message || "Registration failed";
+          throw new Error(msg);
+        }
+        const data = await resp.json();
+        setPendingUser({ user: data.data.user, account: { id: "", user_id: data.data.user.userId } as any });
         setVerificationEmail(email);
         setStep("verify");
         toast.success("Account created! Enter the verification code we just sent.");
@@ -135,6 +155,7 @@ export function LoginForm({ onShowLanding }: LoginFormProps) {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ email: verificationEmail, code: verificationCode }),
+          credentials: "include",
         });
         if (!response.ok) {
           throw new Error("Invalid or expired code");
@@ -151,8 +172,17 @@ export function LoginForm({ onShowLanding }: LoginFormProps) {
       setCurrentUser(pendingUser);
     } else if (email && password) {
       try {
-        const authUser = await loginUser(email, password);
-        setCurrentUser(authUser);
+        const resp = await fetch(`${API_BASE}/api/auth/login`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email, password }),
+          credentials: "include",
+        });
+        if (!resp.ok) {
+          throw new Error("Login failed after verification");
+        }
+        const data = await resp.json();
+        setCurrentUser({ user: data.data.user, account: { id: "", user_id: data.data.user.userId } as any });
       } catch (err) {
         toast.error(err instanceof Error ? err.message : "Login failed after verification");
       }

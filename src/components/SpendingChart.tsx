@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import { Card } from "@/components/ui/card";
-import type { TransactionModel } from "@/components/data/orm/orm_transaction";
+import type { TransactionModel } from "@/lib/transactions";
 import { getTransactionType } from "@/lib/transactions";
 
 interface SpendingChartProps {

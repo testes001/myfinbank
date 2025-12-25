@@ -104,7 +104,24 @@ export class AuthService {
       },
     });
 
-    // Generate tokens
+    // For non-demo users, require email verification before issuing tokens
+    const isDemo = email.toLowerCase().endsWith('@demo.com');
+    if (!isDemo) {
+      return {
+        accessToken: '',
+        refreshToken: '',
+        user: {
+          userId: user.id,
+          email: user.email,
+          fullName: user.fullName,
+          role: user.role,
+          status: user.status,
+          kycStatus: user.kycStatus,
+        },
+      };
+    }
+
+    // Demo users receive tokens immediately
     return this.generateAuthResponse(user);
   }
 

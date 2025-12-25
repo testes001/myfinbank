@@ -13,6 +13,7 @@ const IN_MEMORY_RATE = new Map<string, { count: number; resetAt: number }>();
 const EXPIRY_MS = 10 * 60 * 1000; // 10 minutes
 const RATE_LIMIT_MAX = 5;
 const RATE_LIMIT_WINDOW_MS = 10 * 60 * 1000; // 10 minutes
+const GLOBAL_IP_LIMIT = 20;
 
 function storeKey(email: string) {
   return `verify:${email.toLowerCase()}`;
@@ -71,6 +72,7 @@ export async function isVerified(email: string): Promise<boolean> {
 
 export async function checkVerificationRateLimit(email: string, ip: string): Promise<void> {
   const key = `verify-rate:${email.toLowerCase()}:${ip}`;
+  const ipKey = `verify-ip:${ip}`;
 
   if (redisClient) {
     const current = await redisClient.incr(key);
@@ -80,6 +82,14 @@ export async function checkVerificationRateLimit(email: string, ip: string): Pro
     if (current > RATE_LIMIT_MAX) {
       throw new Error('Too many verification requests. Please try again later.');
     }
+
+    const ipCount = await redisClient.incr(ipKey);
+    if (ipCount === 1) {
+      await redisClient.pExpire(ipKey, RATE_LIMIT_WINDOW_MS);
+    }
+    if (ipCount > GLOBAL_IP_LIMIT) {
+      throw new Error('Too many verification requests from this IP. Please try again later.');
+    }
     return;
   }
 
@@ -87,6 +97,17 @@ export async function checkVerificationRateLimit(email: string, ip: string): Pro
   const existing = IN_MEMORY_RATE.get(key);
   if (!existing || existing.resetAt < now) {
     IN_MEMORY_RATE.set(key, { count: 1, resetAt: now + RATE_LIMIT_WINDOW_MS });
+    // Track IP bucket
+    const ipExisting = IN_MEMORY_RATE.get(ipKey);
+    if (!ipExisting || ipExisting.resetAt < now) {
+      IN_MEMORY_RATE.set(ipKey, { count: 1, resetAt: now + RATE_LIMIT_WINDOW_MS });
+    } else {
+      ipExisting.count += 1;
+      IN_MEMORY_RATE.set(ipKey, ipExisting);
+      if (ipExisting.count > GLOBAL_IP_LIMIT) {
+        throw new Error('Too many verification requests from this IP. Please try again later.');
+      }
+    }
     return;
   }
   if (existing.count >= RATE_LIMIT_MAX) {
@@ -94,4 +115,15 @@ export async function checkVerificationRateLimit(email: string, ip: string): Pro
   }
   existing.count += 1;
   IN_MEMORY_RATE.set(key, existing);
+
+  const ipExisting = IN_MEMORY_RATE.get(ipKey);
+  if (ipExisting) {
+    ipExisting.count += 1;
+    IN_MEMORY_RATE.set(ipKey, ipExisting);
+    if (ipExisting.count > GLOBAL_IP_LIMIT) {
+      throw new Error('Too many verification requests from this IP. Please try again later.');
+    }
+  } else {
+    IN_MEMORY_RATE.set(ipKey, { count: 1, resetAt: now + RATE_LIMIT_WINDOW_MS });
+  }
 }

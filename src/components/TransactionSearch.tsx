@@ -7,7 +7,7 @@ import {
   getTransactionType,
 } from "@/lib/transactions";
 import { exportToCSV, exportToJSON } from "@/lib/data-export";
-import type { TransactionModel } from "@/components/data/orm/orm_transaction";
+import type { TransactionModel } from "@/lib/transactions";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";

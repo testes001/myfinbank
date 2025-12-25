@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { getTransactionsByAccountId, formatCurrency, formatDate, getTransactionType } from "@/lib/transactions";
-import type { TransactionModel } from "@/components/data/orm/orm_transaction";
+import type { TransactionModel } from "@/lib/transactions";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { TransactionSkeleton } from "@/components/LoadingSkeleton";

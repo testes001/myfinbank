@@ -23,12 +23,11 @@ import { AIInsights } from "@/components/AIInsights";
 import { JointAccountInviteModal } from "@/components/JointAccountInviteModal";
 import { QuickActions } from "@/components/QuickActions";
 import { getRecentTransactions, formatCurrency, formatDate, getTransactionType } from "@/lib/transactions";
-import { getUserWithAccount } from "@/lib/auth";
 import { getTotalBalance } from "@/lib/multi-account";
 import { getUpcomingTransfers } from "@/lib/recurring-transfers";
 import { getActiveCardCount } from "@/lib/virtual-cards";
 import { getKYCData, type PrimaryAccountType } from "@/lib/kyc-storage";
-import type { TransactionModel } from "@/components/data/orm/orm_transaction";
+import type { TransactionModel } from "@/lib/transactions";
 import type { ActivePage } from "@/components/BankingApp";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -133,13 +132,11 @@ export function Dashboard({ onNavigate }: DashboardProps) {
     if (!currentUser) return;
 
     await runAsync(async () => {
-      const [recentTxs, updatedUser] = await Promise.all([
-        getRecentTransactions(currentUser.account.id, 50),
-        getUserWithAccount(currentUser.user.id),
-      ]);
+      const recentTxs = await getRecentTransactions(currentUser.account.id, 50);
 
       setTransactions(recentTxs);
-      setCurrentUser(updatedUser);
+      // Keep existing user data; backend sync can be added when available
+      setCurrentUser(currentUser);
 
       // Load additional account data
       const additionalBalance = getTotalBalance(currentUser.user.id);
@@ -531,7 +528,7 @@ export function Dashboard({ onNavigate }: DashboardProps) {
 
         {/* AI Insights - Personalized financial tips */}
         <AIInsights
-          transactions={transactions}
+          transactions={transactions as any}
           balance={balance}
           compact
         />
@@ -539,7 +536,7 @@ export function Dashboard({ onNavigate }: DashboardProps) {
         {/* Savings Goals with Gamification */}
         <SavingsGoals compact />
 
-        <SpendingChart transactions={transactions} accountId={currentUser.account.id} />
+        <SpendingChart transactions={transactions as any} accountId={currentUser.account.id} />
 
         <div className="space-y-3">
           <div className="flex items-center justify-between">
