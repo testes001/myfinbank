@@ -25,6 +25,7 @@ import kycRoutes from '@/routes/kyc.routes';
 import virtualCardRoutes from '@/routes/virtualCard.routes';
 import savingsGoalRoutes from '@/routes/savingsGoal.routes';
 import adminRoutes from '@/routes/admin.routes';
+import uploadRoutes from '@/routes/upload.routes';
 
 export function createApp(): Application {
   const app = express();
@@ -153,6 +154,7 @@ export function createApp(): Application {
   app.use('/api/cards', virtualCardRoutes);
   app.use('/api/savings-goals', savingsGoalRoutes);
   app.use('/api/admin', adminRoutes);
+  app.use('/api/upload', uploadRoutes);
 
   // API documentation (Swagger)
   if (config.enableSwagger) {

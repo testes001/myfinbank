@@ -3,9 +3,7 @@
  * Handles admin authentication, audit logs, and system monitoring
  */
 
-import type { UserModel } from "@/components/data/orm/orm_user";
-import type { TransactionModel } from "@/components/data/orm/orm_transaction";
-import type { KYCData } from "@/lib/kyc-storage";
+import { apiFetch } from "./api-client";
 
 // Admin roles
 export type AdminRole = "super_admin" | "compliance_officer" | "transaction_approver" | "support_agent";
@@ -67,6 +65,7 @@ const AUDIT_LOG_KEY = "banking_audit_log";
 const SUSPICIOUS_ACTIVITY_KEY = "banking_suspicious_activity";
 const SYSTEM_STATUS_KEY = "banking_system_status";
 const ADMIN_SESSION_KEY = "banking_admin_session";
+const ADMIN_ACCESS_TOKEN_KEY = "banking_admin_access_token";
 
 // Initialize default admin accounts (in production, these would be in secure backend)
 export function initializeAdminAccounts() {
@@ -106,50 +105,32 @@ export function initializeAdminAccounts() {
 }
 
 // Admin authentication
-export function adminLogin(username: string, password: string): AdminUser | null {
-  const stored = localStorage.getItem(ADMIN_STORAGE_KEY);
-  if (!stored) return null;
-
-  const admins: AdminUser[] = JSON.parse(stored);
-  const admin = admins.find(
-    (a) => a.username === username && a.passwordHash === btoa(password)
-  );
-
-  if (admin) {
-    const updatedAdmin = { ...admin, lastLogin: new Date().toISOString() };
-    const updatedAdmins = admins.map((a) => (a.id === admin.id ? updatedAdmin : a));
-    localStorage.setItem(ADMIN_STORAGE_KEY, JSON.stringify(updatedAdmins));
-    localStorage.setItem(ADMIN_SESSION_KEY, JSON.stringify(updatedAdmin));
-
-    // Log the admin login
-    addAuditLog({
-      actor: admin.id,
-      actorType: "admin",
-      action: "admin_login",
-      resource: "admin_console",
-      details: { username: admin.username, role: admin.role },
-      status: "success",
+export async function adminLogin(username: string, password: string): Promise<AdminUser | null> {
+  try {
+    const resp = await apiFetch("/api/admin/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ username, password }),
+      skipAuth: true,
     });
-
-    return updatedAdmin;
+    if (!resp.ok) {
+      return null;
+    }
+    const data = await resp.json();
+    const admin = data.data.admin as AdminUser;
+    const accessToken = data.data.accessToken as string;
+    localStorage.setItem(ADMIN_SESSION_KEY, JSON.stringify(admin));
+    localStorage.setItem(ADMIN_ACCESS_TOKEN_KEY, accessToken);
+    return admin;
+  } catch (err) {
+    console.error("Admin login failed", err);
+    return null;
   }
-
-  return null;
 }
 
 export function adminLogout() {
-  const session = getAdminSession();
-  if (session) {
-    addAuditLog({
-      actor: session.id,
-      actorType: "admin",
-      action: "admin_logout",
-      resource: "admin_console",
-      details: { username: session.username },
-      status: "success",
-    });
-  }
   localStorage.removeItem(ADMIN_SESSION_KEY);
+  localStorage.removeItem(ADMIN_ACCESS_TOKEN_KEY);
 }
 
 export function getAdminSession(): AdminUser | null {
@@ -173,6 +154,57 @@ export function hasAdminPermission(admin: AdminUser | null, requiredRole: AdminR
   };
 
   return roleHierarchy[admin.role] >= roleHierarchy[requiredRole];
+}
+
+export function getAdminAccessToken(): string | null {
+  try {
+    return localStorage.getItem(ADMIN_ACCESS_TOKEN_KEY);
+  } catch {
+    return null;
+  }
+}
+
+// Backend-backed KYC admin helpers
+export async function fetchPendingKyc(): Promise<any[]> {
+  const token = getAdminAccessToken();
+  if (!token) throw new Error("Admin not authenticated");
+  const resp = await apiFetch("/api/admin/kyc/pending", { tokenOverride: token });
+  if (!resp.ok) {
+    const msg = (await resp.json().catch(() => null))?.message || "Failed to load pending KYC";
+    throw new Error(msg);
+  }
+  const data = await resp.json();
+  return data.data;
+}
+
+export async function approveKycAdmin(id: string, reviewerId?: string): Promise<void> {
+  const token = getAdminAccessToken();
+  if (!token) throw new Error("Admin not authenticated");
+  const resp = await apiFetch(`/api/admin/kyc/${id}/approve`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ reviewerId }),
+    tokenOverride: token,
+  });
+  if (!resp.ok) {
+    const msg = (await resp.json().catch(() => null))?.message || "Failed to approve KYC";
+    throw new Error(msg);
+  }
+}
+
+export async function rejectKycAdmin(id: string, reason: string, reviewerId?: string): Promise<void> {
+  const token = getAdminAccessToken();
+  if (!token) throw new Error("Admin not authenticated");
+  const resp = await apiFetch(`/api/admin/kyc/${id}/reject`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ reviewerId, reason }),
+    tokenOverride: token,
+  });
+  if (!resp.ok) {
+    const msg = (await resp.json().catch(() => null))?.message || "Failed to reject KYC";
+    throw new Error(msg);
+  }
 }
 
 // Audit log functions

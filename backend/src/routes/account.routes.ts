@@ -5,6 +5,7 @@
 import { Router } from 'express';
 import { accountController } from '@/controllers/account.controller';
 import { authenticate } from '@/middleware/auth';
+import { accountLookupController } from '@/controllers/accountLookup.controller';
 
 const router = Router();
 
@@ -38,5 +39,12 @@ router.get('/:id', accountController.getAccountById);
  * @access  Private
  */
 router.get('/:id/balance', accountController.getBalance);
+
+/**
+ * @route POST /api/accounts/lookup
+ * @desc Lookup internal account by accountNumber
+ * @access Private
+ */
+router.post('/lookup', accountLookupController.lookupByNumber);
 
 export default router;

@@ -48,8 +48,10 @@ import {
   getSystemStatus,
   updateSystemStatus,
   addAuditLog,
+  fetchPendingKyc,
+  approveKycAdmin,
+  rejectKycAdmin,
 } from "@/lib/admin-storage";
-import { getKYCData, updateKYCStatus } from "@/lib/kyc-storage";
 import { UserORM, type UserModel } from "@/components/data/orm/orm_user";
 import { TransactionORM, type TransactionModel } from "@/components/data/orm/orm_transaction";
 import { formatCurrency, formatDate } from "@/lib/transactions";
@@ -396,8 +398,8 @@ function SystemOverview({ systemStatus }: { systemStatus: SystemStatus }) {
 }
 
 function KYCReviewPanel({ adminUser }: { adminUser: AdminUser }) {
-  const [users, setUsers] = useState<UserModel[]>([]);
-  const [selectedUser, setSelectedUser] = useState<UserModel | null>(null);
+  const [pending, setPending] = useState<any[]>([]);
+  const [selectedKyc, setSelectedKyc] = useState<any | null>(null);
   const [reviewNotes, setReviewNotes] = useState("");
   const [showDialog, setShowDialog] = useState(false);
   const [actionType, setActionType] = useState<"approve" | "reject" | null>(null);
@@ -407,48 +409,55 @@ function KYCReviewPanel({ adminUser }: { adminUser: AdminUser }) {
   }, []);
 
   const loadPendingUsers = async () => {
-    const userOrm = UserORM.getInstance();
-    const allUsers = await userOrm.getAllUser();
-
-    const pendingUsers = allUsers.filter((user) => {
-      const kyc = getKYCData(user.id);
-      return kyc && (kyc.kycStatus === "pending" || kyc.kycStatus === "under_review");
-    });
-
-    setUsers(pendingUsers);
-    updateSystemStatus({ pendingSignups: pendingUsers.length });
+    try {
+      const list = await fetchPendingKyc();
+      setPending(list);
+      updateSystemStatus({ pendingSignups: list.length });
+    } catch (err) {
+      console.error(err);
+      toast.error("Failed to load pending KYC");
+    }
   };
 
-  const handleReview = (user: UserModel, action: "approve" | "reject") => {
-    setSelectedUser(user);
+  const handleReview = (kyc: any, action: "approve" | "reject") => {
+    setSelectedKyc(kyc);
     setActionType(action);
     setShowDialog(true);
   };
 
-  const confirmReview = () => {
-    if (!selectedUser || !actionType) return;
+  const confirmReview = async () => {
+    if (!selectedKyc || !actionType) return;
 
     const newStatus = actionType === "approve" ? "approved" : "rejected";
-    updateKYCStatus(selectedUser.id, newStatus, reviewNotes);
+    try {
+      if (actionType === "approve") {
+        await approveKycAdmin(selectedKyc.id, adminUser.id);
+      } else {
+        await rejectKycAdmin(selectedKyc.id, reviewNotes || "Rejected", adminUser.id);
+      }
 
-    addAuditLog({
-      actor: adminUser.id,
-      actorType: "admin",
-      action: `kyc_${actionType}`,
-      resource: "user",
-      resourceId: selectedUser.id,
-      details: { email: selectedUser.email, notes: reviewNotes },
-      status: "success",
-    });
+      addAuditLog({
+        actor: adminUser.id,
+        actorType: "admin",
+        action: `kyc_${actionType}`,
+        resource: "user",
+        resourceId: selectedKyc.userId,
+        details: { email: selectedKyc.email, notes: reviewNotes },
+        status: "success",
+      });
 
-    setShowDialog(false);
-    setReviewNotes("");
-    setSelectedUser(null);
-    setActionType(null);
-    loadPendingUsers();
+      toast.success(`KYC ${newStatus}`);
+      setShowDialog(false);
+      setReviewNotes("");
+      setSelectedKyc(null);
+      setActionType(null);
+      loadPendingUsers();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to update KYC");
+    }
   };
 
-  if (users.length === 0) {
+  if (pending.length === 0) {
     return (
       <Card>
         <CardContent className="flex flex-col items-center justify-center py-12">
@@ -468,7 +477,7 @@ function KYCReviewPanel({ adminUser }: { adminUser: AdminUser }) {
         <CardHeader>
           <CardTitle>Pending KYC Reviews</CardTitle>
           <CardDescription>
-            Review and approve or reject user sign-ups ({users.length} pending)
+            Review and approve or reject user sign-ups ({pending.length} pending)
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -478,46 +487,41 @@ function KYCReviewPanel({ adminUser }: { adminUser: AdminUser }) {
                 <TableHead>User</TableHead>
                 <TableHead>Email</TableHead>
                 <TableHead>Submitted</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Documents</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {users.map((user) => {
-                const kyc = getKYCData(user.id);
-                if (!kyc) return null;
-
-                return (
-                  <TableRow key={user.id}>
-                    <TableCell className="font-medium">{user.full_name}</TableCell>
-                    <TableCell>{user.email}</TableCell>
-                    <TableCell>{new Date(kyc.kycSubmittedAt || "").toLocaleDateString()}</TableCell>
-                    <TableCell>
-                      <Badge variant={kyc.kycStatus === "pending" ? "secondary" : "default"}>
-                        {kyc.kycStatus}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      <div className="text-xs text-muted-foreground">
-                        {kyc.idDocumentType} • {kyc.livenessCheckComplete ? "Liveness ✓" : "No liveness"}
-                      </div>
-                    </TableCell>
-                    <TableCell className="text-right space-x-2">
-                      <Button size="sm" variant="outline" onClick={() => handleReview(user, "approve")}>
-                        <CheckCircle className="h-4 w-4 mr-1" />
-                        Approve
-                      </Button>
-                      <Button size="sm" variant="outline" onClick={() => handleReview(user, "reject")}>
-                        <XCircle className="h-4 w-4 mr-1" />
-                        Reject
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                );
-              })}
-            </TableBody>
-          </Table>
+            <TableHead>Status</TableHead>
+            <TableHead>Documents</TableHead>
+            <TableHead className="text-right">Actions</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {pending.map((kyc) => (
+            <TableRow key={kyc.id}>
+              <TableCell className="font-medium">{kyc.email || kyc.userId}</TableCell>
+              <TableCell>{kyc.email}</TableCell>
+              <TableCell>{new Date(kyc.submittedAt || "").toLocaleDateString()}</TableCell>
+              <TableCell>
+                <Badge variant={kyc.status === "PENDING" ? "secondary" : "default"}>
+                  {kyc.status}
+                </Badge>
+              </TableCell>
+              <TableCell>
+                <div className="text-xs text-muted-foreground">
+                  {kyc.idDocumentType || "N/A"}
+                </div>
+              </TableCell>
+              <TableCell className="text-right space-x-2">
+                <Button size="sm" variant="outline" onClick={() => handleReview(kyc, "approve")}>
+                  <CheckCircle className="h-4 w-4 mr-1" />
+                  Approve
+                </Button>
+                <Button size="sm" variant="outline" onClick={() => handleReview(kyc, "reject")}>
+                  <XCircle className="h-4 w-4 mr-1" />
+                  Reject
+                </Button>
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
         </CardContent>
       </Card>
 
@@ -528,7 +532,7 @@ function KYCReviewPanel({ adminUser }: { adminUser: AdminUser }) {
               {actionType === "approve" ? "Approve" : "Reject"} KYC Application
             </DialogTitle>
             <DialogDescription>
-              {selectedUser?.full_name} ({selectedUser?.email})
+              {selectedKyc?.email || selectedKyc?.userId}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
@@ -875,7 +879,7 @@ function MonitoringPanel({ adminUser }: { adminUser: AdminUser }) {
 }
 
 function AuditLogPanel() {
-  const [logs, setLogs] = useState<AuditLogEntry[]>([]);
+  const [logs, setLogs] = useState<any[]>([]);
   const [filterAction, setFilterAction] = useState("");
   const [filterActorType, setFilterActorType] = useState<"user" | "admin" | "">("");
 
@@ -884,12 +888,27 @@ function AuditLogPanel() {
   }, [filterAction, filterActorType]);
 
   const loadLogs = () => {
-    const filters: Parameters<typeof getAuditLogs>[0] = { limit: 100 };
-    if (filterAction) filters.action = filterAction;
-    if (filterActorType) filters.actorType = filterActorType;
-
-    const auditLogs = getAuditLogs(filters);
-    setLogs(auditLogs);
+    const token = getAdminAccessToken();
+    if (!token) return;
+    apiFetch("/api/admin/audit-logs", { tokenOverride: token })
+      .then(async (resp) => {
+        if (!resp.ok) throw new Error("Failed to load audit logs");
+        const data = await resp.json();
+        let auditLogs: any[] = data.data || [];
+        if (filterAction) {
+          auditLogs = auditLogs.filter((log) => log.action?.includes(filterAction));
+        }
+        if (filterActorType) {
+          auditLogs = auditLogs.filter((log) =>
+            (log.actorType || log.actor_type || "").toLowerCase() === filterActorType
+          );
+        }
+        setLogs(auditLogs);
+      })
+      .catch((err) => {
+        console.error(err);
+        toast.error("Failed to load audit logs");
+      });
   };
 
   return (
@@ -962,28 +981,28 @@ function AuditLogPanel() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {logs.map((log) => (
-                <TableRow key={log.id}>
-                  <TableCell className="text-xs">
-                    {new Date(log.timestamp).toLocaleString()}
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant={log.actorType === "admin" ? "default" : "secondary"}>
-                      {log.actorType}
+                {logs.map((log) => (
+                  <TableRow key={log.id}>
+                    <TableCell className="text-xs">
+                    {new Date(log.timestamp || log.createdAt).toLocaleString()}
+                    </TableCell>
+                    <TableCell>
+                    <Badge variant={(log.actorType || log.actor_type) === "admin" ? "default" : "secondary"}>
+                      {log.actorType || log.actor_type}
                     </Badge>
-                  </TableCell>
-                  <TableCell className="font-mono text-xs">{log.action}</TableCell>
-                  <TableCell className="text-xs">{log.resource}</TableCell>
-                  <TableCell>
-                    <Badge variant={log.status === "success" ? "outline" : "destructive"}>
-                      {log.status}
+                    </TableCell>
+                    <TableCell className="font-mono text-xs">{log.action}</TableCell>
+                    <TableCell className="text-xs">{log.resource}</TableCell>
+                    <TableCell>
+                    <Badge variant={(log.status || log.status_text) === "SUCCESS" || log.status === "success" ? "outline" : "destructive"}>
+                      {log.status || log.status_text}
                     </Badge>
-                  </TableCell>
-                  <TableCell className="text-xs text-muted-foreground max-w-md truncate">
-                    {JSON.stringify(log.details)}
-                  </TableCell>
-                </TableRow>
-              ))}
+                    </TableCell>
+                    <TableCell className="text-xs text-muted-foreground max-w-md truncate">
+                    {JSON.stringify(log.details || log.metadata || {})}
+                    </TableCell>
+                  </TableRow>
+                ))}
             </TableBody>
           </Table>
         </ScrollArea>

@@ -8,6 +8,8 @@ import { z } from 'zod';
 import { adminService } from '@/services/admin.service';
 import { asyncHandler, errors } from '@/middleware/errorHandler';
 import { AdminRole } from '@prisma/client';
+import { auditLogService } from '@/services/auditLog.service';
+import { transactionService } from '@/services/transaction.service';
 
 // =============================================================================
 // Validation Schemas
@@ -32,6 +34,11 @@ const createAdminSchema = z.object({
 
 const refreshTokenSchema = z.object({
   refreshToken: z.string(),
+});
+
+const listTransactionSchema = z.object({
+  page: z.coerce.number().optional().default(1),
+  limit: z.coerce.number().optional().default(20),
 });
 
 // =============================================================================
@@ -283,6 +290,41 @@ export class AdminController {
         requestId: req.requestId,
         timestamp: new Date().toISOString(),
       },
+    });
+  });
+
+  /**
+   * GET /api/admin/audit-logs
+   */
+  listAuditLogs = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
+    if (!req.admin) {
+      throw errors.unauthorized();
+    }
+    const logs = await auditLogService.listLatest();
+    res.status(200).json({
+      success: true,
+      data: logs,
+      meta: { requestId: req.requestId, timestamp: new Date().toISOString() },
+    });
+  });
+
+  /**
+   * GET /api/admin/transactions
+   */
+  listTransactions = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
+    if (!req.admin) {
+      throw errors.unauthorized();
+    }
+    const validation = listTransactionSchema.safeParse(req.query);
+    if (!validation.success) {
+      throw errors.validation('Invalid query', validation.error.errors);
+    }
+    const { page, limit } = validation.data;
+    const txs = await transactionService.listAll(page, limit);
+    res.status(200).json({
+      success: true,
+      data: txs,
+      meta: { requestId: req.requestId, timestamp: new Date().toISOString() },
     });
   });
 }

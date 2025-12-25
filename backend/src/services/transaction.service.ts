@@ -182,11 +182,15 @@ export class TransactionService {
 
     // Get accounts with locking to prevent race conditions
     const [fromAccount, toAccount] = await Promise.all([
-      prisma.account.findUnique({
-        where: { id: fromAccountId },
+      prisma.account.findFirst({
+        where: {
+          OR: [{ id: fromAccountId }, { accountNumber: fromAccountId }],
+        },
       }),
-      prisma.account.findUnique({
-        where: { id: toAccountId },
+      prisma.account.findFirst({
+        where: {
+          OR: [{ id: toAccountId }, { accountNumber: toAccountId }],
+        },
       }),
     ]);
 
@@ -287,6 +291,26 @@ export class TransactionService {
     });
 
     return transaction;
+  }
+
+  async listAll(page: number = 1, limit: number = 20) {
+    const txs = await prisma.transaction.findMany({
+      orderBy: { createdAt: 'desc' },
+      skip: (page - 1) * limit,
+      take: limit,
+      include: {
+        fromAccount: true,
+        toAccount: true,
+        user: { select: { id: true, email: true, fullName: true } },
+      },
+    });
+    const total = await prisma.transaction.count();
+    return {
+      transactions: txs,
+      total,
+      page,
+      totalPages: Math.ceil(total / limit),
+    };
   }
 
   /**

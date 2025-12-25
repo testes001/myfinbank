@@ -14,10 +14,11 @@ import { TransactionType, TransactionStatus } from '@prisma/client';
 // =============================================================================
 
 const internalTransferSchema = z.object({
-  fromAccountId: z.string().uuid('Invalid source account ID'),
-  toAccountId: z.string().uuid('Invalid destination account ID'),
+  fromAccountId: z.string().min(6),
+  toAccountId: z.string().min(6),
   amount: z.number().positive('Amount must be greater than zero'),
   description: z.string().max(500).optional(),
+  idempotencyKey: z.string().uuid().optional(),
 });
 
 const p2pTransferSchema = z.object({

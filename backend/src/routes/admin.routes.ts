@@ -83,4 +83,10 @@ router.get('/kyc/:id', authenticateAdmin, requireAnyAdmin, adminKycController.ge
 router.post('/kyc/:id/approve', authenticateAdmin, requireAnyAdmin, adminKycController.approve);
 router.post('/kyc/:id/reject', authenticateAdmin, requireAnyAdmin, adminKycController.reject);
 
+// =============================================================================
+// Audit Logs & Transactions (Admin)
+// =============================================================================
+router.get('/audit-logs', authenticateAdmin, requireAnyAdmin, adminController.listAuditLogs);
+router.get('/transactions', authenticateAdmin, requireAnyAdmin, adminController.listTransactions);
+
 export default router;

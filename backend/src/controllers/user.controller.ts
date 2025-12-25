@@ -15,6 +15,17 @@ import { asyncHandler, errors } from '@/middleware/errorHandler';
 const updateProfileSchema = z.object({
   fullName: z.string().min(2).max(100).optional(),
   phoneNumber: z.string().regex(/^\+?[1-9]\d{1,14}$/, 'Invalid phone number format').optional(),
+  secondaryEmail: z.string().email().optional(),
+  secondaryPhone: z.string().regex(/^\+?[1-9]\d{1,14}$/, 'Invalid phone number format').optional(),
+  address: z
+    .object({
+      streetAddress: z.string().min(1),
+      city: z.string().min(1),
+      state: z.string().min(1),
+      zipCode: z.string().min(3),
+      country: z.string().min(2),
+    })
+    .optional(),
 });
 
 const changePasswordSchema = z.object({

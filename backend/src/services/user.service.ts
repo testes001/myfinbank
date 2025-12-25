@@ -19,6 +19,15 @@ const prisma = new PrismaClient();
 export interface UpdateProfileInput {
   fullName?: string;
   phoneNumber?: string;
+  secondaryEmail?: string;
+  secondaryPhone?: string;
+  address?: {
+    streetAddress: string;
+    city: string;
+    state: string;
+    zipCode: string;
+    country: string;
+  };
 }
 
 export interface ChangePasswordInput {
@@ -137,7 +146,7 @@ export class UserService {
     userId: string,
     input: UpdateProfileInput
   ): Promise<any> {
-    const { fullName, phoneNumber } = input;
+    const { fullName, phoneNumber, secondaryEmail, secondaryPhone, address } = input;
 
     // Validate phone number format if provided
     if (phoneNumber) {
@@ -162,6 +171,15 @@ export class UserService {
       data: {
         ...(fullName && { fullName }),
         ...(phoneNumber !== undefined && { phoneNumber }),
+        ...(secondaryEmail !== undefined && { secondaryEmail }),
+        ...(secondaryPhone !== undefined && { secondaryPhone }),
+        ...(address && {
+          address: address.streetAddress,
+          city: address.city,
+          state: address.state,
+          postalCode: address.zipCode,
+          country: address.country,
+        }),
         updatedAt: new Date(),
       },
     });
