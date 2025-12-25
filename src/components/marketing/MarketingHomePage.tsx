@@ -130,13 +130,13 @@ export function MarketingHomePage() {
             <motion.div variants={itemVariants} className="space-y-6">
               <div className="space-y-3">
                 <p className="text-sm font-semibold uppercase tracking-[0.2em] text-blue-600 dark:text-blue-300">
-                  EU Licensed • PSD2 Compliant • €100k Insured
+                  EU Licensed | PSD2 Compliant | 100k EUR Insured
                 </p>
-                <h1 className="text-5xl lg:text-6xl font-bold text-slate-900 dark:text-white leading-tight font-[\"Space Grotesk\",_Inter,_sans-serif]">
+                <h1 className="text-5xl lg:text-6xl font-bold text-slate-900 dark:text-white leading-tight font-['Space Grotesk',_Inter,_sans-serif]">
                   Banking that moves as fast as you do
                 </h1>
                 <p className="text-xl text-slate-600 dark:text-slate-300">
-                  Licensed digital banking headquartered in Spain with branches across Europe—now welcoming customers from Korea—with SEPA, ES IBANs, 3D Secure cards, and GDPR-grade privacy.
+                  Licensed digital banking headquartered in Spain with branches across Europe, now welcoming customers from Korea, with SEPA, ES IBANs, 3D Secure cards, and GDPR-grade privacy.
                 </p>
               </div>
 

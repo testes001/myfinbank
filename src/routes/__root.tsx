@@ -6,7 +6,6 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import { Toaster } from "@/components/ui/sonner";
 import { SeedInitializer } from "@/components/SeedInitializer";
-import { Analytics } from "@vercel/analytics/react";
 
 export const Route = createRootRoute({
 	component: Root,
