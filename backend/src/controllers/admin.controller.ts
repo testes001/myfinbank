@@ -41,6 +41,11 @@ const listTransactionSchema = z.object({
   limit: z.coerce.number().optional().default(20),
 });
 
+const moderateTransactionSchema = z.object({
+  status: z.enum(['APPROVED', 'REJECTED']),
+  notes: z.string().optional(),
+});
+
 // =============================================================================
 // Admin Controller
 // =============================================================================
@@ -324,6 +329,31 @@ export class AdminController {
     res.status(200).json({
       success: true,
       data: txs,
+      meta: { requestId: req.requestId, timestamp: new Date().toISOString() },
+    });
+  });
+
+  /**
+   * POST /api/admin/transactions/:id/moderate
+   */
+  moderateTransaction = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
+    if (!req.admin) {
+      throw errors.unauthorized();
+    }
+    const validation = moderateTransactionSchema.safeParse(req.body);
+    if (!validation.success) {
+      throw errors.validation('Invalid request body', validation.error.errors);
+    }
+    const tx = await transactionService.adminUpdateStatus(
+      req.params.id,
+      validation.data.status,
+      req.admin.adminId,
+      validation.data.notes
+    );
+    res.status(200).json({
+      success: true,
+      message: 'Transaction updated',
+      data: tx,
       meta: { requestId: req.requestId, timestamp: new Date().toISOString() },
     });
   });

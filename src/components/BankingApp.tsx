@@ -15,7 +15,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Loader2, Clock, CheckCircle2, AlertCircle } from "lucide-react";
 import { useEffect, useRef, useState as useReactState } from "react";
-import { submitKyc, uploadKycDocument } from "@/lib/backend";
+import { submitKyc, uploadKycDocument, uploadKycFile } from "@/lib/backend";
 
 export type ActivePage = "dashboard" | "transfer" | "history" | "profile" | "deposit";
 
@@ -62,11 +62,11 @@ export function BankingApp() {
       let idBackUrl: string | undefined;
 
       if (data.idDocumentFront) {
-        idFrontUrl = await uploadDocument(data.idDocumentFront);
+        idFrontUrl = await uploadKycFile(data.idDocumentFront, currentUser.accessToken);
       }
 
       if (data.idDocumentBack) {
-        idBackUrl = await uploadDocument(data.idDocumentBack);
+        idBackUrl = await uploadKycFile(data.idDocumentBack, currentUser.accessToken);
       }
 
       const phoneDigits = data.phoneNumber.replace(/\D/g, "");

@@ -143,3 +143,34 @@ export async function changePassword(payload: { currentPassword: string; newPass
     throw new Error(msg);
   }
 }
+
+export async function lookupAccount(accountNumber: string, token?: string) {
+  const resp = await apiFetch("/api/accounts/lookup", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ accountNumber }),
+    tokenOverride: token,
+  });
+  if (!resp.ok) {
+    const msg = (await resp.json().catch(() => null))?.message || "Account not found";
+    throw new Error(msg);
+  }
+  const data = await resp.json();
+  return data.data;
+}
+
+export async function uploadKycFile(file: File, token?: string): Promise<string> {
+  const form = new FormData();
+  form.append("file", file);
+  const resp = await apiFetch("/api/upload/kyc", {
+    method: "POST",
+    body: form as any,
+    tokenOverride: token,
+  });
+  if (!resp.ok) {
+    const msg = (await resp.json().catch(() => null))?.message || "File upload failed";
+    throw new Error(msg);
+  }
+  const data = await resp.json();
+  return data.data?.url as string;
+}

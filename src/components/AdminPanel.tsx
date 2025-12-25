@@ -565,8 +565,8 @@ function KYCReviewPanel({ adminUser }: { adminUser: AdminUser }) {
 }
 
 function TransactionApprovalPanel({ adminUser }: { adminUser: AdminUser }) {
-  const [transactions, setTransactions] = useState<TransactionModel[]>([]);
-  const [selectedTransaction, setSelectedTransaction] = useState<TransactionModel | null>(null);
+  const [transactions, setTransactions] = useState<any[]>([]);
+  const [selectedTransaction, setSelectedTransaction] = useState<any | null>(null);
   const [showDialog, setShowDialog] = useState(false);
   const [actionType, setActionType] = useState<"approve" | "reject" | null>(null);
 
@@ -575,12 +575,18 @@ function TransactionApprovalPanel({ adminUser }: { adminUser: AdminUser }) {
   }, []);
 
   const loadPendingTransactions = async () => {
-    const transactionOrm = TransactionORM.getInstance();
-    const allTransactions = await transactionOrm.getAllTransaction();
-
-    const pending = allTransactions.filter((t) => t.status === 0);
-    setTransactions(pending);
-    updateSystemStatus({ pendingTransactions: pending.length });
+    const token = getAdminAccessToken();
+    if (!token) return;
+    try {
+      const resp = await apiFetch("/api/admin/transactions", { tokenOverride: token });
+      if (!resp.ok) throw new Error("Failed to load transactions");
+      const data = await resp.json();
+      setTransactions(data.data?.transactions || []);
+      updateSystemStatus({ pendingTransactions: data.data?.transactions?.length || 0 });
+    } catch (err) {
+      console.error(err);
+      toast.error("Failed to load transactions");
+    }
   };
 
   const handleReview = (transaction: TransactionModel, action: "approve" | "reject") => {
@@ -592,23 +598,8 @@ function TransactionApprovalPanel({ adminUser }: { adminUser: AdminUser }) {
   const confirmReview = async () => {
     if (!selectedTransaction || !actionType) return;
 
-    const transactionOrm = TransactionORM.getInstance();
-    const newStatus = actionType === "approve" ? 0 : 0;
-
-    await transactionOrm.setTransactionById(selectedTransaction.id, {
-      ...selectedTransaction,
-      status: newStatus,
-    });
-
-    addAuditLog({
-      actor: adminUser.id,
-      actorType: "admin",
-      action: `transaction_${actionType}`,
-      resource: "transaction",
-      resourceId: selectedTransaction.id,
-      details: { amount: selectedTransaction.amount, status: newStatus },
-      status: "success",
-    });
+    // Placeholder until backend adds admin transaction moderation endpoints
+    toast.info("Transaction review actions will be wired when moderation endpoints are available.");
 
     setShowDialog(false);
     setSelectedTransaction(null);
@@ -636,7 +627,7 @@ function TransactionApprovalPanel({ adminUser }: { adminUser: AdminUser }) {
         <CardHeader>
           <CardTitle>Pending Transaction Approvals</CardTitle>
           <CardDescription>
-            Review and approve high-value or flagged transactions ({transactions.length} pending)
+            Review and approve high-value or flagged transactions ({transactions.length} loaded)
           </CardDescription>
         </CardHeader>
         <CardContent>

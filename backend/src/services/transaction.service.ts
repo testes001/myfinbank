@@ -313,6 +313,26 @@ export class TransactionService {
     };
   }
 
+  async adminUpdateStatus(id: string, status: 'APPROVED' | 'REJECTED', adminId: string, notes?: string) {
+    const tx = await prisma.transaction.update({
+      where: { id },
+      data: { status: status === 'APPROVED' ? TransactionStatus.COMPLETED : TransactionStatus.FAILED },
+      include: { user: true, fromAccount: true, toAccount: true },
+    });
+    await prisma.auditLog.create({
+      data: {
+        actorId: adminId,
+        actorType: 'ADMIN',
+        action: 'admin_transaction_moderated',
+        resource: 'transaction',
+        resourceId: id,
+        status: 'SUCCESS',
+        metadata: { status, notes },
+      } as any,
+    });
+    return tx;
+  }
+
   /**
    * Perform P2P transfer to another user
    */

@@ -88,5 +88,6 @@ router.post('/kyc/:id/reject', authenticateAdmin, requireAnyAdmin, adminKycContr
 // =============================================================================
 router.get('/audit-logs', authenticateAdmin, requireAnyAdmin, adminController.listAuditLogs);
 router.get('/transactions', authenticateAdmin, requireAnyAdmin, adminController.listTransactions);
+router.post('/transactions/:id/moderate', authenticateAdmin, requireAnyAdmin, adminController.moderateTransaction);
 
 export default router;

@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
-import { p2pTransfer } from "@/lib/transactions";
+import { p2pTransfer, transferFunds } from "@/lib/transactions";
+import { lookupAccount } from "@/lib/backend";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -39,6 +40,7 @@ export function TransferModal({ open, onOpenChange, onSuccess }: TransferModalPr
   const [routingNumber, setRoutingNumber] = useState("");
   const [recipientAccountNumber, setRecipientAccountNumber] = useState("");
   const [recipientName, setRecipientName] = useState("");
+  const [recipientAccountId, setRecipientAccountId] = useState<string | null>(null);
   const [bankName, setBankName] = useState("");
 
   // Common fields
@@ -101,6 +103,19 @@ export function TransferModal({ open, onOpenChange, onSuccess }: TransferModalPr
 
     // Auto-lookup if we have a valid internal routing number and complete account number
     setRecipientName("");
+    setRecipientAccountId(null);
+
+    if (isValidAccountNumber(value)) {
+      lookupAccount(value)
+        .then((result) => {
+          setRecipientName(result.user?.fullName || result.user?.email || "FinBank Customer");
+          setRecipientAccountId(result.id);
+        })
+        .catch(() => {
+          setRecipientName("");
+          setRecipientAccountId(null);
+        });
+    }
   };
 
   const handleEmailSubmit = async () => {
@@ -129,8 +144,15 @@ export function TransferModal({ open, onOpenChange, onSuccess }: TransferModalPr
       return null;
     }
 
-    toast.error("Direct account number transfers are not yet supported. Please use email/P2P.");
-    return null;
+    if (!recipientAccountId) {
+      toast.error("Unable to resolve recipient account. Please re-check the account number.");
+      return null;
+    }
+
+    return {
+      recipientAccount: recipientAccountId,
+      recipientName: recipientName || "Internal Account",
+    };
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -187,8 +209,13 @@ export function TransferModal({ open, onOpenChange, onSuccess }: TransferModalPr
           );
           toast.success(`Successfully sent $${amountNum.toFixed(2)} to ${recipientEmail}`);
         } else {
-          toast.error("Direct account number transfers are not yet supported. Please use email/P2P.");
-          throw new Error("validation");
+          const accountResult = await handleAccountSubmit();
+          if (!accountResult?.recipientAccount) {
+            setAccountNumberError("Lookup failed. Please verify account number.");
+            throw new Error("validation");
+          }
+          await transferFunds(currentUser.account.id, accountResult.recipientAccount, amountNum, description || undefined);
+          toast.success(`Transfer submitted to ${accountResult.recipientName || "internal account"}`);
         }
 
         setShowSuccess(true);

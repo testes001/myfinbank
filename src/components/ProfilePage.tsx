@@ -65,7 +65,7 @@ import {
 import { FINBANK_ROUTING_NUMBER } from "@/lib/seed";
 import { maskAccountNumber, formatRoutingNumber, generateMockCreditScore } from "@/lib/banking-utils";
 import { Textarea } from "@/components/ui/textarea";
-import { fetchKycStatus, fetchProfile, updateProfile, uploadKycDocument } from "@/lib/backend";
+import { fetchKycStatus, fetchProfile, updateProfile, uploadKycDocument, uploadKycFile } from "@/lib/backend";
 
 export function ProfilePage() {
   const { currentUser, logout } = useAuth();
@@ -270,8 +270,8 @@ export function ProfilePage() {
 
     setIsUploadingPhoto(true);
     try {
-      const photoUrl = await uploadDocument(file);
-      if (currentUser?.accessToken) {
+      const photoUrl = currentUser?.accessToken ? await uploadKycFile(file, currentUser.accessToken) : await uploadDocument(file);
+      if (currentUser?.accessToken && photoUrl) {
         await uploadKycDocument("ID_FRONT", photoUrl, currentUser.accessToken);
       }
       setProfilePhotoUploaded(true);
@@ -286,15 +286,26 @@ export function ProfilePage() {
   };
 
   // Handle secondary contact info save
-  const handleSaveSecondaryContact = () => {
-    if (!currentUser) return;
-    setKycData((prev: any) => ({
-      ...prev,
-      secondaryEmail,
-      secondaryPhone,
-    }));
-    setShowSecondaryContactModal(false);
-    toast.success("Secondary contact information saved");
+  const handleSaveSecondaryContact = async () => {
+    if (!currentUser?.accessToken) return;
+    try {
+      await updateProfile(
+        {
+          secondaryEmail: secondaryEmail || undefined,
+          secondaryPhone: secondaryPhone || undefined,
+        },
+        currentUser.accessToken
+      );
+      setKycData((prev: any) => ({
+        ...prev,
+        secondaryEmail,
+        secondaryPhone,
+      }));
+      setShowSecondaryContactModal(false);
+      toast.success("Secondary contact information saved");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to save secondary contact");
+    }
   };
 
   // Handle address change request
@@ -312,7 +323,9 @@ export function ProfilePage() {
     }
 
     try {
-      const docUrl = await uploadDocument(addressVerificationDoc);
+      const docUrl = currentUser?.accessToken
+        ? await uploadKycFile(addressVerificationDoc, currentUser.accessToken)
+        : await uploadDocument(addressVerificationDoc);
       const pendingChange = {
         ...newAddressData,
         verificationDocumentUrl: docUrl,
@@ -320,11 +333,22 @@ export function ProfilePage() {
         status: "pending" as const,
       };
 
+      setPendingAddressChange(pendingChange);
       if (currentUser?.accessToken) {
         await uploadKycDocument("PROOF_OF_ADDRESS", docUrl, currentUser.accessToken);
+        await updateProfile(
+          {
+            address: {
+              streetAddress: newAddressData.streetAddress,
+              city: newAddressData.city,
+              state: newAddressData.state,
+              zipCode: newAddressData.zipCode,
+              country: newAddressData.country,
+            },
+          },
+          currentUser.accessToken
+        );
       }
-
-      setPendingAddressChange(pendingChange);
       setShowAddressChangeModal(false);
       setNewAddressData({
         streetAddress: "",
