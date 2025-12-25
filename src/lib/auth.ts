@@ -1,41 +1,50 @@
 import bcrypt from "bcryptjs";
+import { apiFetch } from "./api-client";
 
 export interface AuthUser {
   user: any;
   account: any;
+  accessToken?: string;
+  accounts?: any[];
 }
-
-const API_BASE = import.meta.env.VITE_API_BASE_URL || window.location.origin;
 
 // Frontend auth now uses backend APIs; keep helpers for forms and legacy imports.
 export async function loginUser(email: string, password: string): Promise<AuthUser> {
-  const resp = await fetch(`${API_BASE}/api/auth/login`, {
+  const resp = await apiFetch(`/api/auth/login`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ email, password }),
-    credentials: "include",
+    skipAuth: true,
   });
   if (!resp.ok) {
     const msg = (await resp.json().catch(() => null))?.message || "Invalid email or password";
     throw new Error(msg);
   }
   const data = await resp.json();
-  return { user: data.data.user, account: { id: "", user_id: data.data.user.userId } as any };
+  return {
+    user: data.data.user,
+    account: { id: "", user_id: data.data.user.userId } as any,
+    accessToken: data.data.accessToken,
+  };
 }
 
 export async function registerUser(email: string, password: string, fullName: string): Promise<AuthUser> {
-  const resp = await fetch(`${API_BASE}/api/auth/register`, {
+  const resp = await apiFetch(`/api/auth/register`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ email, password, fullName }),
-    credentials: "include",
+    skipAuth: true,
   });
   if (!resp.ok) {
     const msg = (await resp.json().catch(() => null))?.message || "Registration failed";
     throw new Error(msg);
   }
   const data = await resp.json();
-  return { user: data.data.user, account: { id: "", user_id: data.data.user.userId } as any };
+  return {
+    user: data.data.user,
+    account: { id: "", user_id: data.data.user.userId } as any,
+    accessToken: data.data.accessToken,
+  };
 }
 
 export function markUserEmailVerified(_email?: string): void {

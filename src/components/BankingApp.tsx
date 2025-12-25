@@ -9,12 +9,13 @@ import { MobileNav } from "@/components/MobileNav";
 import { MobileDepositModal } from "@/components/MobileDepositModal";
 import { OnboardingFlow, type OnboardingData } from "@/components/OnboardingFlow";
 import { motion, AnimatePresence } from "framer-motion";
-import { saveKYCData, uploadDocument, hashSecurityAnswer } from "@/lib/kyc-storage";
+import { uploadDocument } from "@/lib/kyc-storage";
 import { toast } from "sonner";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Loader2, Clock, CheckCircle2, AlertCircle } from "lucide-react";
 import { useEffect, useRef, useState as useReactState } from "react";
+import { submitKyc, uploadKycDocument } from "@/lib/backend";
 
 export type ActivePage = "dashboard" | "transfer" | "history" | "profile" | "deposit";
 
@@ -52,6 +53,10 @@ export function BankingApp() {
   // Handle onboarding flow
   const handleOnboardingComplete = async (data: OnboardingData) => {
     try {
+      if (!currentUser?.accessToken) {
+        throw new Error("Missing session token; please sign in again.");
+      }
+
       // Upload documents (simulated)
       let idFrontUrl: string | undefined;
       let idBackUrl: string | undefined;
@@ -64,54 +69,45 @@ export function BankingApp() {
         idBackUrl = await uploadDocument(data.idDocumentBack);
       }
 
-      // Hash security answers
-      const securityQuestions = [
-        {
-          question: data.securityQuestion1,
-          answer: hashSecurityAnswer(data.securityAnswer1),
-        },
-        {
-          question: data.securityQuestion2,
-          answer: hashSecurityAnswer(data.securityAnswer2),
-        },
-        {
-          question: data.securityQuestion3,
-          answer: hashSecurityAnswer(data.securityAnswer3),
-        },
-      ];
+      const phoneDigits = data.phoneNumber.replace(/\D/g, "");
+      if (phoneDigits.length < 10) {
+        throw new Error("Please provide a valid phone number for KYC.");
+      }
+      const normalizedPhone = `+${phoneDigits}`;
 
-      // Save KYC data
-      saveKYCData(currentUser.user.id, {
-        userId: currentUser.user.id,
-        primaryAccountType: data.primaryAccountType,
-        dateOfBirth: data.dateOfBirth,
-        ssn: data.ssn,
-        phoneNumber: data.phoneNumber,
-        phoneVerified: data.phoneVerified,
-        emailVerified: data.emailVerified,
-        streetAddress: data.streetAddress,
-        city: data.city,
-        state: data.state,
-        zipCode: data.zipCode,
-        country: data.country,
-        residencyYears: data.residencyYears,
-        securityQuestions,
-        idDocumentType: data.idDocumentType,
-        idDocumentFrontUrl: idFrontUrl,
-        idDocumentBackUrl: idBackUrl,
-        livenessCheckComplete: data.livenessCheckComplete,
-        livenessCheckTimestamp: new Date().toISOString(),
-        accountTypes: data.accountTypes,
-        initialDepositMethod: data.initialDepositMethod,
-        initialDepositAmount: data.initialDepositAmount,
-        externalBankName: data.externalBankName,
-        externalAccountNumber: data.externalAccountNumber,
-        externalRoutingNumber: data.externalRoutingNumber,
-        kycStatus: "pending",
-        kycSubmittedAt: new Date().toISOString(),
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      });
+      const ssnDigits = data.ssn.replace(/\D/g, "");
+      if (ssnDigits.length !== 9) {
+        throw new Error("National ID / SSN must be 9 digits for verification.");
+      }
+      const normalizedSsn = `${ssnDigits.slice(0, 3)}-${ssnDigits.slice(3, 5)}-${ssnDigits.slice(5)}`;
+
+      const normalizedZip = (data.zipCode.match(/\d/g) || []).join("").padEnd(5, "0").slice(0, 5);
+      const normalizedState = (data.state || "NA").slice(0, 2).toUpperCase();
+      const normalizedCountry = (data.country || "US").slice(0, 2).toUpperCase();
+
+      await submitKyc(
+        {
+          dateOfBirth: data.dateOfBirth,
+          ssn: normalizedSsn,
+          phoneNumber: normalizedPhone,
+          idDocumentType: data.idDocumentType?.toLowerCase().includes("pass") ? "PASSPORT" : "NATIONAL_ID",
+          address: {
+            street: data.streetAddress || "Not Provided",
+            city: data.city || "Not Provided",
+            state: normalizedState,
+            zipCode: normalizedZip,
+            country: normalizedCountry,
+          },
+        },
+        currentUser.accessToken
+      );
+
+      if (idFrontUrl) {
+        await uploadKycDocument("ID_FRONT", idFrontUrl, currentUser.accessToken);
+      }
+      if (idBackUrl) {
+        await uploadKycDocument("ID_BACK", idBackUrl, currentUser.accessToken);
+      }
 
       // Refresh user status
       refreshUserStatus();
@@ -181,15 +177,13 @@ export function BankingApp() {
               <div className="flex gap-3">
                 <Button
                   onClick={() => {
-                    // Simulate approval for demo purposes
-                    saveKYCData(currentUser.user.id, { kycStatus: "approved" });
-                    refreshUserStatus();
-                    toast.success("Account approved! Welcome to SecureBank!");
+                    void refreshUserStatus();
+                    toast.info("We requested a fresh KYC status check.");
                   }}
                   className="flex-1 bg-green-600 hover:bg-green-700 text-white"
                 >
                   <CheckCircle2 className="w-4 h-4 mr-2" />
-                  Approve (Demo)
+                  Refresh Status
                 </Button>
                 <Button
                   onClick={() => {

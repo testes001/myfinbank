@@ -26,7 +26,7 @@ import { getRecentTransactions, formatCurrency, formatDate, getTransactionType }
 import { getTotalBalance } from "@/lib/multi-account";
 import { getUpcomingTransfers } from "@/lib/recurring-transfers";
 import { getActiveCardCount } from "@/lib/virtual-cards";
-import { getKYCData, type PrimaryAccountType } from "@/lib/kyc-storage";
+import type { PrimaryAccountType } from "@/lib/kyc-storage";
 import type { TransactionModel } from "@/lib/transactions";
 import type { ActivePage } from "@/components/BankingApp";
 import { motion, AnimatePresence } from "framer-motion";
@@ -112,9 +112,8 @@ export function Dashboard({ onNavigate }: DashboardProps) {
   const [upcomingTransfersCount, setUpcomingTransfersCount] = useState(0);
   const [activeVirtualCardsCount, setActiveVirtualCardsCount] = useState(0);
 
-  // Get account type from KYC data
-  const kycData = currentUser ? getKYCData(currentUser.user.id) : null;
-  const accountType: PrimaryAccountType = kycData?.primaryAccountType || "checking";
+  const accountType: PrimaryAccountType =
+    (currentUser?.accounts?.[0]?.accountType?.toLowerCase?.() as PrimaryAccountType) || "checking";
 
   // Generate a stable numeric account number based on user ID
   const [numericAccountNumber] = useState(() => {

@@ -18,7 +18,7 @@ import {
 } from "@/components/ui/select";
 import { DirectDepositModal } from "@/components/DirectDepositModal";
 import { CardManagementModal } from "@/components/CardManagementModal";
-import { getKYCData, saveKYCData, uploadDocument, type PrimaryAccountType } from "@/lib/kyc-storage";
+import { uploadDocument, type PrimaryAccountType } from "@/lib/kyc-storage";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
 import {
@@ -65,6 +65,7 @@ import {
 import { FINBANK_ROUTING_NUMBER } from "@/lib/seed";
 import { maskAccountNumber, formatRoutingNumber, generateMockCreditScore } from "@/lib/banking-utils";
 import { Textarea } from "@/components/ui/textarea";
+import { fetchKycStatus, uploadKycDocument } from "@/lib/backend";
 
 export function ProfilePage() {
   const { currentUser, logout } = useAuth();
@@ -87,14 +88,14 @@ export function ProfilePage() {
   const [showProfilePictureModal, setShowProfilePictureModal] = useState(false);
 
   // Profile restrictions state
-  const [kycData, setKycData] = useState(() => currentUser ? getKYCData(currentUser.user.id) : null);
-  const [secondaryEmail, setSecondaryEmail] = useState(kycData?.secondaryEmail || "");
-  const [secondaryPhone, setSecondaryPhone] = useState(kycData?.secondaryPhone || "");
+  const [kycData, setKycData] = useState<any | null>(null);
+  const [secondaryEmail, setSecondaryEmail] = useState("");
+  const [secondaryPhone, setSecondaryPhone] = useState("");
   const [showSecondaryContactModal, setShowSecondaryContactModal] = useState(false);
 
   // Profile photo upload (one-time only)
-  const [profilePhotoUploaded, setProfilePhotoUploaded] = useState(kycData?.profilePhotoUploaded || false);
-  const [profilePhotoUrl, setProfilePhotoUrl] = useState(kycData?.profilePhotoUrl || "");
+  const [profilePhotoUploaded, setProfilePhotoUploaded] = useState(false);
+  const [profilePhotoUrl, setProfilePhotoUrl] = useState("");
   const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
 
   // Address change verification
@@ -107,7 +108,7 @@ export function ProfilePage() {
     country: "United States",
   });
   const [addressVerificationDoc, setAddressVerificationDoc] = useState<File | null>(null);
-  const [pendingAddressChange, setPendingAddressChange] = useState(kycData?.pendingAddressChange || null);
+  const [pendingAddressChange, setPendingAddressChange] = useState<any | null>(null);
 
   // Biometric and 2FA enhancements
   const [twoFactorMethod, setTwoFactorMethod] = useState<"sms" | "authenticator" | "push">("sms");
@@ -115,20 +116,30 @@ export function ProfilePage() {
   const [show2FASetupModal, setShow2FASetupModal] = useState(false);
   const [biometricType, setBiometricType] = useState<"fingerprint" | "face" | "none">("none");
 
-  // Reload KYC data
+  // Reload KYC data from backend
   useEffect(() => {
-    if (currentUser) {
-      const data = getKYCData(currentUser.user.id);
-      setKycData(data);
-      setProfilePhotoUploaded(data?.profilePhotoUploaded || false);
-      setProfilePhotoUrl(data?.profilePhotoUrl || "");
-      setSecondaryEmail(data?.secondaryEmail || "");
-      setSecondaryPhone(data?.secondaryPhone || "");
-      setPendingAddressChange(data?.pendingAddressChange || null);
-    }
-  }, [currentUser]);
+    if (!currentUser?.accessToken) return;
+    const loadKyc = async () => {
+      try {
+        const status = await fetchKycStatus(currentUser.accessToken);
+        setKycData({
+          kycStatus: status.kycStatus?.toLowerCase?.() || status.kycStatus,
+          verification: status.verification,
+          primaryAccountType:
+            currentUser?.accounts?.[0]?.accountType?.toLowerCase?.() || "checking",
+        });
+        setProfilePhotoUploaded(Boolean(status?.verification));
+        setProfilePhotoUrl(status?.verification?.id ? "KYC verification submitted" : "");
+      } catch (error) {
+        console.error("Failed to load KYC status", error);
+      }
+    };
+    void loadKyc();
+  }, [currentUser?.accessToken]);
 
-  const accountType: PrimaryAccountType = kycData?.primaryAccountType || "checking";
+  const accountType: PrimaryAccountType =
+    kycData?.primaryAccountType ||
+    ((currentUser?.accounts?.[0]?.accountType?.toLowerCase?.() as PrimaryAccountType) ?? "checking");
 
   // Security - Session Management
   const [showSessionsModal, setShowSessionsModal] = useState(false);
@@ -252,11 +263,9 @@ export function ProfilePage() {
     setIsUploadingPhoto(true);
     try {
       const photoUrl = await uploadDocument(file);
-      saveKYCData(currentUser!.user.id, {
-        profilePhotoUploaded: true,
-        profilePhotoUrl: photoUrl,
-        profilePhotoUploadedAt: new Date().toISOString(),
-      });
+      if (currentUser?.accessToken) {
+        await uploadKycDocument("ID_FRONT", photoUrl, currentUser.accessToken);
+      }
       setProfilePhotoUploaded(true);
       setProfilePhotoUrl(photoUrl);
       setShowProfilePictureModal(false);
@@ -271,10 +280,11 @@ export function ProfilePage() {
   // Handle secondary contact info save
   const handleSaveSecondaryContact = () => {
     if (!currentUser) return;
-    saveKYCData(currentUser.user.id, {
+    setKycData((prev: any) => ({
+      ...prev,
       secondaryEmail,
       secondaryPhone,
-    });
+    }));
     setShowSecondaryContactModal(false);
     toast.success("Secondary contact information saved");
   };
@@ -302,9 +312,9 @@ export function ProfilePage() {
         status: "pending" as const,
       };
 
-      saveKYCData(currentUser.user.id, {
-        pendingAddressChange: pendingChange,
-      });
+      if (currentUser?.accessToken) {
+        await uploadKycDocument("PROOF_OF_ADDRESS", docUrl, currentUser.accessToken);
+      }
 
       setPendingAddressChange(pendingChange);
       setShowAddressChangeModal(false);

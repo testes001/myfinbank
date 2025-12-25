@@ -1,4 +1,4 @@
-const API_BASE = import.meta.env.VITE_API_BASE_URL || window.location.origin;
+import { apiFetch } from "./api-client";
 
 export interface TransactionDTO {
   id: string;
@@ -44,10 +44,9 @@ export async function transferFunds(
   amount: number,
   description?: string,
 ): Promise<TransactionModel> {
-  const resp = await fetch(`${API_BASE}/api/transactions/transfer`, {
+  const resp = await apiFetch(`/api/transactions/transfer`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    credentials: "include",
     body: JSON.stringify({ fromAccountId, toAccountId, amount, description }),
   });
   if (!resp.ok) {
@@ -64,9 +63,7 @@ export async function getTransactionsByAccountId(
   pageSize: number = 20,
 ): Promise<{ transactions: TransactionModel[]; totalPages: number }> {
   const params = new URLSearchParams({ accountId, page: String(page), pageSize: String(pageSize) });
-  const resp = await fetch(`${API_BASE}/api/transactions?${params.toString()}`, {
-    credentials: "include",
-  });
+  const resp = await apiFetch(`/api/transactions?${params.toString()}`);
   if (!resp.ok) {
     const msg = (await resp.json().catch(() => null))?.message || "Failed to load transactions";
     throw new Error(msg);

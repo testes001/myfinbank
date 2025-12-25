@@ -30,7 +30,7 @@ export function LoginForm({ onShowLanding }: LoginFormProps) {
   const [pendingUser, setPendingUser] = useState<AuthUser | null>(null);
   const [attemptCount, setAttemptCount] = useState(() => getAuthThrottle().attempts);
   const [lockUntil, setLockUntil] = useState<number | null>(() => getAuthThrottle().lockUntil);
-  const { setCurrentUser } = useAuth();
+  const { establishSession } = useAuth();
 
   const deliverVerificationCode = async (emailToSend: string) => {
     // Demo accounts skip verification entirely
@@ -102,7 +102,10 @@ export function LoginForm({ onShowLanding }: LoginFormProps) {
           throw new Error(msg);
         }
         const data = await resp.json();
-        setCurrentUser({ user: data.data.user, account: { id: "", user_id: data.data.user.userId } as any });
+        if (!data.data.accessToken) {
+          throw new Error("Login did not return an access token");
+        }
+        await establishSession(data.data.accessToken, data.data.user);
         toast.success("Welcome back!");
         resetAuthThrottle();
         setAttemptCount(0);
@@ -119,11 +122,16 @@ export function LoginForm({ onShowLanding }: LoginFormProps) {
           throw new Error(msg);
         }
         const data = await resp.json();
-        setPendingUser({ user: data.data.user, account: { id: "", user_id: data.data.user.userId } as any });
-        setVerificationEmail(email);
-        setStep("verify");
-        toast.success("Account created! Enter the verification code we just sent.");
-        void deliverVerificationCode(email);
+        if (data.data.accessToken) {
+          await establishSession(data.data.accessToken, data.data.user);
+          toast.success("Account created and signed in.");
+        } else {
+          setPendingUser({ user: data.data.user, account: { id: "", user_id: data.data.user.userId } as any });
+          setVerificationEmail(email);
+          setStep("verify");
+          toast.success("Account created! Enter the verification code we just sent.");
+          void deliverVerificationCode(email);
+        }
       }
     } catch (error) {
       const message = error instanceof Error ? error.message : "An error occurred";
@@ -161,37 +169,38 @@ export function LoginForm({ onShowLanding }: LoginFormProps) {
           throw new Error("Invalid or expired code");
         }
       } catch (err) {
-        toast.error(err instanceof Error ? err.message : "Verification failed");
-        return;
-      }
+      toast.error(err instanceof Error ? err.message : "Verification failed");
+      return;
     }
+  }
 
-    toast.success("Email verified! Signing you in.");
+  toast.success("Email verified! Signing you in.");
 
-    if (pendingUser) {
-      setCurrentUser(pendingUser);
-    } else if (email && password) {
-      try {
-        const resp = await fetch(`${API_BASE}/api/auth/login`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email, password }),
-          credentials: "include",
-        });
-        if (!resp.ok) {
-          throw new Error("Login failed after verification");
-        }
-        const data = await resp.json();
-        setCurrentUser({ user: data.data.user, account: { id: "", user_id: data.data.user.userId } as any });
-      } catch (err) {
-        toast.error(err instanceof Error ? err.message : "Login failed after verification");
+  if (email && password) {
+    try {
+      const resp = await fetch(`${API_BASE}/api/auth/login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+        credentials: "include",
+      });
+      if (!resp.ok) {
+        throw new Error("Login failed after verification");
       }
+      const data = await resp.json();
+      if (!data.data.accessToken) {
+        throw new Error("Missing access token after verification");
+      }
+      await establishSession(data.data.accessToken, data.data.user);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Login failed after verification");
     }
+  }
 
-    setStep("auth");
-    setVerificationCode("");
-    setPendingUser(null);
-  };
+  setStep("auth");
+  setVerificationCode("");
+  setPendingUser(null);
+};
 
   const lockActive = lockUntil ? Date.now() < lockUntil : false;
 
