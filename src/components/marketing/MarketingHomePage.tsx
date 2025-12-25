@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { fetchIPGeolocation, isEligibleCountry } from "@/lib/ip-geolocation";
+import { useNavigate } from "@tanstack/react-router";
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -33,6 +34,7 @@ const itemVariants = {
 export function MarketingHomePage() {
   const navigate = useNavigate();
   const [eligible, setEligible] = useState<boolean | null>(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const checkEligibility = async () => {
@@ -111,6 +113,10 @@ export function MarketingHomePage() {
     },
   ];
 
+  const handleGetStarted = () => {
+    navigate({ to: "/dashboard" });
+  };
+
   return (
     <div className="pt-16">
       {/* Hero Section */}
@@ -139,7 +145,11 @@ export function MarketingHomePage() {
                   className="bg-blue-600 hover:bg-blue-700 text-white flex items-center gap-2"
                   disabled={eligible === false}
                   aria-disabled={eligible === false}
+<<<<<<< HEAD
                   onClick={() => navigate({ to: "/login" })}
+=======
+                  onClick={handleGetStarted}
+>>>>>>> 77d8961 (update)
                 >
                   Get Started Now <ArrowRight className="w-5 h-5" />
                 </Button>
@@ -389,7 +399,11 @@ export function MarketingHomePage() {
                 size="lg"
                 className="bg-white hover:bg-slate-100 text-blue-600 font-bold flex items-center gap-2"
                 disabled={eligible === false}
+<<<<<<< HEAD
                 onClick={() => navigate({ to: "/login" })}
+=======
+                onClick={handleGetStarted}
+>>>>>>> 77d8961 (update)
               >
                 Get Started <ArrowRight className="w-5 h-5" />
               </Button>

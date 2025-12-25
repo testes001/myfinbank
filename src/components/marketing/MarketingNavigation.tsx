@@ -49,14 +49,14 @@ export function MarketingNavigation() {
               variant="ghost"
               size="sm"
               className="text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white"
-              onClick={() => navigate({ to: "/" })}
+              onClick={() => navigate({ to: "/dashboard" })}
             >
               Sign In
             </Button>
             <Button
               size="sm"
               className="bg-blue-600 hover:bg-blue-700 text-white flex items-center gap-2"
-              onClick={() => navigate({ to: "/" })}
+              onClick={() => navigate({ to: "/dashboard" })}
             >
               Get Started <ArrowRight className="w-4 h-4" />
             </Button>
@@ -92,7 +92,7 @@ export function MarketingNavigation() {
                 className="w-full"
                 onClick={() => {
                   setMobileMenuOpen(false);
-                  navigate({ to: "/" });
+                  navigate({ to: "/dashboard" });
                 }}
               >
                 Sign In
@@ -102,7 +102,7 @@ export function MarketingNavigation() {
                 className="w-full bg-blue-600 hover:bg-blue-700 text-white"
                 onClick={() => {
                   setMobileMenuOpen(false);
-                  navigate({ to: "/" });
+                  navigate({ to: "/dashboard" });
                 }}
               >
                 Get Started
