@@ -13,7 +13,7 @@ export function AuthenticationGateway() {
   const [state, setAuthState] = useState<AuthGatewayState>("landing");
 
   const handleSignupClick = () => {
-    setAuthState("login");
+    window.location.href = "/account-type";
   };
 
   const handleBackToLanding = () => {

@@ -9,7 +9,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
   Select,
@@ -26,9 +25,16 @@ import { submitKyc, type KycSubmissionRequest } from "@/lib/backend";
 import { useNavigate } from "@tanstack/react-router";
 
 export function EnhancedLoginForm() {
+interface EnhancedLoginFormProps {
+  mode?: "login" | "signup";
+  defaultAccountType?: "checking" | "joint" | "business_elite";
+  onSwitchToSignIn?: () => void;
+}
+
+export function EnhancedLoginForm({ mode, defaultAccountType, onSwitchToSignIn }: EnhancedLoginFormProps) {
   const { setCurrentUser, currentUser } = useAuth();
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState<"login" | "register">("login");
+  const [activeTab, setActiveTab] = useState<"login" | "register">(mode === "signup" ? "register" : "login");
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
@@ -46,7 +52,7 @@ export function EnhancedLoginForm() {
   const [registerError, setRegisterError] = useState("");
   const [registerTermsAccepted, setRegisterTermsAccepted] = useState(false);
   const [registerMarketingConsent, setRegisterMarketingConsent] = useState(false);
-  const [registerAccountType, setRegisterAccountType] = useState<"checking" | "joint" | "business_elite">("checking");
+  const [registerAccountType, setRegisterAccountType] = useState<"checking" | "joint" | "business_elite">(defaultAccountType || "checking");
   const [kycSubmitting, setKycSubmitting] = useState(false);
   const [kycSubmitted, setKycSubmitted] = useState(false);
 
@@ -99,6 +105,14 @@ export function EnhancedLoginForm() {
       navigate({ to: "/dashboard", replace: true });
     }
   }, [currentUser, navigate]);
+
+  useEffect(() => {
+    if (mode === "signup") {
+      setActiveTab("register");
+    } else if (mode === "login") {
+      setActiveTab("login");
+    }
+  }, [mode]);
 
   const validateKyc = () => {
     const phoneDigits = kycForm.phone.replace(/\D/g, "");
@@ -261,6 +275,8 @@ export function EnhancedLoginForm() {
     }
   };
 
+  const showTabs = !mode;
+
   return (
     <div className="relative min-h-screen bg-gradient-to-br from-blue-950 via-slate-900 to-purple-950 flex items-center justify-center p-4 text-white overflow-hidden">
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(59,130,246,0.18),transparent_25%),radial-gradient(circle_at_80%_0%,rgba(124,58,237,0.14),transparent_25%),radial-gradient(circle_at_60%_80%,rgba(16,185,129,0.18),transparent_25%)]" />
@@ -280,16 +296,19 @@ export function EnhancedLoginForm() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as "login" | "register")}>
-              <TabsList className="grid w-full grid-cols-2 mb-6">
-                <TabsTrigger value="login">Sign In</TabsTrigger>
-                <TabsTrigger value="register">Create Account</TabsTrigger>
-              </TabsList>
+            {showTabs && (
+              <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as "login" | "register")}>
+                <TabsList className="grid w-full grid-cols-2 mb-6">
+                  <TabsTrigger value="login">Sign In</TabsTrigger>
+                  <TabsTrigger value="register">Create Account</TabsTrigger>
+                </TabsList>
+              </Tabs>
+            )}
 
-              <TabsContent value="login">
-                <form onSubmit={handleLogin} className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="login-email" className="text-white">Email</Label>
+            {(activeTab === "login") && (
+              <form onSubmit={handleLogin} className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="login-email" className="text-white">Email</Label>
                     <Input
                       id="login-email"
                       type="email"
@@ -362,17 +381,10 @@ export function EnhancedLoginForm() {
                     )}
                   </Button>
                 </form>
+              </form>
+            )}
 
-                <div className="mt-6 p-4 bg-white/5 border border-white/10 rounded-lg text-sm">
-                  <p className="font-semibold text-white mb-2">Demo Accounts:</p>
-                  <p className="text-xs text-gray-300">
-                    alice@demo.com / password123<br />
-                    bob@demo.com / password123
-                  </p>
-                </div>
-              </TabsContent>
-
-            <TabsContent value="register">
+            {(activeTab === "register") && (
                 <form onSubmit={handleRegister} className="space-y-4">
                   <div className="space-y-2">
                     <Label htmlFor="register-name" className="text-white">Full Name</Label>
@@ -647,8 +659,35 @@ export function EnhancedLoginForm() {
                     )}
                   </Button>
                 </form>
-              </TabsContent>
-            </Tabs>
+            )}
+
+            {mode === "login" && (
+              <div className="mt-6 p-4 bg-white/5 border border-white/10 rounded-lg text-sm space-y-3">
+                <div>
+                  <p className="font-semibold text-white mb-1">Demo Accounts:</p>
+                  <p className="text-xs text-gray-300">
+                    alice@demo.com / password123<br />
+                    bob@demo.com / password123
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => toast.info("Reset password is handled via email in production.")}
+                  className="text-xs text-blue-200 hover:text-white underline"
+                >
+                  Forgot password?
+                </button>
+                {onSwitchToSignIn && (
+                  <button
+                    type="button"
+                    onClick={() => setActiveTab("login")}
+                    className="text-xs text-white/70 hover:text-white underline"
+                  >
+                    Switch to sign in
+                  </button>
+                )}
+              </div>
+            )}
           </CardContent>
         </Card>
       </motion.div>

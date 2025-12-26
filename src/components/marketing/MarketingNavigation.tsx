@@ -56,7 +56,7 @@ export function MarketingNavigation() {
             <Button
               size="sm"
               className="bg-gradient-to-r from-blue-500 via-purple-500 to-emerald-500 hover:from-blue-600 hover:via-purple-600 hover:to-emerald-600 text-white flex items-center gap-2 border border-white/10 shadow-lg shadow-blue-500/30"
-              onClick={() => navigate({ to: "/login" })}
+              onClick={() => navigate({ to: "/account-type" })}
             >
               Get Started <ArrowRight className="w-4 h-4" />
             </Button>
@@ -102,7 +102,7 @@ export function MarketingNavigation() {
                 className="w-full bg-gradient-to-r from-blue-500 via-purple-500 to-emerald-500 hover:from-blue-600 hover:via-purple-600 hover:to-emerald-600 text-white border border-white/10"
                 onClick={() => {
                   setMobileMenuOpen(false);
-                  navigate({ to: "/login" });
+                  navigate({ to: "/account-type" });
                 }}
               >
                 Get Started
