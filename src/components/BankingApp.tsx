@@ -1,7 +1,7 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { useNavigate } from "@tanstack/react-router";
 import { useAuth } from "@/contexts/AuthContext";
 import { useSessionSecurity } from "@/hooks/useSessionSecurity";
-import { AuthenticationGateway } from "@/components/AuthenticationGateway";
 import { Dashboard } from "@/components/Dashboard";
 import { TransactionHistory } from "@/components/TransactionHistory";
 import { ProfilePage } from "@/components/ProfilePage";
@@ -14,13 +14,14 @@ import { toast } from "sonner";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Loader2, Clock, CheckCircle2, AlertCircle } from "lucide-react";
-import { useEffect, useRef, useState as useReactState } from "react";
+import { useState as useReactState } from "react";
 import { submitKyc, uploadKycDocument, uploadKycFile } from "@/lib/backend";
 
 export type ActivePage = "dashboard" | "transfer" | "history" | "profile" | "deposit";
 
 export function BankingApp() {
   const { currentUser, isLoading, userStatus, refreshUserStatus } = useAuth();
+  const navigate = useNavigate();
   const [activePage, setActivePage] = useState<ActivePage>("dashboard");
   const [isMobileDepositOpen, setIsMobileDepositOpen] = useState(false);
   const scrollContainerRef = useRef<HTMLDivElement | null>(null);
@@ -46,8 +47,14 @@ export function BankingApp() {
     );
   }
 
+  useEffect(() => {
+    if (!isLoading && !currentUser) {
+      navigate({ to: "/login", replace: true });
+    }
+  }, [currentUser, isLoading, navigate]);
+
   if (!currentUser) {
-    return <AuthenticationGateway />;
+    return null;
   }
 
   // Handle onboarding flow

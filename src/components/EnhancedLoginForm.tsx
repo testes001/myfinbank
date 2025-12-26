@@ -10,7 +10,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Eye, EyeOff, AlertTriangle, Shield, Loader2 } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Eye, EyeOff, AlertTriangle, Shield, Loader2, CheckCircle2, XCircle } from "lucide-react";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
 import { getAuthThrottle, recordAuthAttempt, resetAuthThrottle } from "@/lib/rate-limit";
@@ -33,6 +34,40 @@ export function EnhancedLoginForm() {
   const [registerPassword, setRegisterPassword] = useState("");
   const [registerFullName, setRegisterFullName] = useState("");
   const [registerError, setRegisterError] = useState("");
+  const [registerTermsAccepted, setRegisterTermsAccepted] = useState(false);
+  const [registerMarketingConsent, setRegisterMarketingConsent] = useState(false);
+
+  const disposableDomains = ["mailinator.com", "tempmail.com", "guerrillamail.com", "10minutemail.com", "yopmail.com"];
+
+  const passwordRules = [
+    { key: "minLength", label: "At least 12 characters" },
+    { key: "upper", label: "One uppercase letter" },
+    { key: "lower", label: "One lowercase letter" },
+    { key: "number", label: "One number" },
+    { key: "symbol", label: "One symbol (!@#$%…)" },
+    { key: "notCommon", label: "Not a common/breached password" },
+    { key: "notPersonal", label: "Not derived from email or name" },
+  ] as const;
+
+  const evaluatePasswordPolicy = (password: string) => {
+    const emailLocal = registerEmail.split("@")[0] || "";
+    const nameTokens = registerFullName.toLowerCase().split(/\s+/).filter(Boolean);
+    const lowerPass = password.toLowerCase();
+    const common = ["password", "password123", "12345678", "letmein", "welcome", "qwerty", "finbank"];
+
+    const minLength = password.length >= 12;
+    const upper = /[A-Z]/.test(password);
+    const lower = /[a-z]/.test(password);
+    const number = /\d/.test(password);
+    const symbol = /[^A-Za-z0-9]/.test(password);
+    const notCommon = !common.some((c) => lowerPass.includes(c));
+    const notPersonal = !lowerPass.includes(emailLocal.toLowerCase()) && !nameTokens.some((t) => t && lowerPass.includes(t));
+
+    return { minLength, upper, lower, number, symbol, notCommon, notPersonal };
+  };
+
+  const passwordPolicy = evaluatePasswordPolicy(registerPassword);
+  const passwordPolicyPassed = Object.values(passwordPolicy).every(Boolean);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -86,10 +121,20 @@ export function EnhancedLoginForm() {
     e.preventDefault();
     setRegisterError("");
 
-    // Validate password strength
     const passwordCheck = validatePasswordStrength(registerPassword);
-    if (!passwordCheck.isValid) {
+    if (!passwordCheck.isValid || !passwordPolicyPassed) {
       setRegisterError("Password does not meet minimum requirements");
+      return;
+    }
+
+    if (!registerTermsAccepted) {
+      setRegisterError("Please accept the Terms and Privacy Policy to continue.");
+      return;
+    }
+
+    const emailDomain = registerEmail.split("@")[1]?.toLowerCase() || "";
+    if (disposableDomains.includes(emailDomain)) {
+      setRegisterError("Disposable email domains are not allowed. Please use a permanent email.");
       return;
     }
 
@@ -109,6 +154,11 @@ export function EnhancedLoginForm() {
       toast.success("Account created successfully!");
       resetAuthThrottle();
       setAuthThrottle(getAuthThrottle());
+      if (registerMarketingConsent) {
+        localStorage.setItem("marketing_consent", "true");
+      } else {
+        localStorage.removeItem("marketing_consent");
+      }
     } catch (error) {
       setRegisterError(error instanceof Error ? error.message : "Registration failed");
       const next = recordAuthAttempt();
@@ -228,11 +278,11 @@ export function EnhancedLoginForm() {
                 </div>
               </TabsContent>
 
-              <TabsContent value="register">
-                <form onSubmit={handleRegister} className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="register-name" className="text-white">Full Name</Label>
-                    <Input
+            <TabsContent value="register">
+              <form onSubmit={handleRegister} className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="register-name" className="text-white">Full Name</Label>
+                  <Input
                       id="register-name"
                       type="text"
                       value={registerFullName}
@@ -278,8 +328,23 @@ export function EnhancedLoginForm() {
                       </button>
                     </div>
                     {registerPassword && (
-                      <div className="mt-2">
+                      <div className="mt-2 space-y-2">
                         <PasswordStrengthIndicator password={registerPassword} />
+                        <div className="rounded-lg border border-white/10 bg-white/5 p-3 text-xs text-white/80 space-y-1">
+                          {passwordRules.map((rule) => {
+                            const passed = passwordPolicy[rule.key];
+                            return (
+                              <div key={rule.key} className="flex items-center gap-2">
+                                {passed ? (
+                                  <CheckCircle2 className="h-4 w-4 text-emerald-400" />
+                                ) : (
+                                  <XCircle className="h-4 w-4 text-red-400" />
+                                )}
+                                <span>{rule.label}</span>
+                              </div>
+                            );
+                          })}
+                        </div>
                       </div>
                     )}
                   </div>
@@ -290,6 +355,33 @@ export function EnhancedLoginForm() {
                       <AlertDescription>{registerError}</AlertDescription>
                     </Alert>
                   )}
+
+                  <div className="space-y-3">
+                    <div className="flex items-start space-x-2 rounded-md border border-white/10 bg-white/5 p-3">
+                      <Checkbox
+                        id="terms"
+                        checked={registerTermsAccepted}
+                        onCheckedChange={(val) => setRegisterTermsAccepted(Boolean(val))}
+                        className="border-white/40 data-[state=checked]:bg-blue-600"
+                      />
+                      <Label htmlFor="terms" className="text-xs text-white/80 leading-snug">
+                        I agree to the <a className="text-blue-300 underline" href="/legal/terms">Terms of Service</a> and{" "}
+                        <a className="text-blue-300 underline" href="/legal/privacy">Privacy Policy</a>.
+                      </Label>
+                    </div>
+
+                    <div className="flex items-start space-x-2 rounded-md border border-white/10 bg-white/5 p-3">
+                      <Checkbox
+                        id="marketing"
+                        checked={registerMarketingConsent}
+                        onCheckedChange={(val) => setRegisterMarketingConsent(Boolean(val))}
+                        className="border-white/40 data-[state=checked]:bg-blue-600"
+                      />
+                      <Label htmlFor="marketing" className="text-xs text-white/80 leading-snug">
+                        I agree to receive product updates and onboarding tips (optional).
+                      </Label>
+                    </div>
+                  </div>
 
                   <Button
                     type="submit"
