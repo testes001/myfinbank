@@ -112,7 +112,7 @@ export function MarketingHomePage() {
   ];
 
   const handleGetStarted = () => {
-    navigate({ to: "/login" });
+    navigate({ to: "/account-type" });
   };
 
   return (

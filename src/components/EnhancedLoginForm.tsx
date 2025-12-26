@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Select,
   SelectContent,
@@ -24,7 +25,6 @@ import { getAuthThrottle, recordAuthAttempt, resetAuthThrottle } from "@/lib/rat
 import { submitKyc, type KycSubmissionRequest } from "@/lib/backend";
 import { useNavigate } from "@tanstack/react-router";
 
-export function EnhancedLoginForm() {
 interface EnhancedLoginFormProps {
   mode?: "login" | "signup";
   defaultAccountType?: "checking" | "joint" | "business_elite";
@@ -294,6 +294,18 @@ export function EnhancedLoginForm({ mode, defaultAccountType, onSwitchToSignIn }
             <CardDescription className="text-white/70">
               Secure banking for modern Europe
             </CardDescription>
+            {mode === "signup" && (
+              <p className="text-xs text-white/60">
+                Already have an account?{" "}
+                <button
+                  type="button"
+                  className="text-blue-200 hover:text-white underline"
+                  onClick={() => (onSwitchToSignIn ? onSwitchToSignIn() : navigate({ to: "/login" }))}
+                >
+                  Sign in
+                </button>
+              </p>
+            )}
           </CardHeader>
           <CardContent>
             {showTabs && (

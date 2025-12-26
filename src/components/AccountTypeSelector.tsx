@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import { Shield, Users, Briefcase, CheckCircle2, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -15,7 +15,7 @@ const accountTypes: {
   title: string;
   description: string;
   perks: string[];
-  icon: React.ReactNode;
+  icon: ReactNode;
 }[] = [
   {
     type: "checking",
