@@ -60,7 +60,8 @@ export function LandingPage({ onSignupClick }: { onSignupClick: () => void }) {
   };
 
   return (
-    <div className="relative min-h-screen text-white">
+    <div className="relative min-h-screen text-white overflow-hidden bg-gradient-to-br from-blue-950 via-slate-900 to-purple-950">
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_15%_20%,rgba(59,130,246,0.18),transparent_25%),radial-gradient(circle_at_85%_10%,rgba(124,58,237,0.16),transparent_25%),radial-gradient(circle_at_50%_80%,rgba(16,185,129,0.16),transparent_25%)]" />
       {/* Hero Section */}
       <section className="pt-32 pb-20 px-4 sm:px-6 lg:px-8 max-w-6xl mx-auto relative z-10">
         <motion.div
@@ -182,7 +183,7 @@ export function LandingPage({ onSignupClick }: { onSignupClick: () => void }) {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.6, delay: 0.3 }}
-              className="bg-slate-800 dark:bg-slate-800/50 p-8 rounded-xl border border-slate-700"
+              className="bg-white/10 p-8 rounded-2xl border border-white/10 backdrop-blur-xl shadow-lg shadow-blue-900/20"
             >
               <TrendingUp className="w-10 h-10 text-green-500 mb-4" />
               <h3 className="text-xl font-bold text-white mb-3">Mobile Check Deposit</h3>
@@ -198,7 +199,7 @@ export function LandingPage({ onSignupClick }: { onSignupClick: () => void }) {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.6, delay: 0.4 }}
-              className="bg-slate-800 dark:bg-slate-800/50 p-8 rounded-xl border border-slate-700"
+              className="bg-white/10 p-8 rounded-2xl border border-white/10 backdrop-blur-xl shadow-lg shadow-blue-900/20"
             >
               <Users className="w-10 h-10 text-purple-500 mb-4" />
               <h3 className="text-xl font-bold text-white mb-3">Joint Accounts</h3>
@@ -214,7 +215,7 @@ export function LandingPage({ onSignupClick }: { onSignupClick: () => void }) {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.6, delay: 0.5 }}
-              className="bg-slate-800 dark:bg-slate-800/50 p-8 rounded-xl border border-slate-700"
+              className="bg-white/10 p-8 rounded-2xl border border-white/10 backdrop-blur-xl shadow-lg shadow-blue-900/20"
             >
               <Globe className="w-10 h-10 text-blue-500 mb-4" />
               <h3 className="text-xl font-bold text-white mb-3">Physical Branches</h3>
@@ -228,9 +229,9 @@ export function LandingPage({ onSignupClick }: { onSignupClick: () => void }) {
       </section>
 
       {/* Trust & Security Section */}
-      <section id="trust" className="py-20 px-4 sm:px-6 lg:px-8 bg-white dark:bg-slate-900">
+      <section id="trust" className="py-20 px-4 sm:px-6 lg:px-8 relative z-10">
         <div className="max-w-6xl mx-auto">
-          <h2 className="text-4xl font-bold text-slate-900 dark:text-white text-center mb-16">
+          <h2 className="text-4xl font-bold text-white text-center mb-16">
             Bank-Grade Security & Compliance
           </h2>
 
@@ -244,24 +245,24 @@ export function LandingPage({ onSignupClick }: { onSignupClick: () => void }) {
               <div className="space-y-6">
                 {[
                   {
-                    icon: <Lock className="w-6 h-6 text-blue-600 dark:text-blue-400" />,
+                    icon: <Lock className="w-6 h-6 text-blue-300" />,
                     title: "EU Banking License",
                     description: `Full compliance with European banking regulations. License: ${FinBankBrand.company.euBankingLicense}`,
                   },
                   {
-                    icon: <Shield className="w-6 h-6 text-green-600 dark:text-green-400" />,
+                    icon: <Shield className="w-6 h-6 text-emerald-300" />,
                     title: "GDPR Compliant",
                     description:
                       "Your personal data is protected under GDPR. Complete transparency and control over your information.",
                   },
                   {
-                    icon: <TrendingUp className="w-6 h-6 text-purple-600 dark:text-purple-400" />,
+                    icon: <TrendingUp className="w-6 h-6 text-purple-300" />,
                     title: "Deposit Insurance",
                     description:
                       "€100,000 per account protected under the EU Deposit Guarantee Scheme.",
                   },
                   {
-                    icon: <Zap className="w-6 h-6 text-yellow-600 dark:text-yellow-400" />,
+                    icon: <Zap className="w-6 h-6 text-amber-300" />,
                     title: "Advanced Encryption",
                     description:
                       "Military-grade encryption protects all your transactions and sensitive data.",
@@ -277,10 +278,10 @@ export function LandingPage({ onSignupClick }: { onSignupClick: () => void }) {
                   >
                     <div className="flex-shrink-0">{item.icon}</div>
                     <div>
-                      <h3 className="font-semibold text-slate-900 dark:text-white mb-1">
+                      <h3 className="font-semibold text-white mb-1">
                         {item.title}
                       </h3>
-                      <p className="text-slate-600 dark:text-slate-400">{item.description}</p>
+                      <p className="text-white/70">{item.description}</p>
                     </div>
                   </motion.div>
                 ))}
@@ -292,9 +293,9 @@ export function LandingPage({ onSignupClick }: { onSignupClick: () => void }) {
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.8 }}
-              className="bg-gradient-to-br from-blue-50 to-slate-50 dark:from-blue-950/30 dark:to-slate-950/30 p-8 rounded-xl border border-blue-200 dark:border-blue-800"
+              className="bg-white/10 p-8 rounded-2xl border border-white/10 backdrop-blur-xl shadow-lg shadow-blue-900/20"
             >
-              <h3 className="text-2xl font-bold text-slate-900 dark:text-white mb-6">
+              <h3 className="text-2xl font-bold text-white mb-6">
                 Security Features
               </h3>
               <ul className="space-y-4">
@@ -312,9 +313,9 @@ export function LandingPage({ onSignupClick }: { onSignupClick: () => void }) {
                     whileInView={{ opacity: 1, x: 0 }}
                     viewport={{ once: true }}
                     transition={{ duration: 0.4, delay: index * 0.05 }}
-                    className="flex items-center gap-3 text-slate-700 dark:text-slate-300"
+                    className="flex items-center gap-3 text-white/70"
                   >
-                    <CheckCircle2 className="w-5 h-5 text-green-600 dark:text-green-400 flex-shrink-0" />
+                    <CheckCircle2 className="w-5 h-5 text-emerald-300 flex-shrink-0" />
                     {feature}
                   </motion.li>
                 ))}
@@ -325,8 +326,8 @@ export function LandingPage({ onSignupClick }: { onSignupClick: () => void }) {
       </section>
 
       {/* Regulatory Info */}
-      <section className="py-12 px-4 sm:px-6 lg:px-8 bg-slate-900 dark:bg-slate-950">
-        <div className="max-w-6xl mx-auto text-center text-slate-300">
+      <section className="py-12 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-6xl mx-auto text-center text-white/70">
           <p className="mb-3">
             <strong>Regulatory Authority:</strong> {FinBankBrand.company.regulatoryAuthority}
           </p>
@@ -337,12 +338,12 @@ export function LandingPage({ onSignupClick }: { onSignupClick: () => void }) {
       </section>
 
       {/* CTA Section */}
-      <section className="py-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-r from-blue-600 to-blue-700 dark:from-blue-900 dark:to-blue-950">
-        <div className="max-w-4xl mx-auto text-center">
-          <h2 className="text-4xl font-bold text-white mb-6">
+      <section className="py-20 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-4xl mx-auto text-center bg-white/10 border border-white/10 rounded-2xl p-10 backdrop-blur-xl shadow-2xl shadow-blue-900/30">
+          <h2 className="text-4xl font-bold text-white mb-4">
             Ready to Experience Modern Banking?
           </h2>
-          <p className="text-xl text-blue-100 mb-8">
+          <p className="text-xl text-white/70 mb-8">
             Join thousands of Europeans who trust Fin-Bank for secure, transparent banking.
           </p>
           <motion.div
@@ -353,88 +354,13 @@ export function LandingPage({ onSignupClick }: { onSignupClick: () => void }) {
             <Button
               onClick={handleSignupClick}
               disabled={locationCheck?.eligible === false}
-              className="bg-white hover:bg-slate-100 text-blue-600 px-10 py-4 rounded-lg font-bold text-lg shadow-xl"
+              className="bg-gradient-to-r from-blue-500 via-purple-500 to-emerald-500 hover:from-blue-600 hover:via-purple-600 hover:to-emerald-600 text-white px-10 py-4 rounded-full font-bold text-lg shadow-xl shadow-blue-500/30 border border-white/15"
             >
               Get Started Now
             </Button>
           </motion.div>
         </div>
       </section>
-
-      {/* Footer */}
-      <footer className="bg-slate-950 text-slate-400 py-12 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-6xl mx-auto">
-          <div className="grid md:grid-cols-4 gap-8 mb-8">
-            <div>
-              <h4 className="font-bold text-white mb-4">Fin-Bank</h4>
-              <p className="text-sm">{FinBankBrand.company.tagline}</p>
-            </div>
-            <div>
-              <h5 className="font-semibold text-white mb-3">Product</h5>
-              <ul className="space-y-2 text-sm">
-                <li>
-                  <a href="#features" className="hover:text-white transition">
-                    Features
-                  </a>
-                </li>
-                <li>
-                  <a href="#security" className="hover:text-white transition">
-                    Security
-                  </a>
-                </li>
-                <li>
-                  <a href="/pricing" className="hover:text-white transition">
-                    Pricing
-                  </a>
-                </li>
-              </ul>
-            </div>
-            <div>
-              <h5 className="font-semibold text-white mb-3">Legal</h5>
-              <ul className="space-y-2 text-sm">
-                <li>
-                  <a href="/privacy" className="hover:text-white transition">
-                    Privacy Policy
-                  </a>
-                </li>
-                <li>
-                  <a href="/terms" className="hover:text-white transition">
-                    Terms of Service
-                  </a>
-                </li>
-                <li>
-                  <a href="/gdpr" className="hover:text-white transition">
-                    GDPR Compliance
-                  </a>
-                </li>
-              </ul>
-            </div>
-            <div>
-              <h5 className="font-semibold text-white mb-3">Support</h5>
-              <ul className="space-y-2 text-sm">
-                <li>
-                  <a href="/contact" className="hover:text-white transition">
-                    Contact Us
-                  </a>
-                </li>
-                <li>
-                  <a href="/help" className="hover:text-white transition">
-                    Help Center
-                  </a>
-                </li>
-              </ul>
-            </div>
-          </div>
-
-          <div className="border-t border-slate-800 pt-8 text-center text-sm">
-            <p>© 2024 Fin-Bank. All rights reserved.</p>
-            <p className="mt-2">
-              EU Banking License: {FinBankBrand.company.euBankingLicense} | Regulatory Authority:{" "}
-              {FinBankBrand.company.regulatoryAuthority}
-            </p>
-          </div>
-        </div>
-      </footer>
     </div>
   );
 }

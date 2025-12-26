@@ -194,7 +194,7 @@ export function MarketingHomePage() {
                 ].map((badge) => (
                   <div
                     key={badge.text}
-                    className="flex items-center gap-2 px-4 py-2 bg-slate-100 dark:bg-slate-800 rounded-full text-sm font-medium text-slate-700 dark:text-slate-300"
+                    className="flex items-center gap-2 px-4 py-2 bg-white/10 border border-white/10 rounded-full text-sm font-medium text-white/80 backdrop-blur"
                   >
                     <span>{badge.icon}</span>
                     {badge.text}
@@ -224,7 +224,7 @@ export function MarketingHomePage() {
       </section>
 
       {/* Features Section */}
-      <section className="py-20 px-4 sm:px-6 lg:px-8 bg-slate-50 dark:bg-slate-900/50">
+      <section className="py-20 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
           <motion.div
             variants={itemVariants}
@@ -233,10 +233,10 @@ export function MarketingHomePage() {
             viewport={{ once: true }}
             className="text-center mb-16"
           >
-            <h2 className="text-4xl lg:text-5xl font-bold text-slate-900 dark:text-white mb-4">
+            <h2 className="text-4xl lg:text-5xl font-bold text-white mb-4">
               Everything You Need for Modern Banking
             </h2>
-            <p className="text-xl text-slate-600 dark:text-slate-300 max-w-2xl mx-auto">
+            <p className="text-xl text-white/70 max-w-2xl mx-auto">
               Powerful features designed for the way you actually bank
             </p>
           </motion.div>
@@ -252,15 +252,15 @@ export function MarketingHomePage() {
               <motion.div
                 key={feature.title}
                 variants={itemVariants}
-                className="bg-white dark:bg-slate-800 rounded-xl p-8 shadow-sm hover:shadow-lg transition-shadow border border-slate-200 dark:border-slate-700"
+                className="bg-white/10 rounded-2xl p-8 shadow-lg shadow-blue-900/25 border border-white/10 backdrop-blur-xl hover:border-white/20 transition"
               >
                 <div className={`w-12 h-12 rounded-lg ${feature.color} flex items-center justify-center mb-4`}>
                   {feature.icon}
                 </div>
-                <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2">
+                <h3 className="text-lg font-bold text-white mb-2">
                   {feature.title}
                 </h3>
-                <p className="text-slate-600 dark:text-slate-400">{feature.description}</p>
+                <p className="text-white/70">{feature.description}</p>
               </motion.div>
             ))}
           </motion.div>
@@ -286,12 +286,12 @@ export function MarketingHomePage() {
               <motion.div
                 key={stat.label}
                 variants={itemVariants}
-                className="text-center p-6"
+                className="text-center p-6 bg-white/10 rounded-2xl border border-white/10 backdrop-blur-xl shadow-lg shadow-blue-900/20"
               >
-                <p className="text-4xl lg:text-5xl font-bold text-blue-600 dark:text-blue-400 mb-2">
+                <p className="text-4xl lg:text-5xl font-bold text-white mb-2">
                   {stat.number}
                 </p>
-                <p className="text-slate-600 dark:text-slate-400 font-medium">{stat.label}</p>
+                <p className="text-white/70 font-medium">{stat.label}</p>
               </motion.div>
             ))}
           </motion.div>
@@ -299,7 +299,7 @@ export function MarketingHomePage() {
       </section>
 
       {/* How It Works - Quick Overview */}
-      <section className="py-20 px-4 sm:px-6 lg:px-8 bg-slate-50 dark:bg-slate-900/50">
+      <section className="py-20 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
           <motion.div
             variants={itemVariants}
@@ -308,10 +308,10 @@ export function MarketingHomePage() {
             viewport={{ once: true }}
             className="text-center mb-16"
           >
-            <h2 className="text-4xl lg:text-5xl font-bold text-slate-900 dark:text-white mb-4">
+            <h2 className="text-4xl lg:text-5xl font-bold text-white mb-4">
               Open an Account in 3 Steps
             </h2>
-            <p className="text-xl text-slate-600 dark:text-slate-300 max-w-2xl mx-auto">
+            <p className="text-xl text-white/70 max-w-2xl mx-auto">
               Get started in minutes, not days
             </p>
           </motion.div>
@@ -331,19 +331,19 @@ export function MarketingHomePage() {
               <motion.div
                 key={step.number}
                 variants={itemVariants}
-                className="relative"
+                className="relative bg-white/10 rounded-2xl border border-white/10 p-6 backdrop-blur-xl shadow-lg shadow-blue-900/25"
               >
                 <div className="flex items-start gap-6">
                   <div className="flex-shrink-0">
-                    <div className="flex items-center justify-center w-12 h-12 rounded-full bg-blue-600 text-white font-bold text-lg">
+                    <div className="flex items-center justify-center w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 via-purple-500 to-emerald-500 text-white font-bold text-lg shadow-md shadow-blue-500/30">
                       {step.number}
                     </div>
                   </div>
                   <div className="flex-1">
-                    <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2">
+                    <h3 className="text-xl font-bold text-white mb-2">
                       {step.title}
                     </h3>
-                    <p className="text-slate-600 dark:text-slate-400">{step.description}</p>
+                    <p className="text-white/70">{step.description}</p>
                   </div>
                 </div>
               </motion.div>
@@ -362,10 +362,10 @@ export function MarketingHomePage() {
             viewport={{ once: true }}
             className="text-center mb-16"
           >
-            <h2 className="text-4xl lg:text-5xl font-bold text-slate-900 dark:text-white mb-4">
+            <h2 className="text-4xl lg:text-5xl font-bold text-white mb-4">
               Loved by Users Across Europe
             </h2>
-            <p className="text-xl text-slate-600 dark:text-slate-300 max-w-2xl mx-auto">
+            <p className="text-xl text-white/70 max-w-2xl mx-auto">
               See what our customers are saying
             </p>
           </motion.div>
@@ -381,13 +381,13 @@ export function MarketingHomePage() {
               <motion.div
                 key={testimonial.name}
                 variants={itemVariants}
-                className="bg-white dark:bg-slate-800 rounded-xl p-8 shadow-sm border border-slate-200 dark:border-slate-700"
+                className="bg-white/10 rounded-2xl p-8 shadow-lg shadow-blue-900/25 border border-white/10 backdrop-blur-xl"
               >
                 <div className="flex items-center gap-3 mb-4">
                   <span className="text-3xl">{testimonial.avatar}</span>
                   <div>
-                    <p className="font-bold text-slate-900 dark:text-white">{testimonial.name}</p>
-                    <p className="text-sm text-slate-600 dark:text-slate-400">
+                    <p className="font-bold text-white">{testimonial.name}</p>
+                    <p className="text-sm text-white/70">
                       {testimonial.role} • {testimonial.country}
                     </p>
                   </div>
@@ -397,7 +397,7 @@ export function MarketingHomePage() {
                     <Star key={i} className="w-4 h-4 fill-yellow-400 text-yellow-400" />
                   ))}
                 </div>
-                <p className="text-slate-600 dark:text-slate-300">"{testimonial.text}"</p>
+                <p className="text-white/80">"{testimonial.text}"</p>
               </motion.div>
             ))}
           </motion.div>
@@ -405,7 +405,7 @@ export function MarketingHomePage() {
       </section>
 
       {/* CTA Section */}
-      <section className="py-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-r from-blue-600 to-blue-700 dark:from-blue-900 dark:to-blue-950">
+      <section className="py-20 px-4 sm:px-6 lg:px-8">
         <div className="max-w-4xl mx-auto text-center">
           <motion.div
             variants={itemVariants}
@@ -416,13 +416,13 @@ export function MarketingHomePage() {
             <h2 className="text-4xl lg:text-5xl font-bold text-white mb-6">
               Ready to Experience the Future of Banking?
             </h2>
-            <p className="text-xl text-blue-100 mb-8 max-w-2xl mx-auto">
+            <p className="text-xl text-white/70 mb-8 max-w-2xl mx-auto">
               Join thousands of Europeans who have already switched to Fin-Bank
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button
                 size="lg"
-                className="bg-white hover:bg-slate-100 text-blue-600 font-bold flex items-center gap-2"
+                className="bg-gradient-to-r from-blue-500 via-purple-500 to-emerald-500 hover:from-blue-600 hover:via-purple-600 hover:to-emerald-600 text-white font-bold flex items-center gap-2 border border-white/10 shadow-lg shadow-blue-500/30"
                 disabled={eligible === false}
                 onClick={handleGetStarted}
               >
@@ -431,7 +431,7 @@ export function MarketingHomePage() {
               <Button
                 size="lg"
                 variant="outline"
-                className="border-white text-white hover:bg-white/10"
+                className="border-white/20 text-white hover:bg-white/10"
               >
                 <Clock className="w-5 h-5 mr-2" />
                 Schedule a Demo

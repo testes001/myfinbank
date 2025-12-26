@@ -28,11 +28,16 @@ export async function loginUser(email: string, password: string): Promise<AuthUs
   };
 }
 
-export async function registerUser(email: string, password: string, fullName: string): Promise<AuthUser> {
+export async function registerUser(
+  email: string,
+  password: string,
+  fullName: string,
+  accountType: string = "checking",
+): Promise<AuthUser> {
   const resp = await apiFetch(`/api/auth/register`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ email, password, fullName }),
+    body: JSON.stringify({ email, password, fullName, accountType }),
     skipAuth: true,
   });
   if (!resp.ok) {
@@ -42,7 +47,8 @@ export async function registerUser(email: string, password: string, fullName: st
   const data = await resp.json();
   return {
     user: data.data.user,
-    account: { id: "", user_id: data.data.user.userId } as any,
+    account: { id: "", user_id: data.data.user.userId, accountType } as any,
+    accounts: [{ id: "", user_id: data.data.user.userId, accountType }] as any,
     accessToken: data.data.accessToken,
   };
 }

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { loginUser, registerUser, markUserEmailVerified } from "@/lib/auth";
 import { checkRateLimit, recordLoginAttempt, clearRateLimit } from "@/lib/rate-limiter";
@@ -23,9 +23,11 @@ import { toast } from "sonner";
 import { motion } from "framer-motion";
 import { getAuthThrottle, recordAuthAttempt, resetAuthThrottle } from "@/lib/rate-limit";
 import { submitKyc, type KycSubmissionRequest } from "@/lib/backend";
+import { useNavigate } from "@tanstack/react-router";
 
 export function EnhancedLoginForm() {
-  const { setCurrentUser } = useAuth();
+  const { setCurrentUser, currentUser } = useAuth();
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<"login" | "register">("login");
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -44,6 +46,7 @@ export function EnhancedLoginForm() {
   const [registerError, setRegisterError] = useState("");
   const [registerTermsAccepted, setRegisterTermsAccepted] = useState(false);
   const [registerMarketingConsent, setRegisterMarketingConsent] = useState(false);
+  const [registerAccountType, setRegisterAccountType] = useState<"checking" | "joint" | "business_elite">("checking");
   const [kycSubmitting, setKycSubmitting] = useState(false);
   const [kycSubmitted, setKycSubmitted] = useState(false);
 
@@ -90,6 +93,12 @@ export function EnhancedLoginForm() {
 
   const passwordPolicy = evaluatePasswordPolicy(registerPassword);
   const passwordPolicyPassed = Object.values(passwordPolicy).every(Boolean);
+
+  useEffect(() => {
+    if (currentUser) {
+      navigate({ to: "/dashboard", replace: true });
+    }
+  }, [currentUser, navigate]);
 
   const validateKyc = () => {
     const phoneDigits = kycForm.phone.replace(/\D/g, "");
@@ -138,6 +147,7 @@ export function EnhancedLoginForm() {
       toast.success("Welcome back!");
       resetAuthThrottle();
       setAuthThrottle(getAuthThrottle());
+      navigate({ to: "/dashboard", replace: true });
     } catch (error) {
       recordLoginAttempt(loginEmail, false);
       const limitCheckAfter = checkRateLimit(loginEmail);
@@ -195,7 +205,7 @@ export function EnhancedLoginForm() {
     setKycSubmitted(false);
 
     try {
-      const authUser = await registerUser(registerEmail, registerPassword, registerFullName);
+      const authUser = await registerUser(registerEmail, registerPassword, registerFullName, registerAccountType);
       // This enhanced form auto-verifies for demo purposes
       markUserEmailVerified(registerEmail);
       setCurrentUser(authUser);
@@ -240,6 +250,7 @@ export function EnhancedLoginForm() {
           toast.error("Account created but KYC submission failed. Please retry in profile.");
         }
       }
+      navigate({ to: "/dashboard", replace: true });
     } catch (error) {
       setRegisterError(error instanceof Error ? error.message : "Registration failed");
       const next = recordAuthAttempt();
@@ -251,20 +262,21 @@ export function EnhancedLoginForm() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-950 via-slate-900 to-purple-950 flex items-center justify-center p-4">
+    <div className="relative min-h-screen bg-gradient-to-br from-blue-950 via-slate-900 to-purple-950 flex items-center justify-center p-4 text-white overflow-hidden">
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(59,130,246,0.18),transparent_25%),radial-gradient(circle_at_80%_0%,rgba(124,58,237,0.14),transparent_25%),radial-gradient(circle_at_60%_80%,rgba(16,185,129,0.18),transparent_25%)]" />
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="w-full max-w-md"
+        className="relative z-10 w-full max-w-lg"
       >
-        <Card className="bg-white/10 backdrop-blur-xl border-white/20">
-          <CardHeader className="text-center">
-            <div className="mx-auto mb-4 w-16 h-16 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
+        <Card className="bg-white/10 backdrop-blur-2xl border-white/15 shadow-2xl shadow-blue-900/30">
+          <CardHeader className="text-center space-y-2">
+            <div className="mx-auto mb-2 w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-500 via-purple-500 to-emerald-500 flex items-center justify-center shadow-lg shadow-blue-500/30">
               <Shield className="w-8 h-8 text-white" />
             </div>
-            <CardTitle className="text-white text-3xl">SecureBank</CardTitle>
-            <CardDescription className="text-gray-300">
-              Your trusted banking partner
+            <CardTitle className="text-white text-3xl">Fin-Bank Access</CardTitle>
+            <CardDescription className="text-white/70">
+              Secure banking for modern Europe
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -430,6 +442,30 @@ export function EnhancedLoginForm() {
                     </div>
                   )}
                 </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div className="space-y-2">
+                      <Label className="text-white text-sm">Account Type</Label>
+                      <Select
+                        value={registerAccountType}
+                        onValueChange={(val: "checking" | "joint" | "business_elite") => setRegisterAccountType(val)}
+                        disabled={isLoading}
+                      >
+                        <SelectTrigger className="bg-white/10 border-white/20 text-white">
+                          <SelectValue placeholder="Choose account type" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="checking">Personal Checking</SelectItem>
+                          <SelectItem value="joint">Joint Account</SelectItem>
+                          <SelectItem value="business_elite">Business Elite</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <p className="text-[11px] text-white/60">
+                        Tailor limits and features to your use case; you can add more accounts later.
+                      </p>
+                    </div>
+                    <div />
+                  </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div className="space-y-2">
