@@ -3,7 +3,7 @@
  * Business logic for user authentication
  */
 
-import { PrismaClient, UserRole, UserStatus, KYCStatus } from '@prisma/client';
+import { PrismaClient, UserRole, UserStatus, KYCStatus, AccountType } from '@prisma/client';
 import type { User } from '@prisma/client';
 import bcrypt from 'bcryptjs';
 import { config } from '@/config';
@@ -19,6 +19,7 @@ export interface RegisterInput {
   email: string;
   password: string;
   fullName: string;
+  accountType?: 'checking' | 'joint' | 'business_elite';
 }
 
 export interface LoginInput {
@@ -46,7 +47,7 @@ export class AuthService {
    * Register new user
    */
   async register(input: RegisterInput): Promise<AuthResponse> {
-    const { email, password, fullName } = input;
+    const { email, password, fullName, accountType } = input;
 
     // Check if user already exists
     const existingUser = await prisma.user.findUnique({
@@ -74,12 +75,18 @@ export class AuthService {
     });
 
     // Create default checking account
+    const accountTypeMap: Record<'checking' | 'joint' | 'business_elite', AccountType> = {
+      checking: AccountType.CHECKING,
+      joint: AccountType.CHECKING,
+      business_elite: AccountType.INVESTMENT,
+    };
+
     await prisma.account.create({
       data: {
         userId: user.id,
         accountNumber: this.generateAccountNumber(),
         routingNumber: '021000021', // Example routing number
-        accountType: 'CHECKING',
+        accountType: accountType ? accountTypeMap[accountType] : AccountType.CHECKING,
         balance: 0,
         availableBalance: 0,
         currency: 'USD',
@@ -201,6 +208,33 @@ export class AuthService {
 
     // Generate tokens and create session
     return this.generateAuthResponse(user, ipAddress, userAgent);
+  }
+
+  /**
+   * Update password (used for reset)
+   */
+  async updatePassword(email: string, newPassword: string): Promise<void> {
+    const user = await prisma.user.findUnique({ where: { email: email.toLowerCase() } });
+    if (!user) {
+      throw errors.notFound('User not found');
+    }
+
+    const passwordHash = await bcrypt.hash(newPassword, config.bcryptRounds);
+    await prisma.user.update({
+      where: { id: user.id },
+      data: { passwordHash },
+    });
+
+    await prisma.auditLog.create({
+      data: {
+        actorId: user.id,
+        actorType: 'USER',
+        action: 'password_reset',
+        resource: 'user',
+        resourceId: user.id,
+        status: 'SUCCESS',
+      },
+    });
   }
 
   /**

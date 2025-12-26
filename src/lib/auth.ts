@@ -57,6 +57,32 @@ export function markUserEmailVerified(_email?: string): void {
   return;
 }
 
+export async function requestPasswordReset(email: string): Promise<void> {
+  const resp = await apiFetch(`/api/auth/password/forgot`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email }),
+    skipAuth: true,
+  });
+  if (!resp.ok) {
+    const msg = (await resp.json().catch(() => null))?.message || "Failed to request reset";
+    throw new Error(msg);
+  }
+}
+
+export async function confirmPasswordReset(email: string, code: string, newPassword: string): Promise<void> {
+  const resp = await apiFetch(`/api/auth/password/reset`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email, code, newPassword }),
+    skipAuth: true,
+  });
+  if (!resp.ok) {
+    const msg = (await resp.json().catch(() => null))?.message || "Failed to reset password";
+    throw new Error(msg);
+  }
+}
+
 // Legacy helpers
 export async function hashPassword(password: string): Promise<string> {
   return bcrypt.hash(password, 10);

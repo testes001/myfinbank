@@ -57,4 +57,18 @@ router.post('/verification-code', authController.sendVerificationCode);
  */
 router.post('/verify', authController.verify);
 
+/**
+ * @route   POST /api/auth/password/forgot
+ * @desc    Request password reset code
+ * @access  Public
+ */
+router.post('/password/forgot', authController.requestPasswordReset);
+
+/**
+ * @route   POST /api/auth/password/reset
+ * @desc    Reset password with verification code
+ * @access  Public
+ */
+router.post('/password/reset', authController.resetPassword);
+
 export default router;

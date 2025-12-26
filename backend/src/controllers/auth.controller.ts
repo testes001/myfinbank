@@ -9,6 +9,7 @@ import { authService } from '@/services/auth.service';
 import { asyncHandler, errors } from '@/middleware/errorHandler';
 import { sendVerificationEmail } from '@/services/email.service';
 import { verifyCode, isVerified } from '@/services/verification.service';
+import { log } from '@/utils/logger';
 
 // Validation schemas
 const registerSchema = z.object({
@@ -22,6 +23,7 @@ const registerSchema = z.object({
     .regex(/[0-9]/, 'Password must contain at least one number')
     .regex(/[^A-Za-z0-9]/, 'Password must contain at least one special character'),
   fullName: z.string().min(2, 'Full name must be at least 2 characters').max(100),
+  accountType: z.enum(['checking', 'joint', 'business_elite']).optional(),
 });
 
 const loginSchema = z.object({
@@ -38,6 +40,23 @@ const verificationSchema = z.object({
   code: z.string().min(4).max(10).optional(),
 });
 
+const passwordResetRequestSchema = z.object({
+  email: z.string().email('Invalid email format'),
+});
+
+const passwordResetConfirmSchema = z.object({
+  email: z.string().email('Invalid email format'),
+  code: z.string().min(4, 'Code required').max(10, 'Code too long'),
+  newPassword: z
+    .string()
+    .min(12, 'Password must be at least 12 characters')
+    .max(128, 'Password must not exceed 128 characters')
+    .regex(/[A-Z]/, 'Password must contain at least one uppercase letter')
+    .regex(/[a-z]/, 'Password must contain at least one lowercase letter')
+    .regex(/[0-9]/, 'Password must contain at least one number')
+    .regex(/[^A-Za-z0-9]/, 'Password must contain at least one special character'),
+});
+
 export class AuthController {
   /**
    * POST /api/auth/register
@@ -50,10 +69,10 @@ export class AuthController {
       throw errors.validation('Invalid input', validationResult.error.format());
     }
 
-    const { email, password, fullName } = validationResult.data;
+    const { email, password, fullName, accountType } = validationResult.data;
 
     // Register user
-    const result = await authService.register({ email, password, fullName });
+    const result = await authService.register({ email, password, fullName, accountType });
 
     // Set refresh token as httpOnly cookie
     res.cookie('refreshToken', result.refreshToken, {
@@ -255,6 +274,61 @@ export class AuthController {
     res.status(200).json({
       success: true,
       message: 'Email verified',
+      meta: {
+        requestId: req.requestId,
+        timestamp: new Date().toISOString(),
+      },
+    });
+  });
+
+  /**
+   * POST /api/auth/password/forgot
+   * Request password reset code
+   */
+  requestPasswordReset = asyncHandler(async (req: Request, res: Response) => {
+    const validationResult = passwordResetRequestSchema.safeParse(req.body);
+    if (!validationResult.success) {
+      throw errors.validation('Invalid input', validationResult.error.format());
+    }
+
+    const { email } = validationResult.data;
+    await sendVerificationEmail({ email, ip: req.ip || req.socket.remoteAddress || 'unknown' });
+
+    log.auth('Password reset code requested', { email, ip: req.ip });
+
+    res.status(200).json({
+      success: true,
+      message: 'Password reset code sent',
+      meta: {
+        requestId: req.requestId,
+        timestamp: new Date().toISOString(),
+      },
+    });
+  });
+
+  /**
+   * POST /api/auth/password/reset
+   * Reset password with verification code
+   */
+  resetPassword = asyncHandler(async (req: Request, res: Response) => {
+    const validationResult = passwordResetConfirmSchema.safeParse(req.body);
+    if (!validationResult.success) {
+      throw errors.validation('Invalid input', validationResult.error.format());
+    }
+
+    const { email, code, newPassword } = validationResult.data;
+
+    const ok = await verifyCode(email, code);
+    if (!ok) {
+      throw errors.validation('Invalid or expired verification code');
+    }
+
+    await authService.updatePassword(email, newPassword);
+    log.auth('Password reset completed', { email, ip: req.ip });
+
+    res.status(200).json({
+      success: true,
+      message: 'Password updated successfully',
       meta: {
         requestId: req.requestId,
         timestamp: new Date().toISOString(),

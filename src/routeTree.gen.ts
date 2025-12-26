@@ -11,10 +11,12 @@
 // Import Routes
 
 import { Route as rootRoute } from './routes/__root'
+import { Route as SignupImport } from './routes/signup'
 import { Route as MarketingImport } from './routes/marketing'
 import { Route as LoginImport } from './routes/login'
 import { Route as DashboardImport } from './routes/dashboard'
 import { Route as AdminConsoleImport } from './routes/admin-console'
+import { Route as AccountTypeImport } from './routes/account-type'
 import { Route as IndexImport } from './routes/index'
 import { Route as MarketingIndexImport } from './routes/marketing/index'
 import { Route as MarketingSecurityImport } from './routes/marketing/security'
@@ -24,6 +26,12 @@ import { Route as MarketingFeaturesImport } from './routes/marketing/features'
 import { Route as MarketingAboutImport } from './routes/marketing/about'
 
 // Create/Update Routes
+
+const SignupRoute = SignupImport.update({
+  id: '/signup',
+  path: '/signup',
+  getParentRoute: () => rootRoute,
+} as any)
 
 const MarketingRoute = MarketingImport.update({
   id: '/marketing',
@@ -46,6 +54,12 @@ const DashboardRoute = DashboardImport.update({
 const AdminConsoleRoute = AdminConsoleImport.update({
   id: '/admin-console',
   path: '/admin-console',
+  getParentRoute: () => rootRoute,
+} as any)
+
+const AccountTypeRoute = AccountTypeImport.update({
+  id: '/account-type',
+  path: '/account-type',
   getParentRoute: () => rootRoute,
 } as any)
 
@@ -102,6 +116,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexImport
       parentRoute: typeof rootRoute
     }
+    '/account-type': {
+      id: '/account-type'
+      path: '/account-type'
+      fullPath: '/account-type'
+      preLoaderRoute: typeof AccountTypeImport
+      parentRoute: typeof rootRoute
+    }
     '/admin-console': {
       id: '/admin-console'
       path: '/admin-console'
@@ -128,6 +149,13 @@ declare module '@tanstack/react-router' {
       path: '/marketing'
       fullPath: '/marketing'
       preLoaderRoute: typeof MarketingImport
+      parentRoute: typeof rootRoute
+    }
+    '/signup': {
+      id: '/signup'
+      path: '/signup'
+      fullPath: '/signup'
+      preLoaderRoute: typeof SignupImport
       parentRoute: typeof rootRoute
     }
     '/marketing/about': {
@@ -201,10 +229,12 @@ const MarketingRouteWithChildren = MarketingRoute._addFileChildren(
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/account-type': typeof AccountTypeRoute
   '/admin-console': typeof AdminConsoleRoute
   '/dashboard': typeof DashboardRoute
   '/login': typeof LoginRoute
   '/marketing': typeof MarketingRouteWithChildren
+  '/signup': typeof SignupRoute
   '/marketing/about': typeof MarketingAboutRoute
   '/marketing/features': typeof MarketingFeaturesRoute
   '/marketing/how-it-works': typeof MarketingHowItWorksRoute
@@ -215,9 +245,11 @@ export interface FileRoutesByFullPath {
 
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/account-type': typeof AccountTypeRoute
   '/admin-console': typeof AdminConsoleRoute
   '/dashboard': typeof DashboardRoute
   '/login': typeof LoginRoute
+  '/signup': typeof SignupRoute
   '/marketing/about': typeof MarketingAboutRoute
   '/marketing/features': typeof MarketingFeaturesRoute
   '/marketing/how-it-works': typeof MarketingHowItWorksRoute
@@ -229,10 +261,12 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRoute
   '/': typeof IndexRoute
+  '/account-type': typeof AccountTypeRoute
   '/admin-console': typeof AdminConsoleRoute
   '/dashboard': typeof DashboardRoute
   '/login': typeof LoginRoute
   '/marketing': typeof MarketingRouteWithChildren
+  '/signup': typeof SignupRoute
   '/marketing/about': typeof MarketingAboutRoute
   '/marketing/features': typeof MarketingFeaturesRoute
   '/marketing/how-it-works': typeof MarketingHowItWorksRoute
@@ -245,10 +279,12 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/account-type'
     | '/admin-console'
     | '/dashboard'
     | '/login'
     | '/marketing'
+    | '/signup'
     | '/marketing/about'
     | '/marketing/features'
     | '/marketing/how-it-works'
@@ -258,9 +294,11 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/account-type'
     | '/admin-console'
     | '/dashboard'
     | '/login'
+    | '/signup'
     | '/marketing/about'
     | '/marketing/features'
     | '/marketing/how-it-works'
@@ -270,10 +308,12 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/account-type'
     | '/admin-console'
     | '/dashboard'
     | '/login'
     | '/marketing'
+    | '/signup'
     | '/marketing/about'
     | '/marketing/features'
     | '/marketing/how-it-works'
@@ -285,18 +325,22 @@ export interface FileRouteTypes {
 
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AccountTypeRoute: typeof AccountTypeRoute
   AdminConsoleRoute: typeof AdminConsoleRoute
   DashboardRoute: typeof DashboardRoute
   LoginRoute: typeof LoginRoute
   MarketingRoute: typeof MarketingRouteWithChildren
+  SignupRoute: typeof SignupRoute
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AccountTypeRoute: AccountTypeRoute,
   AdminConsoleRoute: AdminConsoleRoute,
   DashboardRoute: DashboardRoute,
   LoginRoute: LoginRoute,
   MarketingRoute: MarketingRouteWithChildren,
+  SignupRoute: SignupRoute,
 }
 
 export const routeTree = rootRoute
@@ -310,14 +354,19 @@ export const routeTree = rootRoute
       "filePath": "__root.tsx",
       "children": [
         "/",
+        "/account-type",
         "/admin-console",
         "/dashboard",
         "/login",
-        "/marketing"
+        "/marketing",
+        "/signup"
       ]
     },
     "/": {
       "filePath": "index.tsx"
+    },
+    "/account-type": {
+      "filePath": "account-type.tsx"
     },
     "/admin-console": {
       "filePath": "admin-console.tsx"
@@ -338,6 +387,9 @@ export const routeTree = rootRoute
         "/marketing/security",
         "/marketing/"
       ]
+    },
+    "/signup": {
+      "filePath": "signup.tsx"
     },
     "/marketing/about": {
       "filePath": "marketing/about.tsx",
