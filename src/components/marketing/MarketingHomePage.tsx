@@ -112,13 +112,13 @@ export function MarketingHomePage() {
   ];
 
   const handleGetStarted = () => {
-    navigate({ to: "/dashboard" });
+    navigate({ to: "/login" });
   };
 
   return (
     <div className="pt-16">
       {/* Hero Section */}
-      <section className="min-h-[90vh] flex items-center py-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-slate-50 via-white to-blue-50 dark:from-slate-950 dark:via-slate-900 dark:to-blue-950">
+      <section className="min-h-[90vh] flex items-center py-20 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto w-full">
           <motion.div
             variants={containerVariants}
@@ -129,13 +129,13 @@ export function MarketingHomePage() {
             {/* Left Content */}
             <motion.div variants={itemVariants} className="space-y-6">
               <div className="space-y-3">
-                <p className="text-sm font-semibold uppercase tracking-[0.2em] text-blue-600 dark:text-blue-300">
+                <p className="text-sm font-semibold uppercase tracking-[0.2em] text-emerald-200">
                   EU Licensed | PSD2 Compliant | 100k EUR Insured
                 </p>
-                <h1 className="text-5xl lg:text-6xl font-bold text-slate-900 dark:text-white leading-tight font-['Space Grotesk',_Inter,_sans-serif]">
+                <h1 className="text-5xl lg:text-6xl font-bold text-white leading-tight font-['Space Grotesk',_Inter,_sans-serif]">
                   Banking that moves as fast as you do
                 </h1>
-                <p className="text-xl text-slate-600 dark:text-slate-300">
+                <p className="text-xl text-white/70">
                   Licensed digital banking headquartered in Spain with branches across Europe, now welcoming customers from Korea, with SEPA, ES IBANs, 3D Secure cards, and GDPR-grade privacy.
                 </p>
               </div>
@@ -143,7 +143,7 @@ export function MarketingHomePage() {
               <div className="flex flex-wrap gap-4 pt-4">
                 <Button
                   size="lg"
-                  className="bg-blue-600 hover:bg-blue-700 text-white flex items-center gap-2"
+                  className="bg-gradient-to-r from-blue-500 via-purple-500 to-emerald-500 hover:from-blue-600 hover:via-purple-600 hover:to-emerald-600 text-white flex items-center gap-2 border border-white/10 shadow-lg shadow-blue-500/30"
                   disabled={eligible === false}
                   aria-disabled={eligible === false}
                   onClick={handleGetStarted}
@@ -153,7 +153,7 @@ export function MarketingHomePage() {
                 <Button
                   size="lg"
                   variant="outline"
-                  className="border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white hover:bg-slate-50 dark:hover:bg-slate-800"
+                  className="border-white/20 text-white hover:bg-white/10"
                   onClick={() => window.open(demoUrl, "_blank")}
                 >
                   Watch 60s Demo
@@ -161,15 +161,15 @@ export function MarketingHomePage() {
               </div>
 
               {/* Social proof */}
-              <div className="flex flex-wrap items-center gap-4 pt-4 text-sm text-slate-500 dark:text-slate-400">
+              <div className="flex flex-wrap items-center gap-4 pt-4 text-sm text-white/60">
                 <div className="flex items-center gap-2">
                   <Star className="w-4 h-4 text-amber-500" />
                   4.9/5 • 12k+ reviews
                 </div>
-                <span className="hidden sm:inline text-slate-400">•</span>
+                <span className="hidden sm:inline text-white/40">•</span>
                 <div className="flex items-center gap-3">
-                  <span className="uppercase tracking-wide text-xs text-slate-400">Trusted by teams at</span>
-                  <div className="flex items-center gap-2 text-slate-700 dark:text-slate-200 font-semibold">
+                  <span className="uppercase tracking-wide text-xs text-white/60">Trusted by teams at</span>
+                  <div className="flex items-center gap-2 text-white font-semibold">
                     <span>Rappi</span>
                     <span>Cabify</span>
                     <span>N26</span>
@@ -177,7 +177,7 @@ export function MarketingHomePage() {
                 </div>
               </div>
 
-              <div className="mt-2 inline-flex items-center gap-2 px-3 py-2 bg-slate-100 dark:bg-slate-800 rounded-full text-xs text-slate-600 dark:text-slate-300">
+              <div className="mt-2 inline-flex items-center gap-2 px-3 py-2 bg-white/10 rounded-full text-xs text-white/80 border border-white/10">
                 <span className="font-semibold">Demo login</span>
                 <span>alice@demo.com</span>
                 <span className="text-slate-400">/</span>

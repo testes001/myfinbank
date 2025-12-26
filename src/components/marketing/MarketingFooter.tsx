@@ -45,19 +45,19 @@ export function MarketingFooter() {
   ];
 
   return (
-    <footer className="bg-slate-950 dark:bg-black text-slate-400">
+    <footer className="relative z-10 bg-slate-900/70 text-white border-t border-white/10 backdrop-blur-2xl">
       {/* Main Footer Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-8 mb-12">
           {/* Brand Section */}
           <div className="lg:col-span-1">
             <div className="flex items-center gap-2 mb-4">
-              <div className="w-8 h-8 bg-gradient-to-br from-blue-600 to-blue-700 rounded-lg flex items-center justify-center">
+              <div className="w-9 h-9 bg-gradient-to-br from-blue-500 via-purple-500 to-emerald-500 rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/30">
                 <Shield className="w-5 h-5 text-white" />
               </div>
               <span className="font-bold text-white">{FinBankBrand.company.name}</span>
             </div>
-            <p className="text-sm text-slate-500 mb-6">
+            <p className="text-sm text-white/70 mb-6">
               {FinBankBrand.company.tagline}
             </p>
           </div>
@@ -71,7 +71,7 @@ export function MarketingFooter() {
                   <li key={link.label}>
                     <Link
                       to={link.href}
-                      className="text-sm text-slate-400 hover:text-white transition"
+                      className="text-sm text-white/70 hover:text-white transition"
                     >
                       {link.label}
                     </Link>
@@ -83,36 +83,36 @@ export function MarketingFooter() {
         </div>
 
         {/* Contact Info */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8 pb-8 border-b border-slate-800">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8 pb-8 border-b border-white/10">
           <div className="flex items-start gap-3">
-            <Mail className="w-5 h-5 text-blue-500 flex-shrink-0 mt-1" />
+            <Mail className="w-5 h-5 text-emerald-300 flex-shrink-0 mt-1" />
             <div>
               <p className="text-sm font-semibold text-white">Email</p>
-              <p className="text-sm text-slate-400">support@finbank.online</p>
+              <p className="text-sm text-white/70">support@finbank.online</p>
             </div>
           </div>
           <div className="flex items-start gap-3">
-            <Phone className="w-5 h-5 text-blue-500 flex-shrink-0 mt-1" />
+            <Phone className="w-5 h-5 text-emerald-300 flex-shrink-0 mt-1" />
             <div>
               <p className="text-sm font-semibold text-white">Phone</p>
-              <p className="text-sm text-slate-400">+34 (0) 800 123 456</p>
+              <p className="text-sm text-white/70">+34 (0) 800 123 456</p>
             </div>
           </div>
           <div className="flex items-start gap-3">
-            <MapPin className="w-5 h-5 text-blue-500 flex-shrink-0 mt-1" />
+            <MapPin className="w-5 h-5 text-emerald-300 flex-shrink-0 mt-1" />
             <div>
               <p className="text-sm font-semibold text-white">Headquarters</p>
-              <p className="text-sm text-slate-400">Madrid, Spain</p>
+              <p className="text-sm text-white/70">Madrid, Spain</p>
             </div>
           </div>
         </div>
 
         {/* Bottom Section */}
         <div className="flex flex-col md:flex-row justify-between items-center gap-6">
-          <p className="text-sm text-slate-500">
+          <p className="text-sm text-white/60">
             © {currentYear} {FinBankBrand.company.name}. All rights reserved.
           </p>
-          <div className="flex flex-wrap justify-center gap-4 text-xs text-slate-500">
+          <div className="flex flex-wrap justify-center gap-4 text-xs text-white/60">
             <span>License: {FinBankBrand.company.euBankingLicense}</span>
             <span>•</span>
             <span>Authority: {FinBankBrand.company.regulatoryAuthority}</span>

@@ -17,15 +17,15 @@ export function MarketingNavigation() {
   ];
 
   return (
-    <header className="fixed top-0 w-full z-50 bg-white/80 dark:bg-slate-950/80 backdrop-blur-md border-b border-slate-200 dark:border-slate-800">
+    <header className="fixed top-0 w-full z-50 bg-slate-900/70 backdrop-blur-2xl border-b border-white/10">
       <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <Link to="/marketing" className="flex items-center gap-2 group">
-            <div className="relative w-8 h-8 bg-gradient-to-br from-blue-600 to-blue-700 rounded-lg flex items-center justify-center shadow-lg">
+            <div className="relative w-9 h-9 bg-gradient-to-br from-blue-500 via-purple-500 to-emerald-400 rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/30">
               <Shield className="w-5 h-5 text-white" />
             </div>
-            <span className="font-bold text-lg text-slate-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition">
+            <span className="font-bold text-lg text-white group-hover:text-emerald-200 transition">
               {FinBankBrand.company.name}
             </span>
           </Link>
@@ -36,7 +36,7 @@ export function MarketingNavigation() {
               <Link
                 key={link.href}
                 to={link.href}
-                className="px-3 py-2 text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition"
+                className="px-3 py-2 text-sm font-medium text-white/70 hover:text-white transition"
               >
                 {link.label}
               </Link>
@@ -48,15 +48,15 @@ export function MarketingNavigation() {
             <Button
               variant="ghost"
               size="sm"
-              className="text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white"
-              onClick={() => navigate({ to: "/dashboard" })}
+              className="text-white/80 hover:text-white"
+              onClick={() => navigate({ to: "/login" })}
             >
               Sign In
             </Button>
             <Button
               size="sm"
-              className="bg-blue-600 hover:bg-blue-700 text-white flex items-center gap-2"
-              onClick={() => navigate({ to: "/dashboard" })}
+              className="bg-gradient-to-r from-blue-500 via-purple-500 to-emerald-500 hover:from-blue-600 hover:via-purple-600 hover:to-emerald-600 text-white flex items-center gap-2 border border-white/10 shadow-lg shadow-blue-500/30"
+              onClick={() => navigate({ to: "/login" })}
             >
               Get Started <ArrowRight className="w-4 h-4" />
             </Button>
@@ -79,7 +79,7 @@ export function MarketingNavigation() {
               <Link
                 key={link.href}
                 to={link.href}
-                className="block px-3 py-2 text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white"
+                className="block px-3 py-2 text-sm font-medium text-white/80 hover:text-white"
                 onClick={() => setMobileMenuOpen(false)}
               >
                 {link.label}
@@ -89,20 +89,20 @@ export function MarketingNavigation() {
               <Button
                 variant="outline"
                 size="sm"
-                className="w-full"
+                className="w-full border-white/20 text-white hover:bg-white/10"
                 onClick={() => {
                   setMobileMenuOpen(false);
-                  navigate({ to: "/dashboard" });
+                  navigate({ to: "/login" });
                 }}
               >
                 Sign In
               </Button>
               <Button
                 size="sm"
-                className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+                className="w-full bg-gradient-to-r from-blue-500 via-purple-500 to-emerald-500 hover:from-blue-600 hover:via-purple-600 hover:to-emerald-600 text-white border border-white/10"
                 onClick={() => {
                   setMobileMenuOpen(false);
-                  navigate({ to: "/dashboard" });
+                  navigate({ to: "/login" });
                 }}
               >
                 Get Started

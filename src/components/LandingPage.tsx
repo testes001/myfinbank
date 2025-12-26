@@ -60,66 +60,44 @@ export function LandingPage({ onSignupClick }: { onSignupClick: () => void }) {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white dark:from-slate-950 dark:to-slate-900">
-      {/* Navigation */}
-      <nav className="fixed top-0 w-full z-50 bg-white/80 dark:bg-slate-950/80 backdrop-blur-md border-b border-slate-200 dark:border-slate-800">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Shield className="w-8 h-8 text-blue-600 dark:text-blue-400" />
-            <span className="text-xl font-bold text-slate-900 dark:text-white">
-              {FinBankBrand.company.name}
-            </span>
-          </div>
-          <div className="flex items-center gap-4">
-            <a
-              href="#features"
-              className="text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition"
-            >
-              Features
-            </a>
-            <a
-              href="#trust"
-              className="text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition"
-            >
-              Security
-            </a>
-          </div>
-        </div>
-      </nav>
-
+    <div className="relative min-h-screen text-white">
       {/* Hero Section */}
-      <section className="pt-32 pb-20 px-4 sm:px-6 lg:px-8 max-w-6xl mx-auto">
+      <section className="pt-32 pb-20 px-4 sm:px-6 lg:px-8 max-w-6xl mx-auto relative z-10">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8 }}
           className="text-center"
         >
-          <h1 className="text-5xl sm:text-6xl font-bold text-slate-900 dark:text-white mb-6 leading-tight">
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-white/15 bg-white/10 text-xs font-semibold mb-4">
+            <Shield className="w-4 h-4 text-emerald-300" />
+            {FinBankBrand.company.tagline}
+          </div>
+          <h1 className="text-5xl sm:text-6xl font-bold text-white mb-6 leading-tight">
             Digital Banking with Branches Across Europe
           </h1>
 
-          <p className="text-xl text-slate-600 dark:text-slate-300 mb-8 max-w-3xl mx-auto">
+          <p className="text-xl text-white/70 mb-8 max-w-3xl mx-auto">
             {FinBankBrand.company.tagline} — Fully compliant with EU regulations, GDPR, and
             deposit insurance protection.
           </p>
 
           {/* Eligibility Notice */}
-          <div className="bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 rounded-xl p-6 mb-8 max-w-2xl mx-auto">
-            <p className="text-sm font-semibold text-blue-900 dark:text-blue-100 mb-2">
+          <div className="bg-white/10 border border-white/15 rounded-2xl p-6 mb-8 max-w-2xl mx-auto backdrop-blur-xl shadow-lg shadow-blue-900/20">
+            <p className="text-sm font-semibold text-emerald-200 mb-2">
               ✓ Eligibility Check
             </p>
             {isLoadingLocation ? (
-              <p className="text-slate-700 dark:text-slate-300">
+              <p className="text-white/70">
                 Checking your eligibility...
               </p>
             ) : locationCheck?.eligible ? (
-              <p className="text-slate-700 dark:text-slate-300">
+              <p className="text-white/80">
                 Great! Fin-Bank is available in your region ({locationCheck.city},{" "}
                 {locationCheck.country}).
               </p>
             ) : (
-              <p className="text-red-700 dark:text-red-300">
+              <p className="text-red-200">
                 Fin-Bank is exclusively available to residents of Spain, Germany, France, Italy,
                 and Portugal. Detected location: {locationCheck?.country}
               </p>
@@ -134,7 +112,7 @@ export function LandingPage({ onSignupClick }: { onSignupClick: () => void }) {
             <Button
               onClick={handleSignupClick}
               disabled={locationCheck?.eligible === false}
-              className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-lg font-semibold text-lg shadow-lg"
+              className="bg-gradient-to-r from-blue-500 via-purple-500 to-emerald-500 hover:from-blue-600 hover:via-purple-600 hover:to-emerald-600 text-white px-8 py-3 rounded-full font-semibold text-lg shadow-xl shadow-blue-500/30 border border-white/15"
             >
               Open Your Account in Minutes
             </Button>
@@ -143,7 +121,7 @@ export function LandingPage({ onSignupClick }: { onSignupClick: () => void }) {
       </section>
 
       {/* Features Section */}
-      <section id="features" className="py-20 px-4 sm:px-6 lg:px-8 bg-slate-900 dark:bg-slate-950">
+      <section id="features" className="py-20 px-4 sm:px-6 lg:px-8">
         <div className="max-w-6xl mx-auto">
           <h2 className="text-4xl font-bold text-white text-center mb-16">
             Modern Banking for Modern Europe
@@ -156,11 +134,11 @@ export function LandingPage({ onSignupClick }: { onSignupClick: () => void }) {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.6 }}
-              className="bg-slate-800 dark:bg-slate-800/50 p-8 rounded-xl border border-slate-700"
+              className="bg-white/10 p-8 rounded-2xl border border-white/10 backdrop-blur-xl shadow-lg shadow-blue-900/20"
             >
               <Globe className="w-10 h-10 text-green-500 mb-4" />
               <h3 className="text-xl font-bold text-white mb-3">SEPA Transfers</h3>
-              <p className="text-slate-300">
+              <p className="text-white/70">
                 Send money instantly within Fin-Bank or to any EU bank in 1-2 business days. No
                 hidden fees.
               </p>
@@ -172,11 +150,11 @@ export function LandingPage({ onSignupClick }: { onSignupClick: () => void }) {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.6, delay: 0.1 }}
-              className="bg-slate-800 dark:bg-slate-800/50 p-8 rounded-xl border border-slate-700"
+              className="bg-white/10 p-8 rounded-2xl border border-white/10 backdrop-blur-xl shadow-lg shadow-blue-900/20"
             >
               <TrendingUp className="w-10 h-10 text-blue-400 mb-4" />
               <h3 className="text-xl font-bold text-white mb-3">Multi-Currency Accounts</h3>
-              <p className="text-slate-300">
+              <p className="text-white/70">
                 Hold EUR as your primary currency. Convert to USD for deposits and international
                 transfers with fair rates.
               </p>
@@ -188,11 +166,11 @@ export function LandingPage({ onSignupClick }: { onSignupClick: () => void }) {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.6, delay: 0.2 }}
-              className="bg-slate-800 dark:bg-slate-800/50 p-8 rounded-xl border border-slate-700"
+              className="bg-white/10 p-8 rounded-2xl border border-white/10 backdrop-blur-xl shadow-lg shadow-blue-900/20"
             >
               <Zap className="w-10 h-10 text-yellow-500 mb-4" />
               <h3 className="text-xl font-bold text-white mb-3">Instant Virtual Cards</h3>
-              <p className="text-slate-300">
+              <p className="text-white/70">
                 Get a virtual card instantly upon account opening. Order a physical card in 5-7
                 business days.
               </p>
