@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTheme } from "@/contexts/ThemeContext";
 import { Button } from "@/components/ui/button";
@@ -24,7 +24,7 @@ import { JointAccountInviteModal } from "@/components/JointAccountInviteModal";
 import { QuickActions } from "@/components/QuickActions";
 import { getRecentTransactions, formatCurrency, formatDate, getTransactionType } from "@/lib/transactions";
 import { getTotalBalance } from "@/lib/multi-account";
-import { getUpcomingTransfers } from "@/lib/recurring-transfers";
+import { getUpcomingTransfers, formatFrequency } from "@/lib/recurring-transfers";
 import { getActiveCardCount } from "@/lib/virtual-cards";
 import type { PrimaryAccountType } from "@/lib/kyc-storage";
 import type { TransactionModel } from "@/lib/transactions";
@@ -34,10 +34,12 @@ import {
   ArrowUpRight,
   ArrowDownLeft,
   Send,
+  Activity,
   Sun,
   Moon,
   AlertTriangle,
   TrendingUp,
+  CalendarClock,
   Smartphone,
   FileText,
   Eye,
@@ -57,14 +59,23 @@ import {
   Bell,
   DollarSign,
   Target,
+  ShieldCheck,
   Zap,
 } from "lucide-react";
 import { useAsync } from "@/hooks/useAsync";
 import { FINBANK_ROUTING_NUMBER } from "@/lib/seed";
 import { toast } from "sonner";
+import type { RecurringTransfer } from "@/lib/recurring-transfers";
 
 interface DashboardProps {
   onNavigate: (page: ActivePage) => void;
+}
+
+function formatShortDate(date: string): string {
+  return new Intl.DateTimeFormat("en-US", {
+    month: "short",
+    day: "numeric",
+  }).format(new Date(date));
 }
 
 // Generate a numeric account number (8-12 digits based on account type)
@@ -100,6 +111,7 @@ export function Dashboard({ onNavigate }: DashboardProps) {
   const { loading: asyncLoading, error: asyncError, run: runAsync, setError: setAsyncError } = useAsync<void>();
   const [loadError, setLoadError] = useState<string | null>(null);
   const [showBalances, setShowBalances] = useState(true);
+  const [upcomingTransfers, setUpcomingTransfers] = useState<RecurringTransfer[]>([]);
 
   // Account details modal state
   const [isAccountDetailsOpen, setIsAccountDetailsOpen] = useState(false);
@@ -141,8 +153,9 @@ export function Dashboard({ onNavigate }: DashboardProps) {
       const additionalBalance = getTotalBalance(currentUser.user.id);
       setAdditionalAccountsBalance(additionalBalance);
 
-      const upcomingTransfers = getUpcomingTransfers(currentUser.user.id, 7);
-      setUpcomingTransfersCount(upcomingTransfers.length);
+      const upcoming = getUpcomingTransfers(currentUser.user.id, 14);
+      setUpcomingTransfers(upcoming);
+      setUpcomingTransfersCount(upcoming.length);
 
       const activeCards = getActiveCardCount(currentUser.user.id);
       setActiveVirtualCardsCount(activeCards);
@@ -161,6 +174,45 @@ export function Dashboard({ onNavigate }: DashboardProps) {
     setIsTransferOpen(false);
     loadData();
   };
+
+  const monthlyFlow = useMemo(() => {
+    if (!currentUser) {
+      return { inflow: 0, outflow: 0, net: 0 };
+    }
+
+    const windowStart = Date.now() - 30 * 24 * 60 * 60 * 1000;
+
+    return transactions.reduce(
+      (acc, tx) => {
+        const createdAtMs = Number.parseInt(tx.create_time, 10) * 1000 || Date.parse(tx.create_time);
+        if (Number.isNaN(createdAtMs) || createdAtMs < windowStart) return acc;
+
+        const isSent = tx.from_account_id === currentUser.account.id;
+        const amt = Number.parseFloat(tx.amount) || 0;
+
+        if (isSent) {
+          acc.outflow += amt;
+        } else {
+          acc.inflow += amt;
+        }
+        acc.net = acc.inflow - acc.outflow;
+        return acc;
+      },
+      { inflow: 0, outflow: 0, net: 0 }
+    );
+  }, [transactions, currentUser]);
+
+  const scheduledOutflow = useMemo(
+    () => upcomingTransfers.reduce((sum, t) => sum + (t.amount || 0), 0),
+    [upcomingTransfers]
+  );
+
+  const nextTransfer = useMemo(() => {
+    if (!upcomingTransfers.length) return null;
+    return [...upcomingTransfers].sort(
+      (a, b) => new Date(a.nextExecutionDate).getTime() - new Date(b.nextExecutionDate).getTime()
+    )[0];
+  }, [upcomingTransfers]);
 
   if (!currentUser) return null;
 
@@ -272,6 +324,84 @@ export function Dashboard({ onNavigate }: DashboardProps) {
               {theme === "dark" ? <Sun className="size-5" /> : <Moon className="size-5" />}
             </button>
           </div>
+        </div>
+
+        {/* Account Snapshot */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <Card className="border-white/10 bg-white/5 p-4 backdrop-blur-xl">
+            <div className="flex items-start justify-between">
+              <div>
+                <p className="text-xs text-white/60">Total holdings</p>
+                <p className="text-2xl font-bold text-white mt-1">
+                  {showBalances ? formatCurrency(balance + additionalAccountsBalance) : "••••••"}
+                </p>
+                <p className="text-xs text-white/50 mt-1">
+                  Includes {formatCurrency(additionalAccountsBalance)} in linked accounts
+                </p>
+              </div>
+              <div className="rounded-full bg-white/10 p-3">
+                <Wallet className="size-5 text-white" />
+              </div>
+            </div>
+          </Card>
+
+          <Card className="border-white/10 bg-white/5 p-4 backdrop-blur-xl">
+            <div className="flex items-start justify-between">
+              <div>
+                <p className="text-xs text-white/60">Cash flow (30d)</p>
+                <p
+                  className={`text-2xl font-bold mt-1 ${
+                    monthlyFlow.net >= 0 ? "text-green-300" : "text-red-300"
+                  }`}
+                >
+                  {showBalances ? formatCurrency(monthlyFlow.net) : "••••••"}
+                </p>
+                <p className="text-xs text-white/50 mt-1">
+                  In {formatCurrency(monthlyFlow.inflow)} • Out {formatCurrency(monthlyFlow.outflow)}
+                </p>
+              </div>
+              <div className="rounded-full bg-white/10 p-3">
+                <Activity className="size-5 text-white" />
+              </div>
+            </div>
+          </Card>
+
+          <Card className="border-white/10 bg-white/5 p-4 backdrop-blur-xl sm:col-span-2">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+              <div className="flex items-start gap-3">
+                <div className="rounded-full bg-blue-500/20 p-2">
+                  <CalendarClock className="size-5 text-blue-200" />
+                </div>
+                <div>
+                  <p className="text-xs text-white/60">Scheduled transfers (14d)</p>
+                  <p className="text-lg font-semibold text-white">
+                    {upcomingTransfersCount} upcoming
+                    {scheduledOutflow > 0 && showBalances && (
+                      <span className="text-sm text-white/60 ml-2">
+                        • {formatCurrency(scheduledOutflow)} leaving
+                      </span>
+                    )}
+                  </p>
+                  {nextTransfer ? (
+                    <p className="text-xs text-white/50">
+                      Next on {formatShortDate(nextTransfer.nextExecutionDate)} •{" "}
+                      {formatFrequency(nextTransfer.frequency)} • {formatCurrency(nextTransfer.amount)}
+                    </p>
+                  ) : (
+                    <p className="text-xs text-white/50">No scheduled transfers detected</p>
+                  )}
+                </div>
+              </div>
+              <Button
+                size="sm"
+                variant="outline"
+                className="border-white/30 text-white hover:bg-white/10 w-full sm:w-auto"
+                onClick={() => setIsRecurringTransfersOpen(true)}
+              >
+                Manage schedule
+              </Button>
+            </div>
+          </Card>
         </div>
 
         {/* Balance Card - Tappable for account details */}
@@ -524,6 +654,59 @@ export function Dashboard({ onNavigate }: DashboardProps) {
             </>
           )}
         </Button>
+
+        {/* Autopilot + Compliance Summary */}
+        <Card className="border-white/10 bg-white/5 p-4 backdrop-blur-xl">
+          <div className="flex items-center justify-between flex-wrap gap-3">
+            <div className="flex items-start gap-3">
+              <div className="rounded-full bg-emerald-500/20 p-2">
+                <ShieldCheck className="size-5 text-emerald-200" />
+              </div>
+              <div>
+                <p className="text-sm font-semibold text-white">Autopilot & controls</p>
+                <p className="text-xs text-white/60">
+                  Keep an eye on scheduled moves and virtual card activity
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-3 text-xs text-white/70">
+              <div className="flex items-center gap-1">
+                <CalendarClock className="size-4 text-white/70" />
+                <span>{upcomingTransfersCount} scheduled</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <CreditCard className="size-4 text-white/70" />
+                <span>{activeVirtualCardsCount} virtual cards</span>
+              </div>
+            </div>
+          </div>
+
+          <div className="mt-4 space-y-2">
+            {upcomingTransfers.slice(0, 3).map((transfer) => (
+              <div
+                key={transfer.id}
+                className="flex items-center justify-between rounded-lg border border-white/5 bg-white/5 px-3 py-2"
+              >
+                <div>
+                  <p className="text-sm font-semibold text-white">{transfer.recipientName}</p>
+                  <p className="text-xs text-white/60">
+                    {formatFrequency(transfer.frequency)} • {formatShortDate(transfer.nextExecutionDate)}
+                  </p>
+                </div>
+                <div className="text-right">
+                  <p className="text-sm font-semibold text-white">
+                    {showBalances ? formatCurrency(transfer.amount) : "••••"}
+                  </p>
+                  <p className="text-[11px] text-white/60">{transfer.description || "Scheduled"}</p>
+                </div>
+              </div>
+            ))}
+
+            {upcomingTransfers.length === 0 && (
+              <p className="text-xs text-white/60">No upcoming transfers. Set one up to automate your month.</p>
+            )}
+          </div>
+        </Card>
 
         {/* AI Insights - Personalized financial tips */}
         <AIInsights
