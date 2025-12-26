@@ -11,10 +11,18 @@ import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Eye, EyeOff, AlertTriangle, Shield, Loader2, CheckCircle2, XCircle } from "lucide-react";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
 import { getAuthThrottle, recordAuthAttempt, resetAuthThrottle } from "@/lib/rate-limit";
+import { submitKyc, type KycSubmissionRequest } from "@/lib/backend";
 
 export function EnhancedLoginForm() {
   const { setCurrentUser } = useAuth();
@@ -36,6 +44,20 @@ export function EnhancedLoginForm() {
   const [registerError, setRegisterError] = useState("");
   const [registerTermsAccepted, setRegisterTermsAccepted] = useState(false);
   const [registerMarketingConsent, setRegisterMarketingConsent] = useState(false);
+  const [kycSubmitting, setKycSubmitting] = useState(false);
+  const [kycSubmitted, setKycSubmitted] = useState(false);
+
+  const [kycForm, setKycForm] = useState({
+    phone: "",
+    dateOfBirth: "",
+    ssn: "",
+    street: "",
+    city: "",
+    state: "",
+    zip: "",
+    country: "US",
+    idDocumentType: "DRIVERS_LICENSE" as KycSubmissionRequest["idDocumentType"],
+  });
 
   const disposableDomains = ["mailinator.com", "tempmail.com", "guerrillamail.com", "10minutemail.com", "yopmail.com"];
 
@@ -68,6 +90,24 @@ export function EnhancedLoginForm() {
 
   const passwordPolicy = evaluatePasswordPolicy(registerPassword);
   const passwordPolicyPassed = Object.values(passwordPolicy).every(Boolean);
+
+  const validateKyc = () => {
+    const phoneDigits = kycForm.phone.replace(/\D/g, "");
+    if (phoneDigits.length < 10) {
+      return "Enter a valid phone number";
+    }
+    if (!kycForm.dateOfBirth) {
+      return "Date of birth is required";
+    }
+    const ssnDigits = kycForm.ssn.replace(/\D/g, "");
+    if (ssnDigits.length !== 9) {
+      return "SSN/National ID must be 9 digits";
+    }
+    if (!kycForm.street || !kycForm.city || !kycForm.state || !kycForm.zip) {
+      return "Complete your address";
+    }
+    return null;
+  };
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -138,6 +178,12 @@ export function EnhancedLoginForm() {
       return;
     }
 
+    const kycError = validateKyc();
+    if (kycError) {
+      setRegisterError(kycError);
+      return;
+    }
+
     const now = Date.now();
     if (authThrottle.lockUntil && now < authThrottle.lockUntil) {
       setRegisterError("Too many attempts. Please wait a few seconds.");
@@ -145,6 +191,8 @@ export function EnhancedLoginForm() {
     }
 
     setIsLoading(true);
+    setKycSubmitting(false);
+    setKycSubmitted(false);
 
     try {
       const authUser = await registerUser(registerEmail, registerPassword, registerFullName);
@@ -159,12 +207,46 @@ export function EnhancedLoginForm() {
       } else {
         localStorage.removeItem("marketing_consent");
       }
+
+      if (authUser.accessToken) {
+        setKycSubmitting(true);
+        try {
+          const phoneDigits = kycForm.phone.replace(/\D/g, "");
+          const ssnDigits = kycForm.ssn.replace(/\D/g, "");
+          const normalizedZip = (kycForm.zip.match(/\d/g) || []).join("").padEnd(5, "0").slice(0, 5);
+          const normalizedState = kycForm.state.slice(0, 2).toUpperCase();
+          const normalizedCountry = kycForm.country.slice(0, 2).toUpperCase();
+
+          await submitKyc(
+            {
+              dateOfBirth: kycForm.dateOfBirth,
+              ssn: `${ssnDigits.slice(0, 3)}-${ssnDigits.slice(3, 5)}-${ssnDigits.slice(5)}`,
+              phoneNumber: `+${phoneDigits}`,
+              idDocumentType: kycForm.idDocumentType,
+              address: {
+                street: kycForm.street,
+                city: kycForm.city,
+                state: normalizedState,
+                zipCode: normalizedZip,
+                country: normalizedCountry,
+              },
+            },
+            authUser.accessToken
+          );
+          setKycSubmitted(true);
+          toast.success("KYC submitted for review");
+        } catch (kycErr) {
+          console.error("KYC submission failed", kycErr);
+          toast.error("Account created but KYC submission failed. Please retry in profile.");
+        }
+      }
     } catch (error) {
       setRegisterError(error instanceof Error ? error.message : "Registration failed");
       const next = recordAuthAttempt();
       setAuthThrottle(next);
     } finally {
       setIsLoading(false);
+      setKycSubmitting(false);
     }
   };
 
@@ -279,10 +361,10 @@ export function EnhancedLoginForm() {
               </TabsContent>
 
             <TabsContent value="register">
-              <form onSubmit={handleRegister} className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="register-name" className="text-white">Full Name</Label>
-                  <Input
+                <form onSubmit={handleRegister} className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="register-name" className="text-white">Full Name</Label>
+                    <Input
                       id="register-name"
                       type="text"
                       value={registerFullName}
@@ -345,8 +427,126 @@ export function EnhancedLoginForm() {
                             );
                           })}
                         </div>
-                      </div>
-                    )}
+                    </div>
+                  )}
+                </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div className="space-y-2">
+                      <Label htmlFor="register-phone" className="text-white text-sm">Mobile Number</Label>
+                      <Input
+                        id="register-phone"
+                        type="tel"
+                        value={kycForm.phone}
+                        onChange={(e) => setKycForm((prev) => ({ ...prev, phone: e.target.value }))}
+                        placeholder="+1 (555) 123-4567"
+                        className="bg-white/10 border-white/20 text-white placeholder:text-gray-400"
+                        required
+                        disabled={isLoading}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="register-dob" className="text-white text-sm">Date of Birth</Label>
+                      <Input
+                        id="register-dob"
+                        type="date"
+                        value={kycForm.dateOfBirth}
+                        onChange={(e) => setKycForm((prev) => ({ ...prev, dateOfBirth: e.target.value }))}
+                        className="bg-white/10 border-white/20 text-white placeholder:text-gray-400"
+                        required
+                        disabled={isLoading}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div className="space-y-2">
+                      <Label htmlFor="register-ssn" className="text-white text-sm">SSN / National ID</Label>
+                      <Input
+                        id="register-ssn"
+                        type="text"
+                        value={kycForm.ssn}
+                        onChange={(e) => setKycForm((prev) => ({ ...prev, ssn: e.target.value }))}
+                        placeholder="123-45-6789"
+                        className="bg-white/10 border-white/20 text-white placeholder:text-gray-400"
+                        required
+                        disabled={isLoading}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-white text-sm">ID Document Type</Label>
+                      <Select
+                        value={kycForm.idDocumentType}
+                        onValueChange={(val: KycSubmissionRequest["idDocumentType"]) =>
+                          setKycForm((prev) => ({ ...prev, idDocumentType: val }))
+                        }
+                        disabled={isLoading}
+                      >
+                        <SelectTrigger className="bg-white/10 border-white/20 text-white">
+                          <SelectValue placeholder="Select ID type" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="DRIVERS_LICENSE">Driver's License</SelectItem>
+                          <SelectItem value="PASSPORT">Passport</SelectItem>
+                          <SelectItem value="NATIONAL_ID">National ID</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label className="text-white text-sm">Residential Address</Label>
+                    <Input
+                      type="text"
+                      value={kycForm.street}
+                      onChange={(e) => setKycForm((prev) => ({ ...prev, street: e.target.value }))}
+                      placeholder="Street address"
+                      className="bg-white/10 border-white/20 text-white placeholder:text-gray-400"
+                      required
+                      disabled={isLoading}
+                    />
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                      <Input
+                        type="text"
+                        value={kycForm.city}
+                        onChange={(e) => setKycForm((prev) => ({ ...prev, city: e.target.value }))}
+                        placeholder="City"
+                        className="bg-white/10 border-white/20 text-white placeholder:text-gray-400"
+                        required
+                        disabled={isLoading}
+                      />
+                      <Input
+                        type="text"
+                        value={kycForm.state}
+                        onChange={(e) => setKycForm((prev) => ({ ...prev, state: e.target.value }))}
+                        placeholder="State"
+                        className="bg-white/10 border-white/20 text-white placeholder:text-gray-400"
+                        required
+                        maxLength={2}
+                        disabled={isLoading}
+                      />
+                      <Input
+                        type="text"
+                        value={kycForm.zip}
+                        onChange={(e) => setKycForm((prev) => ({ ...prev, zip: e.target.value }))}
+                        placeholder="ZIP"
+                        className="bg-white/10 border-white/20 text-white placeholder:text-gray-400"
+                        required
+                        disabled={isLoading}
+                      />
+                    </div>
+                    <Input
+                      type="text"
+                      value={kycForm.country}
+                      onChange={(e) => setKycForm((prev) => ({ ...prev, country: e.target.value }))}
+                      placeholder="Country"
+                      className="bg-white/10 border-white/20 text-white placeholder:text-gray-400"
+                      required
+                      disabled={isLoading}
+                    />
+                    <p className="text-[11px] text-white/60">
+                      We collect KYC details to comply with AML/CTF requirements and protect your account.
+                    </p>
                   </div>
 
                   {registerError && (
@@ -381,6 +581,19 @@ export function EnhancedLoginForm() {
                         I agree to receive product updates and onboarding tips (optional).
                       </Label>
                     </div>
+                  </div>
+
+                  <div className="flex items-center justify-between text-xs text-white/70">
+                    <span>Identity verification auto-starts after signup.</span>
+                    {kycSubmitted ? (
+                      <span className="text-emerald-300 flex items-center gap-1">
+                        <CheckCircle2 className="h-4 w-4" /> KYC submitted
+                      </span>
+                    ) : kycSubmitting ? (
+                      <span className="flex items-center gap-1">
+                        <Loader2 className="h-4 w-4 animate-spin" /> Submitting KYC...
+                      </span>
+                    ) : null}
                   </div>
 
                   <Button

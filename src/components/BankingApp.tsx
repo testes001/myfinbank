@@ -54,7 +54,14 @@ export function BankingApp() {
   }, [currentUser, isLoading, navigate]);
 
   if (!currentUser) {
-    return null;
+    return (
+      <div className="flex h-screen items-center justify-center bg-gradient-to-br from-blue-950 via-slate-900 to-purple-950">
+        <div className="flex items-center gap-2 text-white/80">
+          <Loader2 className="h-5 w-5 animate-spin" />
+          Redirecting to login...
+        </div>
+      </div>
+    );
   }
 
   // Handle onboarding flow
