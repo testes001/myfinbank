@@ -20,7 +20,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Shield, Loader2, CheckCircle2, XCircle, ChevronLeft } from "lucide-react";
+import { Shield, Loader2, CheckCircle2, XCircle, ChevronLeft, Eye, EyeOff } from "lucide-react";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
 import { getAuthThrottle, recordAuthAttempt, resetAuthThrottle } from "@/lib/rate-limit";
