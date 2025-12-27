@@ -39,7 +39,6 @@ export function EnhancedLoginForm({ mode, defaultAccountType, onSwitchToSignIn }
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<"login" | "register">(mode === "signup" ? "register" : "login");
   const [isLoading, setIsLoading] = useState(false);
-  const [showPassword, setShowPassword] = useState(false);
 
   // Login state
   const [loginEmail, setLoginEmail] = useState("");
@@ -47,7 +46,7 @@ export function EnhancedLoginForm({ mode, defaultAccountType, onSwitchToSignIn }
   const [loginError, setLoginError] = useState("");
   const [rateLimitInfo, setRateLimitInfo] = useState<{ allowed: boolean; remainingAttempts: number; message?: string; resetTime?: number }>({ allowed: true, remainingAttempts: 5 });
   const [authThrottle, setAuthThrottle] = useState(() => getAuthThrottle());
-  const [isResetting, setIsResetting] = useState(false);
+  const [isResettingPassword, setIsResettingPassword] = useState(false);
   const [resetRequested, setResetRequested] = useState(false);
   const [resetCode, setResetCode] = useState("");
   const [resetNewPassword, setResetNewPassword] = useState("");
