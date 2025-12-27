@@ -20,14 +20,14 @@ const router = Router();
  * @desc    Register new user
  * @access  Public
  */
-router.post('/register', authController.register);
+router.post('/register', registerLimiter, authController.register);
 
 /**
  * @route   POST /api/auth/login
  * @desc    Login user
  * @access  Public
  */
-router.post('/login', authController.login);
+router.post('/login', loginLimiter, authController.login);
 
 /**
  * @route   POST /api/auth/refresh
