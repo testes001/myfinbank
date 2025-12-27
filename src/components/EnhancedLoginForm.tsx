@@ -18,12 +18,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Eye, EyeOff, AlertTriangle, Shield, Loader2, CheckCircle2, XCircle } from "lucide-react";
+import { Eye, EyeOff, AlertTriangle, Shield, Loader2, CheckCircle2, XCircle, ChevronLeft } from "lucide-react";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
 import { getAuthThrottle, recordAuthAttempt, resetAuthThrottle } from "@/lib/rate-limit";
 import { submitKyc, type KycSubmissionRequest } from "@/lib/backend";
-import { useNavigate } from "@tanstack/react-router";
+import { useNavigate, Link } from "@tanstack/react-router";
+import { OnboardingBreadcrumb } from "@/components/OnboardingBreadcrumb";
 
 interface EnhancedLoginFormProps {
   mode?: "login" | "signup";
