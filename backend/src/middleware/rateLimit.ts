@@ -1,0 +1,148 @@
+/**
+ * Rate Limiting Middleware
+ * Protects sensitive endpoints from abuse
+ */
+
+import rateLimit from 'express-rate-limit';
+import RedisStore from 'rate-limit-redis';
+import redisClient from '@/config/redis';
+
+/**
+ * General login rate limiter
+ * 5 attempts per 15 minutes per IP
+ */
+export const loginLimiter = rateLimit({
+  store: new RedisStore({
+    client: redisClient,
+    prefix: 'rl:login:',
+  }),
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 5, // 5 attempts
+  message: 'Too many login attempts, please try again later',
+  standardHeaders: true, // Return rate limit info in `RateLimit-*` headers
+  legacyHeaders: false, // Disable `X-RateLimit-*` headers
+  keyGenerator: (req) => req.ip || req.socket.remoteAddress || 'unknown',
+  skip: (req) => false,
+  handler: (req, res) => {
+    res.status(429).json({
+      success: false,
+      error: 'Too many login attempts. Please try again in 15 minutes.',
+      retryAfter: req.rateLimit?.resetTime,
+    });
+  },
+});
+
+/**
+ * Password reset request rate limiter
+ * 3 attempts per hour per email address
+ */
+export const passwordResetLimiter = rateLimit({
+  store: new RedisStore({
+    client: redisClient,
+    prefix: 'rl:password-reset:',
+  }),
+  windowMs: 60 * 60 * 1000, // 1 hour
+  max: 3, // 3 attempts per hour
+  message: 'Too many password reset attempts, please try again later',
+  standardHeaders: true,
+  legacyHeaders: false,
+  // Key by email address from request body
+  keyGenerator: (req) => {
+    const email = req.body?.email || req.query?.email || req.ip || 'unknown';
+    return String(email).toLowerCase();
+  },
+  skip: (req) => false,
+  handler: (req, res) => {
+    res.status(429).json({
+      success: false,
+      // Generic message - don't reveal rate limit details
+      message: 'If email exists, reset code sent',
+      error: 'Too many requests',
+      retryAfter: req.rateLimit?.resetTime,
+    });
+  },
+});
+
+/**
+ * Password reset confirmation rate limiter
+ * 5 attempts per hour per email address (to prevent brute-forcing the code)
+ */
+export const passwordResetConfirmLimiter = rateLimit({
+  store: new RedisStore({
+    client: redisClient,
+    prefix: 'rl:password-reset-confirm:',
+  }),
+  windowMs: 60 * 60 * 1000, // 1 hour
+  max: 5, // 5 attempts per hour
+  message: 'Too many password reset attempts, please try again later',
+  standardHeaders: true,
+  legacyHeaders: false,
+  keyGenerator: (req) => {
+    const email = req.body?.email || req.query?.email || req.ip || 'unknown';
+    return String(email).toLowerCase();
+  },
+  skip: (req) => false,
+  handler: (req, res) => {
+    res.status(429).json({
+      success: false,
+      message: 'Invalid or expired verification code',
+      error: 'Too many attempts',
+      retryAfter: req.rateLimit?.resetTime,
+    });
+  },
+});
+
+/**
+ * Email verification rate limiter
+ * 3 attempts per hour per email address
+ */
+export const emailVerificationLimiter = rateLimit({
+  store: new RedisStore({
+    client: redisClient,
+    prefix: 'rl:email-verify:',
+  }),
+  windowMs: 60 * 60 * 1000, // 1 hour
+  max: 3, // 3 attempts per hour
+  message: 'Too many verification attempts, please try again later',
+  standardHeaders: true,
+  legacyHeaders: false,
+  keyGenerator: (req) => {
+    const email = req.body?.email || req.query?.email || req.ip || 'unknown';
+    return String(email).toLowerCase();
+  },
+  skip: (req) => false,
+  handler: (req, res) => {
+    res.status(429).json({
+      success: false,
+      message: 'Too many verification attempts. Please try again in 1 hour.',
+      error: 'Too many requests',
+      retryAfter: req.rateLimit?.resetTime,
+    });
+  },
+});
+
+/**
+ * Account registration rate limiter
+ * 3 registrations per hour per IP address
+ */
+export const registerLimiter = rateLimit({
+  store: new RedisStore({
+    client: redisClient,
+    prefix: 'rl:register:',
+  }),
+  windowMs: 60 * 60 * 1000, // 1 hour
+  max: 3, // 3 registrations per hour
+  message: 'Too many registration attempts, please try again later',
+  standardHeaders: true,
+  legacyHeaders: false,
+  keyGenerator: (req) => req.ip || req.socket.remoteAddress || 'unknown',
+  skip: (req) => false,
+  handler: (req, res) => {
+    res.status(429).json({
+      success: false,
+      message: 'Too many registration attempts. Please try again in 1 hour.',
+      error: 'Too many requests',
+      retryAfter: req.rateLimit?.resetTime,
+    });
+  },
+});

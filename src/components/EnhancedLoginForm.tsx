@@ -130,9 +130,12 @@ export function EnhancedLoginForm({ mode, defaultAccountType, onSwitchToSignIn }
     try {
       await requestPasswordReset(loginEmail);
       setResetRequested(true);
-      toast.success("Reset code sent to your email");
+      // Generic success message - doesn't reveal if email exists
+      toast.success("Check your email for reset instructions");
     } catch (err) {
-      setLoginError(err instanceof Error ? err.message : "Failed to request password reset");
+      // Don't reveal if email exists or not - always show same message
+      setLoginError("");
+      toast.success("Check your email for reset instructions");
     } finally {
       setIsResetting(false);
     }
@@ -183,7 +186,8 @@ export function EnhancedLoginForm({ mode, defaultAccountType, onSwitchToSignIn }
 
     const now = Date.now();
     if (authThrottle.lockUntil && now < authThrottle.lockUntil) {
-      setLoginError(`Too many attempts. Try again in ${Math.ceil((authThrottle.lockUntil - now) / 1000)}s.`);
+      // Generic message - don't reveal account existence or exact timing
+      setLoginError("Login temporarily unavailable. Please try again shortly.");
       return;
     }
 
@@ -192,7 +196,8 @@ export function EnhancedLoginForm({ mode, defaultAccountType, onSwitchToSignIn }
     setRateLimitInfo(limitCheck);
 
     if (!limitCheck.allowed) {
-      setLoginError(limitCheck.message || "Too many failed attempts");
+      // Generic message for rate limit - don't reveal specific details
+      setLoginError("Login temporarily unavailable. Please try again later.");
       return;
     }
 
@@ -212,13 +217,8 @@ export function EnhancedLoginForm({ mode, defaultAccountType, onSwitchToSignIn }
       const limitCheckAfter = checkRateLimit(loginEmail);
       setRateLimitInfo(limitCheckAfter);
 
-      if (limitCheckAfter.remainingAttempts <= 3 && limitCheckAfter.remainingAttempts > 0) {
-        setLoginError(
-          `Invalid email or password. ${limitCheckAfter.remainingAttempts} attempt${limitCheckAfter.remainingAttempts > 1 ? "s" : ""} remaining.`
-        );
-      } else {
-        setLoginError(error instanceof Error ? error.message : "Login failed");
-      }
+      // Always show the same generic message - never reveal account existence
+      setLoginError("Email or password is incorrect");
       const next = recordAuthAttempt();
       setAuthThrottle(next);
     } finally {

@@ -68,8 +68,8 @@ export function createApp(): Application {
       origin: config.corsOrigin,
       credentials: config.corsCredentials,
       methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-      allowedHeaders: ['Content-Type', 'Authorization', 'X-Request-ID'],
-      exposedHeaders: ['X-Request-ID'],
+      allowedHeaders: ['Content-Type', 'Authorization', 'X-Request-ID', 'X-CSRF-Token'],
+      exposedHeaders: ['X-Request-ID', 'X-CSRF-Token'],
     })
   );
 

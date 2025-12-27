@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
 import type { AuthUser } from "@/lib/auth";
+import { logoutUser } from "@/lib/auth";
 import { fetchAccounts, fetchKycStatus, fetchProfile, type KycStatusResponse } from "@/lib/backend";
 import { getStoredAccessToken, persistAccessToken, refreshAccessToken } from "@/lib/api-client";
 
@@ -113,9 +114,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const logout = () => {
-    handleSetCurrentUser(null);
-    setUserStatus(null);
+  const logout = async () => {
+    try {
+      // Invalidate session on server
+      await logoutUser();
+    } catch (error) {
+      console.error("Server logout failed:", error);
+    } finally {
+      // Always clear local state even if server logout fails
+      handleSetCurrentUser(null);
+      setUserStatus(null);
+    }
   };
 
   // Keep tokens fresh in the background

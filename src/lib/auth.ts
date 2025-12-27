@@ -83,6 +83,23 @@ export async function confirmPasswordReset(email: string, code: string, newPassw
   }
 }
 
+export async function logoutUser(): Promise<void> {
+  try {
+    const resp = await apiFetch(`/api/auth/logout`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+    });
+    if (!resp.ok) {
+      console.error("Logout request failed:", resp.status);
+      // Continue with local logout even if backend fails
+    }
+  } catch (error) {
+    console.error("Server logout failed:", error);
+    // Continue with local logout even if backend fails
+  }
+}
+
 // Legacy helpers
 export async function hashPassword(password: string): Promise<string> {
   return bcrypt.hash(password, 10);
