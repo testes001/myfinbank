@@ -188,3 +188,165 @@ export async function uploadKycFile(file: File, token?: string): Promise<string>
   const data = await resp.json();
   return data.data?.url as string;
 }
+
+// =====================================
+// Virtual Cards API
+// =====================================
+
+export interface VirtualCardResponse {
+  id: string;
+  userId: string;
+  linkedAccountId: string;
+  cardName: string;
+  cardNumber: string;
+  cardType: "STANDARD" | "SINGLE_USE" | "MERCHANT_LOCKED" | "RECURRING";
+  spendingLimit?: number;
+  currentSpent: number;
+  status: "ACTIVE" | "FROZEN" | "CANCELLED";
+  createdAt: string;
+  expiresAt: string;
+}
+
+export interface CreateVirtualCardRequest {
+  linkedAccountId: string;
+  cardName: string;
+  cardType: "STANDARD" | "SINGLE_USE" | "MERCHANT_LOCKED" | "RECURRING";
+  spendingLimit?: number;
+}
+
+/**
+ * List all virtual cards for the current user
+ */
+export async function listVirtualCards(token?: string): Promise<VirtualCardResponse[]> {
+  const resp = await apiFetch("/api/cards", {
+    method: "GET",
+    tokenOverride: token,
+  });
+  if (!resp.ok) {
+    const msg = (await resp.json().catch(() => null))?.message || "Failed to load virtual cards";
+    throw new Error(msg);
+  }
+  const data = await resp.json();
+  return data.data as VirtualCardResponse[];
+}
+
+/**
+ * Get details of a specific virtual card
+ */
+export async function getVirtualCard(cardId: string, token?: string): Promise<VirtualCardResponse> {
+  const resp = await apiFetch(`/api/cards/${cardId}`, {
+    method: "GET",
+    tokenOverride: token,
+  });
+  if (!resp.ok) {
+    const msg = (await resp.json().catch(() => null))?.message || "Failed to load virtual card";
+    throw new Error(msg);
+  }
+  const data = await resp.json();
+  return data.data as VirtualCardResponse;
+}
+
+/**
+ * Get full card details (including sensitive data)
+ */
+export async function getVirtualCardDetails(cardId: string, token?: string): Promise<VirtualCardResponse & { cvv: string; fullCardNumber: string }> {
+  const resp = await apiFetch(`/api/cards/${cardId}/details`, {
+    method: "GET",
+    tokenOverride: token,
+  });
+  if (!resp.ok) {
+    const msg = (await resp.json().catch(() => null))?.message || "Failed to load card details";
+    throw new Error(msg);
+  }
+  const data = await resp.json();
+  return data.data as VirtualCardResponse & { cvv: string; fullCardNumber: string };
+}
+
+/**
+ * Create a new virtual card
+ */
+export async function createVirtualCard(
+  payload: CreateVirtualCardRequest,
+  token?: string
+): Promise<VirtualCardResponse> {
+  const resp = await apiFetch("/api/cards", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+    tokenOverride: token,
+  });
+  if (!resp.ok) {
+    const msg = (await resp.json().catch(() => null))?.message || "Failed to create virtual card";
+    throw new Error(msg);
+  }
+  const data = await resp.json();
+  return data.data as VirtualCardResponse;
+}
+
+/**
+ * Freeze a virtual card
+ */
+export async function freezeVirtualCard(cardId: string, token?: string): Promise<VirtualCardResponse> {
+  const resp = await apiFetch(`/api/cards/${cardId}/freeze`, {
+    method: "POST",
+    tokenOverride: token,
+  });
+  if (!resp.ok) {
+    const msg = (await resp.json().catch(() => null))?.message || "Failed to freeze card";
+    throw new Error(msg);
+  }
+  const data = await resp.json();
+  return data.data as VirtualCardResponse;
+}
+
+/**
+ * Unfreeze a virtual card
+ */
+export async function unfreezeVirtualCard(cardId: string, token?: string): Promise<VirtualCardResponse> {
+  const resp = await apiFetch(`/api/cards/${cardId}/unfreeze`, {
+    method: "POST",
+    tokenOverride: token,
+  });
+  if (!resp.ok) {
+    const msg = (await resp.json().catch(() => null))?.message || "Failed to unfreeze card";
+    throw new Error(msg);
+  }
+  const data = await resp.json();
+  return data.data as VirtualCardResponse;
+}
+
+/**
+ * Update spending limit for a virtual card
+ */
+export async function updateVirtualCardLimit(
+  cardId: string,
+  spendingLimit: number,
+  token?: string
+): Promise<VirtualCardResponse> {
+  const resp = await apiFetch(`/api/cards/${cardId}/limit`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ spendingLimit }),
+    tokenOverride: token,
+  });
+  if (!resp.ok) {
+    const msg = (await resp.json().catch(() => null))?.message || "Failed to update card limit";
+    throw new Error(msg);
+  }
+  const data = await resp.json();
+  return data.data as VirtualCardResponse;
+}
+
+/**
+ * Cancel a virtual card
+ */
+export async function cancelVirtualCard(cardId: string, token?: string): Promise<void> {
+  const resp = await apiFetch(`/api/cards/${cardId}`, {
+    method: "DELETE",
+    tokenOverride: token,
+  });
+  if (!resp.ok) {
+    const msg = (await resp.json().catch(() => null))?.message || "Failed to cancel card";
+    throw new Error(msg);
+  }
+}
