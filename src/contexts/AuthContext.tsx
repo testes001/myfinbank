@@ -78,7 +78,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       };
 
       setCurrentUser(nextUser);
-      persistAccessToken(tokenToUse);
+      await persistAccessToken(tokenToUse);
       setUserStatus(deriveStatusFromKyc(kyc));
       localStorage.setItem("bankingUser", JSON.stringify(nextUser));
     } catch (err) {
