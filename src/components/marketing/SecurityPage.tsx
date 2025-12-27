@@ -10,6 +10,7 @@ import {
   FileText,
   Users,
 } from "lucide-react";
+import { MarketingCTA } from "@/components/marketing/MarketingCTA";
 
 const itemVariants = {
   hidden: { opacity: 0, y: 20 },
