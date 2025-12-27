@@ -305,6 +305,11 @@ export function PricingPage() {
           </motion.div>
         </div>
       </section>
+
+      <MarketingCTA
+        title="Choose Your Plan"
+        description="No hidden fees. No surprises. Transparent pricing for everyone."
+      />
     </div>
   );
 }
