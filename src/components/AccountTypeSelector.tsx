@@ -1,7 +1,9 @@
 import { useState, type ReactNode } from "react";
-import { Shield, Users, Briefcase, CheckCircle2, ArrowRight } from "lucide-react";
+import { Shield, Users, Briefcase, CheckCircle2, ArrowRight, ChevronLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { Link } from "@tanstack/react-router";
+import { OnboardingBreadcrumb } from "@/components/OnboardingBreadcrumb";
 
 type AccountType = "checking" | "joint" | "business_elite";
 
@@ -47,6 +49,16 @@ export function AccountTypeSelector({ onSelect, onSignIn }: AccountTypeSelectorP
     <div className="relative min-h-screen bg-gradient-to-br from-blue-950 via-slate-900 to-purple-950 text-white flex items-center justify-center p-6 overflow-hidden">
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(59,130,246,0.18),transparent_25%),radial-gradient(circle_at_80%_0%,rgba(124,58,237,0.14),transparent_25%),radial-gradient(circle_at_60%_80%,rgba(16,185,129,0.18),transparent_25%)]" />
       <div className="relative z-10 w-full max-w-5xl space-y-8">
+        <div className="flex items-center justify-between mb-4">
+          <Link
+            to="/marketing"
+            className="flex items-center gap-1 text-white/70 hover:text-white transition-colors text-sm"
+          >
+            <ChevronLeft className="w-4 h-4" />
+            Back to Marketing
+          </Link>
+          <OnboardingBreadcrumb currentStep="account-type" />
+        </div>
         <div className="text-center space-y-3">
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-white/15 bg-white/10 text-xs font-semibold">
             <Shield className="w-4 h-4 text-emerald-300" />

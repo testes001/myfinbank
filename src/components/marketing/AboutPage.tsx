@@ -1,6 +1,7 @@
 import { motion } from "framer-motion";
 import { FinBankBrand } from "@/lib/brand-config";
 import { Users, Target, Heart, Globe } from "lucide-react";
+import { MarketingCTA } from "@/components/marketing/MarketingCTA";
 
 const itemVariants = {
   hidden: { opacity: 0, y: 20 },
@@ -279,7 +280,7 @@ export function AboutPage() {
       </section>
 
       {/* Contact */}
-      <section className="py-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-r from-blue-600 to-blue-700 dark:from-blue-900 dark:to-blue-950">
+      <section className="py-20 px-4 sm:px-6 lg:px-8 bg-slate-50 dark:bg-slate-900/50">
         <div className="max-w-4xl mx-auto text-center">
           <motion.div
             variants={itemVariants}
@@ -287,28 +288,28 @@ export function AboutPage() {
             whileInView="visible"
             viewport={{ once: true }}
           >
-            <h2 className="text-3xl font-bold text-white mb-4">
+            <h2 className="text-3xl font-bold text-slate-900 dark:text-white mb-4">
               Get in Touch
             </h2>
-            <p className="text-lg text-blue-100 mb-6">
+            <p className="text-lg text-slate-600 dark:text-slate-300 mb-6">
               Have questions or want to learn more? We'd love to hear from you.
             </p>
             <div className="flex flex-col sm:flex-row justify-center gap-6">
               <a
                 href="mailto:hello@finbank.online"
-                className="text-blue-100 hover:text-white transition font-semibold"
+                className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition font-semibold"
               >
                 📧 hello@finbank.online
               </a>
               <a
                 href="tel:+34800123456"
-                className="text-blue-100 hover:text-white transition font-semibold"
+                className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition font-semibold"
               >
                 📞 +34 (0) 800 123 456
               </a>
               <a
                 href="#"
-                className="text-blue-100 hover:text-white transition font-semibold"
+                className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition font-semibold"
               >
                 📍 Madrid, Spain
               </a>
@@ -316,6 +317,11 @@ export function AboutPage() {
           </motion.div>
         </div>
       </section>
+
+      <MarketingCTA
+        title="Learn More About Our Story"
+        description="Ready to be part of the future of European banking? Open your account today."
+      />
     </div>
   );
 }

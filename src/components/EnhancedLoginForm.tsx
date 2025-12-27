@@ -18,12 +18,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Eye, EyeOff, AlertTriangle, Shield, Loader2, CheckCircle2, XCircle } from "lucide-react";
+import { Eye, EyeOff, AlertTriangle, Shield, Loader2, CheckCircle2, XCircle, ChevronLeft } from "lucide-react";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
 import { getAuthThrottle, recordAuthAttempt, resetAuthThrottle } from "@/lib/rate-limit";
 import { submitKyc, type KycSubmissionRequest } from "@/lib/backend";
-import { useNavigate } from "@tanstack/react-router";
+import { useNavigate, Link } from "@tanstack/react-router";
+import { OnboardingBreadcrumb } from "@/components/OnboardingBreadcrumb";
 
 interface EnhancedLoginFormProps {
   mode?: "login" | "signup";
@@ -324,6 +325,18 @@ export function EnhancedLoginForm({ mode, defaultAccountType, onSwitchToSignIn }
   return (
     <div className="relative min-h-screen bg-gradient-to-br from-blue-950 via-slate-900 to-purple-950 flex items-center justify-center p-4 text-white overflow-hidden">
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(59,130,246,0.18),transparent_25%),radial-gradient(circle_at_80%_0%,rgba(124,58,237,0.14),transparent_25%),radial-gradient(circle_at_60%_80%,rgba(16,185,129,0.18),transparent_25%)]" />
+      {mode === "signup" && (
+        <div className="absolute top-6 left-6 right-6 flex items-center justify-between z-20">
+          <Link
+            to="/account-type"
+            className="flex items-center gap-1 text-white/70 hover:text-white transition-colors text-sm"
+          >
+            <ChevronLeft className="w-4 h-4" />
+            Back
+          </Link>
+          <OnboardingBreadcrumb currentStep="signup" />
+        </div>
+      )}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}

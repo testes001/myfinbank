@@ -10,6 +10,7 @@ import {
   FileText,
   Users,
 } from "lucide-react";
+import { MarketingCTA } from "@/components/marketing/MarketingCTA";
 
 const itemVariants = {
   hidden: { opacity: 0, y: 20 },
@@ -326,7 +327,7 @@ export function SecurityPage() {
       </section>
 
       {/* Contact Security */}
-      <section className="py-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-r from-blue-600 to-blue-700 dark:from-blue-900 dark:to-blue-950">
+      <section className="py-20 px-4 sm:px-6 lg:px-8 bg-slate-50 dark:bg-slate-900/50">
         <div className="max-w-4xl mx-auto text-center">
           <motion.div
             variants={itemVariants}
@@ -334,18 +335,23 @@ export function SecurityPage() {
             whileInView="visible"
             viewport={{ once: true }}
           >
-            <h2 className="text-3xl font-bold text-white mb-4">
+            <h2 className="text-3xl font-bold text-slate-900 dark:text-white mb-4">
               Security Questions?
             </h2>
-            <p className="text-lg text-blue-100 mb-6">
+            <p className="text-lg text-slate-600 dark:text-slate-300 mb-6">
               Our security team is available 24/7 for any concerns
             </p>
-            <p className="text-blue-100">
+            <p className="text-slate-600 dark:text-slate-400">
               Email: security@finbank.online | Phone: +34 (0) 800 123 456
             </p>
           </motion.div>
         </div>
       </section>
+
+      <MarketingCTA
+        title="Bank with Confidence"
+        description="Your security is our top priority. Join thousands of Europeans who trust Fin-Bank."
+      />
     </div>
   );
 }

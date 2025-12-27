@@ -15,6 +15,7 @@ import {
   BarChart3,
   CheckCircle2,
 } from "lucide-react";
+import { MarketingCTA } from "@/components/marketing/MarketingCTA";
 
 const itemVariants = {
   hidden: { opacity: 0, y: 20 },
@@ -293,6 +294,11 @@ export function FeaturesPage() {
           </div>
         </div>
       </section>
+
+      <MarketingCTA
+        title="Experience These Features Yourself"
+        description="Join thousands of Europeans enjoying modern banking with Fin-Bank"
+      />
     </div>
   );
 }
