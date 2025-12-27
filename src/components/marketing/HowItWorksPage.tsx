@@ -243,7 +243,11 @@ export function HowItWorksPage() {
             <p className="text-xl text-blue-100 mb-8">
               Join thousands of Europeans who are banking better with Fin-Bank
             </p>
-            <Button size="lg" className="bg-white hover:bg-slate-100 text-blue-600 font-bold flex items-center gap-2 mx-auto">
+            <Button
+              size="lg"
+              className="bg-white hover:bg-slate-100 text-blue-600 font-bold flex items-center gap-2 mx-auto"
+              onClick={() => navigate({ to: "/account-type" })}
+            >
               Create Your Account <ArrowRight className="w-5 h-5" />
             </Button>
           </motion.div>
