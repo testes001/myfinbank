@@ -1,31 +1,37 @@
+import {
+  getSecureAccessToken,
+  persistSecureAccessToken,
+  initializeSecureStorage,
+  isAuthenticated
+} from './secure-storage';
+
 const API_BASE = import.meta.env.VITE_API_BASE_URL || window.location.origin;
 
-const ACCESS_TOKEN_KEY = "bankingAccessToken";
 let refreshInFlight: Promise<string | null> | null = null;
 
 export interface StoredAuthSession {
   accessToken: string;
 }
 
+// Initialize secure storage on module load
+initializeSecureStorage().catch((err) => {
+  console.error("Failed to initialize secure storage:", err);
+});
+
+/**
+ * Get the stored access token from secure memory storage
+ * @returns Access token or null if not authenticated
+ */
 export function getStoredAccessToken(): string | null {
-  try {
-    return localStorage.getItem(ACCESS_TOKEN_KEY);
-  } catch (err) {
-    console.error("Failed to read access token from storage", err);
-    return null;
-  }
+  return getSecureAccessToken();
 }
 
-export function persistAccessToken(token: string | null): void {
-  try {
-    if (token) {
-      localStorage.setItem(ACCESS_TOKEN_KEY, token);
-    } else {
-      localStorage.removeItem(ACCESS_TOKEN_KEY);
-    }
-  } catch (err) {
-    console.error("Failed to persist access token", err);
-  }
+/**
+ * Persist access token securely in memory and IndexedDB
+ * @param token The access token to store or null to clear
+ */
+export async function persistAccessToken(token: string | null): Promise<void> {
+  await persistSecureAccessToken(token);
 }
 
 export async function refreshAccessToken(): Promise<string | null> {
