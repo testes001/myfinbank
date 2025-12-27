@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
 import type { AuthUser } from "@/lib/auth";
+import { logoutUser } from "@/lib/auth";
 import { fetchAccounts, fetchKycStatus, fetchProfile, type KycStatusResponse } from "@/lib/backend";
 import { getStoredAccessToken, persistAccessToken, refreshAccessToken } from "@/lib/api-client";
 
