@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { LandingPage } from "@/components/LandingPage";
-import { LoginForm } from "@/components/LoginForm";
+import { EnhancedLoginForm } from "@/components/EnhancedLoginForm";
 
 export type AuthGatewayState = "landing" | "login";
 
@@ -24,5 +24,5 @@ export function AuthenticationGateway() {
     return <LandingPage onSignupClick={handleSignupClick} />;
   }
 
-  return <LoginForm onShowLanding={handleBackToLanding} />;
+  return <EnhancedLoginForm onSwitchToSignIn={handleBackToLanding} />;
 }

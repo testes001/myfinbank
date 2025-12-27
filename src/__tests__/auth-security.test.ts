@@ -37,7 +37,7 @@ describe('Phase 1: Critical Security Fixes', () => {
   describe('Issue #2: Server-Side Logout Session Invalidation', () => {
     it('should call logout endpoint when user logs out', async () => {
       const mockFetch = vi.fn();
-      global.fetch = mockFetch;
+      vi.stubGlobal('fetch', mockFetch);
 
       // Simulate logout call
       const response = new Response(JSON.stringify({ success: true }), { status: 200 });

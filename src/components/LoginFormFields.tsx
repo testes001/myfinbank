@@ -60,7 +60,6 @@ export function LoginFormFields({
           className="bg-white/10 border-white/20 text-white placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
           required
           disabled={isLoading}
-          aria-label="Email address"
           aria-describedby={emailTouched && !email ? "email-error" : undefined}
           aria-invalid={emailTouched && !email}
         />
@@ -87,7 +86,6 @@ export function LoginFormFields({
             className="bg-white/10 border-white/20 text-white placeholder:text-gray-400 pr-10 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
             required
             disabled={isLoading}
-            aria-label="Password"
             aria-describedby={passwordTouched && !password ? "password-error" : undefined}
             aria-invalid={passwordTouched && !password}
           />
@@ -147,7 +145,7 @@ export function LoginFormFields({
       {/* Sign In Button */}
       <Button
         type="submit"
-        className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 font-medium transition-all focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-blue-950"
+        className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 font-medium transition-all focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-blue-950 focus:ring"
         disabled={isLoading || !rateLimitInfo.allowed}
       >
         {isLoading ? (
@@ -164,7 +162,7 @@ export function LoginFormFields({
       <button
         type="button"
         onClick={onForgotPassword}
-        className="w-full text-sm text-blue-200 hover:text-blue-100 underline transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 rounded px-2 py-1"
+        className="w-full text-sm text-blue-200 hover:text-blue-100 underline transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 rounded px-2 py-1 focus:ring"
         disabled={isLoading}
       >
         Forgot your password?

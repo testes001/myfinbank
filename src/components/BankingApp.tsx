@@ -6,7 +6,7 @@ import { Dashboard } from "@/components/Dashboard";
 import { TransactionHistory } from "@/components/TransactionHistory";
 import { ProfilePage } from "@/components/ProfilePage";
 import { MobileNav } from "@/components/MobileNav";
-import { MobileDepositModal } from "@/components/MobileDepositModal";
+import { MobileDepositModalNew } from "@/components/MobileDepositModalNew";
 import { OnboardingFlow, type OnboardingData } from "@/components/OnboardingFlow";
 import { motion, AnimatePresence } from "framer-motion";
 import { uploadDocument } from "@/lib/kyc-storage";
@@ -269,7 +269,7 @@ export function BankingApp() {
       />
 
       {/* Global Mobile Deposit Modal accessible from bottom nav */}
-      <MobileDepositModal
+      <MobileDepositModalNew
         open={isMobileDepositOpen}
         onOpenChange={setIsMobileDepositOpen}
         onSuccess={() => {
