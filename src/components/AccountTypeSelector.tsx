@@ -1,7 +1,9 @@
 import { useState, type ReactNode } from "react";
-import { Shield, Users, Briefcase, CheckCircle2, ArrowRight } from "lucide-react";
+import { Shield, Users, Briefcase, CheckCircle2, ArrowRight, ChevronLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { Link } from "@tanstack/react-router";
+import { OnboardingBreadcrumb } from "@/components/OnboardingBreadcrumb";
 
 type AccountType = "checking" | "joint" | "business_elite";
 
