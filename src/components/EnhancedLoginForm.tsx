@@ -4,6 +4,8 @@ import { loginUser, registerUser, markUserEmailVerified, requestPasswordReset, c
 import { checkRateLimit, recordLoginAttempt, clearRateLimit } from "@/lib/rate-limiter";
 import { validatePasswordStrength } from "@/lib/password-validation";
 import { PasswordStrengthIndicator } from "@/components/PasswordStrengthIndicator";
+import { LoginFormFields } from "@/components/LoginFormFields";
+import { PasswordResetForm } from "@/components/PasswordResetForm";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -18,7 +20,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Eye, EyeOff, AlertTriangle, Shield, Loader2, CheckCircle2, XCircle, ChevronLeft } from "lucide-react";
+import { Shield, Loader2, CheckCircle2, XCircle, ChevronLeft } from "lucide-react";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
 import { getAuthThrottle, recordAuthAttempt, resetAuthThrottle } from "@/lib/rate-limit";
