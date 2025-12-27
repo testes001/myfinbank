@@ -426,8 +426,9 @@ export function MarketingHomePage() {
                 className="bg-gradient-to-r from-blue-500 via-purple-500 to-emerald-500 hover:from-blue-600 hover:via-purple-600 hover:to-emerald-600 text-white font-bold flex items-center gap-2 border border-white/10 shadow-lg shadow-blue-500/30"
                 disabled={eligible === false}
                 onClick={handleGetStarted}
+                title="Choose account type and sign up"
               >
-                Get Started <ArrowRight className="w-5 h-5" />
+                Open Account <ArrowRight className="w-5 h-5" />
               </Button>
               <Button
                 size="lg"
