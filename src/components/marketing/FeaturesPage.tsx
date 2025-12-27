@@ -294,6 +294,11 @@ export function FeaturesPage() {
           </div>
         </div>
       </section>
+
+      <MarketingCTA
+        title="Experience These Features Yourself"
+        description="Join thousands of Europeans enjoying modern banking with Fin-Bank"
+      />
     </div>
   );
 }
