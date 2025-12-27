@@ -45,20 +45,20 @@ export async function refreshAccessToken(): Promise<string | null> {
         credentials: "include",
       });
       if (!resp.ok) {
-        persistAccessToken(null);
+        await persistAccessToken(null);
         return null;
       }
       const data = await resp.json();
       const token = data?.data?.accessToken as string | undefined;
       if (token) {
-        persistAccessToken(token);
+        await persistAccessToken(token);
         return token;
       }
-      persistAccessToken(null);
+      await persistAccessToken(null);
       return null;
     } catch (err) {
       console.error("Access token refresh failed", err);
-      persistAccessToken(null);
+      await persistAccessToken(null);
       return null;
     } finally {
       refreshInFlight = null;
