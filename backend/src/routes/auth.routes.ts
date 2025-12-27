@@ -5,6 +5,13 @@
 import { Router } from 'express';
 import { authController } from '@/controllers/auth.controller';
 import { authenticate } from '@/middleware/auth';
+import {
+  loginLimiter,
+  passwordResetLimiter,
+  passwordResetConfirmLimiter,
+  emailVerificationLimiter,
+  registerLimiter,
+} from '@/middleware/rateLimit';
 
 const router = Router();
 
