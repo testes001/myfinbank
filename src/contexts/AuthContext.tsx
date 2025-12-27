@@ -3,6 +3,7 @@ import type { AuthUser } from "@/lib/auth";
 import { logoutUser } from "@/lib/auth";
 import { fetchAccounts, fetchKycStatus, fetchProfile, type KycStatusResponse } from "@/lib/backend";
 import { getStoredAccessToken, persistAccessToken, refreshAccessToken } from "@/lib/api-client";
+import { clearSecureStorage } from "@/lib/secure-storage";
 
 export type UserStatus = "onboarding" | "pending_kyc" | "active" | "suspended";
 
