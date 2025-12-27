@@ -107,10 +107,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const handleSetCurrentUser = (user: AuthUser | null) => {
     setCurrentUser(user);
     if (user?.accessToken) {
-      persistAccessToken(user.accessToken);
+      persistAccessToken(user.accessToken).catch((err) => {
+        console.error("Failed to persist access token:", err);
+      });
       localStorage.setItem("bankingUser", JSON.stringify(user));
     } else {
-      persistAccessToken(null);
+      persistAccessToken(null).catch((err) => {
+        console.error("Failed to clear access token:", err);
+      });
       localStorage.removeItem("bankingUser");
     }
   };
@@ -122,8 +126,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } catch (error) {
       console.error("Server logout failed:", error);
     } finally {
-      // Always clear local state even if server logout fails
-      handleSetCurrentUser(null);
+      // Always clear local and secure storage even if server logout fails
+      setCurrentUser(null);
+      await clearSecureStorage();
+      localStorage.removeItem("bankingUser");
       setUserStatus(null);
     }
   };
