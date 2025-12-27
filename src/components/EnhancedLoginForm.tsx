@@ -20,7 +20,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Shield, Loader2, CheckCircle2, XCircle, ChevronLeft } from "lucide-react";
+import { Shield, Loader2, CheckCircle2, XCircle, ChevronLeft, Eye, EyeOff } from "lucide-react";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
 import { getAuthThrottle, recordAuthAttempt, resetAuthThrottle } from "@/lib/rate-limit";
@@ -61,6 +61,7 @@ export function EnhancedLoginForm({ mode, defaultAccountType, onSwitchToSignIn }
   const [registerAccountType, setRegisterAccountType] = useState<"checking" | "joint" | "business_elite">(defaultAccountType || "checking");
   const [kycSubmitting, setKycSubmitting] = useState(false);
   const [kycSubmitted, setKycSubmitted] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const [kycForm, setKycForm] = useState({
     phone: "",
