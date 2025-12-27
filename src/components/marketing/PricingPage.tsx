@@ -1,6 +1,8 @@
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { CheckCircle2, ArrowRight, TrendingUp } from "lucide-react";
+import { useNavigate } from "@tanstack/react-router";
+import { MarketingCTA } from "@/components/marketing/MarketingCTA";
 
 const itemVariants = {
   hidden: { opacity: 0, y: 20 },
