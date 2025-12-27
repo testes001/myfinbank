@@ -130,9 +130,12 @@ export function EnhancedLoginForm({ mode, defaultAccountType, onSwitchToSignIn }
     try {
       await requestPasswordReset(loginEmail);
       setResetRequested(true);
-      toast.success("Reset code sent to your email");
+      // Generic success message - doesn't reveal if email exists
+      toast.success("Check your email for reset instructions");
     } catch (err) {
-      setLoginError(err instanceof Error ? err.message : "Failed to request password reset");
+      // Don't reveal if email exists or not - always show same message
+      setLoginError("");
+      toast.success("Check your email for reset instructions");
     } finally {
       setIsResetting(false);
     }
