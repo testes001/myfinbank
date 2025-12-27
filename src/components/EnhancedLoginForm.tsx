@@ -127,7 +127,7 @@ export function EnhancedLoginForm({ mode, defaultAccountType, onSwitchToSignIn }
       setLoginError("Enter your email to reset password");
       return;
     }
-    setIsResetting(true);
+    setIsResettingPassword(true);
     try {
       await requestPasswordReset(loginEmail);
       setResetRequested(true);
@@ -138,7 +138,7 @@ export function EnhancedLoginForm({ mode, defaultAccountType, onSwitchToSignIn }
       setLoginError("");
       toast.success("Check your email for reset instructions");
     } finally {
-      setIsResetting(false);
+      setIsResettingPassword(false);
     }
   };
 
@@ -149,7 +149,7 @@ export function EnhancedLoginForm({ mode, defaultAccountType, onSwitchToSignIn }
       setLoginError("Enter the code and new password");
       return;
     }
-    setIsResetting(true);
+    setIsResettingPassword(true);
     try {
       await confirmPasswordReset(loginEmail, resetCode, resetNewPassword);
       toast.success("Password updated. Please sign in.");
@@ -159,7 +159,7 @@ export function EnhancedLoginForm({ mode, defaultAccountType, onSwitchToSignIn }
     } catch (err) {
       setLoginError(err instanceof Error ? err.message : "Failed to reset password");
     } finally {
-      setIsResetting(false);
+      setIsResettingPassword(false);
     }
   };
 
