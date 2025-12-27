@@ -147,8 +147,9 @@ export function MarketingHomePage() {
                   disabled={eligible === false}
                   aria-disabled={eligible === false}
                   onClick={handleGetStarted}
+                  title="Choose account type and sign up"
                 >
-                  Get Started Now <ArrowRight className="w-5 h-5" />
+                  Open Account <ArrowRight className="w-5 h-5" />
                 </Button>
                 <Button
                   size="lg"
