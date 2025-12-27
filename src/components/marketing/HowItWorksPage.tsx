@@ -18,6 +18,7 @@ const itemVariants = {
 };
 
 export function HowItWorksPage() {
+  const navigate = useNavigate();
   const steps = [
     {
       number: "1",
