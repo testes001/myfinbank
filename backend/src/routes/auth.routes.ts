@@ -55,27 +55,27 @@ router.get('/me', authenticate, authController.me);
  * @desc    Send verification code email
  * @access  Public
  */
-router.post('/verification-code', authController.sendVerificationCode);
+router.post('/verification-code', emailVerificationLimiter, authController.sendVerificationCode);
 
 /**
  * @route   POST /api/auth/verify
  * @desc    Verify email with code
  * @access  Public
  */
-router.post('/verify', authController.verify);
+router.post('/verify', emailVerificationLimiter, authController.verify);
 
 /**
  * @route   POST /api/auth/password/forgot
  * @desc    Request password reset code
  * @access  Public
  */
-router.post('/password/forgot', authController.requestPasswordReset);
+router.post('/password/forgot', passwordResetLimiter, authController.requestPasswordReset);
 
 /**
  * @route   POST /api/auth/password/reset
  * @desc    Reset password with verification code
  * @access  Public
  */
-router.post('/password/reset', authController.resetPassword);
+router.post('/password/reset', passwordResetConfirmLimiter, authController.resetPassword);
 
 export default router;
