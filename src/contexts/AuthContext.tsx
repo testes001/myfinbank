@@ -3,6 +3,7 @@ import type { AuthUser } from "@/lib/auth";
 import { logoutUser } from "@/lib/auth";
 import { fetchAccounts, fetchKycStatus, fetchProfile, type KycStatusResponse } from "@/lib/backend";
 import { getStoredAccessToken, persistAccessToken, refreshAccessToken } from "@/lib/api-client";
+import { clearSecureStorage } from "@/lib/secure-storage";
 
 export type UserStatus = "onboarding" | "pending_kyc" | "active" | "suspended";
 
@@ -77,7 +78,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       };
 
       setCurrentUser(nextUser);
-      persistAccessToken(tokenToUse);
+      await persistAccessToken(tokenToUse);
       setUserStatus(deriveStatusFromKyc(kyc));
       localStorage.setItem("bankingUser", JSON.stringify(nextUser));
     } catch (err) {
@@ -106,10 +107,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const handleSetCurrentUser = (user: AuthUser | null) => {
     setCurrentUser(user);
     if (user?.accessToken) {
-      persistAccessToken(user.accessToken);
+      persistAccessToken(user.accessToken).catch((err) => {
+        console.error("Failed to persist access token:", err);
+      });
       localStorage.setItem("bankingUser", JSON.stringify(user));
     } else {
-      persistAccessToken(null);
+      persistAccessToken(null).catch((err) => {
+        console.error("Failed to clear access token:", err);
+      });
       localStorage.removeItem("bankingUser");
     }
   };
@@ -121,8 +126,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } catch (error) {
       console.error("Server logout failed:", error);
     } finally {
-      // Always clear local state even if server logout fails
-      handleSetCurrentUser(null);
+      // Always clear local and secure storage even if server logout fails
+      setCurrentUser(null);
+      await clearSecureStorage();
+      localStorage.removeItem("bankingUser");
       setUserStatus(null);
     }
   };

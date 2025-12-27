@@ -4,6 +4,8 @@ import { loginUser, registerUser, markUserEmailVerified, requestPasswordReset, c
 import { checkRateLimit, recordLoginAttempt, clearRateLimit } from "@/lib/rate-limiter";
 import { validatePasswordStrength } from "@/lib/password-validation";
 import { PasswordStrengthIndicator } from "@/components/PasswordStrengthIndicator";
+import { LoginFormFields } from "@/components/LoginFormFields";
+import { PasswordResetForm } from "@/components/PasswordResetForm";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -18,7 +20,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Eye, EyeOff, AlertTriangle, Shield, Loader2, CheckCircle2, XCircle, ChevronLeft } from "lucide-react";
+import { Shield, Loader2, CheckCircle2, XCircle, ChevronLeft } from "lucide-react";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
 import { getAuthThrottle, recordAuthAttempt, resetAuthThrottle } from "@/lib/rate-limit";
@@ -37,7 +39,6 @@ export function EnhancedLoginForm({ mode, defaultAccountType, onSwitchToSignIn }
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<"login" | "register">(mode === "signup" ? "register" : "login");
   const [isLoading, setIsLoading] = useState(false);
-  const [showPassword, setShowPassword] = useState(false);
 
   // Login state
   const [loginEmail, setLoginEmail] = useState("");
@@ -45,7 +46,7 @@ export function EnhancedLoginForm({ mode, defaultAccountType, onSwitchToSignIn }
   const [loginError, setLoginError] = useState("");
   const [rateLimitInfo, setRateLimitInfo] = useState<{ allowed: boolean; remainingAttempts: number; message?: string; resetTime?: number }>({ allowed: true, remainingAttempts: 5 });
   const [authThrottle, setAuthThrottle] = useState(() => getAuthThrottle());
-  const [isResetting, setIsResetting] = useState(false);
+  const [isResettingPassword, setIsResettingPassword] = useState(false);
   const [resetRequested, setResetRequested] = useState(false);
   const [resetCode, setResetCode] = useState("");
   const [resetNewPassword, setResetNewPassword] = useState("");
@@ -126,7 +127,7 @@ export function EnhancedLoginForm({ mode, defaultAccountType, onSwitchToSignIn }
       setLoginError("Enter your email to reset password");
       return;
     }
-    setIsResetting(true);
+    setIsResettingPassword(true);
     try {
       await requestPasswordReset(loginEmail);
       setResetRequested(true);
@@ -137,7 +138,7 @@ export function EnhancedLoginForm({ mode, defaultAccountType, onSwitchToSignIn }
       setLoginError("");
       toast.success("Check your email for reset instructions");
     } finally {
-      setIsResetting(false);
+      setIsResettingPassword(false);
     }
   };
 
@@ -148,7 +149,7 @@ export function EnhancedLoginForm({ mode, defaultAccountType, onSwitchToSignIn }
       setLoginError("Enter the code and new password");
       return;
     }
-    setIsResetting(true);
+    setIsResettingPassword(true);
     try {
       await confirmPasswordReset(loginEmail, resetCode, resetNewPassword);
       toast.success("Password updated. Please sign in.");
@@ -158,7 +159,7 @@ export function EnhancedLoginForm({ mode, defaultAccountType, onSwitchToSignIn }
     } catch (err) {
       setLoginError(err instanceof Error ? err.message : "Failed to reset password");
     } finally {
-      setIsResetting(false);
+      setIsResettingPassword(false);
     }
   };
 
@@ -374,144 +375,53 @@ export function EnhancedLoginForm({ mode, defaultAccountType, onSwitchToSignIn }
               </Tabs>
             )}
 
-            {(activeTab === "login") && (
+            {/* LOGIN TAB - Using accessible components */}
+            {activeTab === "login" && !isResettingPassword && (
               <div className="space-y-6">
-                <form onSubmit={handleLogin} className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="login-email" className="text-white">Email</Label>
-                    <Input
-                      id="login-email"
-                      type="email"
-                      value={loginEmail}
-                      onChange={(e) => setLoginEmail(e.target.value)}
-                      placeholder="Enter your email"
-                      className="bg-white/10 border-white/20 text-white placeholder:text-gray-400"
-                      required
-                      disabled={isLoading}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="login-password" className="text-white">Password</Label>
-                    <div className="relative">
-                      <Input
-                        id="login-password"
-                        type={showPassword ? "text" : "password"}
-                        value={loginPassword}
-                        onChange={(e) => setLoginPassword(e.target.value)}
-                        placeholder="Enter your password"
-                        className="bg-white/10 border-white/20 text-white placeholder:text-gray-400 pr-10"
-                        required
-                        disabled={isLoading}
-                      />
-                      <button
-                        type="button"
-                        onClick={() => setShowPassword(!showPassword)}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white"
-                      >
-                        {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                      </button>
-                    </div>
-                  </div>
+                <LoginFormFields
+                  email={loginEmail}
+                  password={loginPassword}
+                  onEmailChange={setLoginEmail}
+                  onPasswordChange={setLoginPassword}
+                  onSubmit={handleLogin}
+                  isLoading={isLoading}
+                  error={loginError}
+                  rateLimitInfo={rateLimitInfo}
+                  onForgotPassword={() => setIsResettingPassword(true)}
+                />
 
-                  {!rateLimitInfo.allowed && (
-                    <Alert variant="destructive">
-                      <AlertTriangle className="h-4 w-4" />
-                      <AlertDescription>{rateLimitInfo.message}</AlertDescription>
-                    </Alert>
-                  )}
-
-                  {loginError && (
-                    <Alert variant="destructive">
-                      <AlertTriangle className="h-4 w-4" />
-                      <AlertDescription>{loginError}</AlertDescription>
-                    </Alert>
-                  )}
-
-                  {rateLimitInfo.remainingAttempts <= 3 && rateLimitInfo.allowed && (
-                    <Alert className="bg-amber-500/10 border-amber-500/20">
-                      <AlertTriangle className="h-4 w-4 text-amber-400" />
-                      <AlertDescription className="text-amber-300">
-                        {rateLimitInfo.remainingAttempts} attempt{rateLimitInfo.remainingAttempts > 1 ? "s" : ""} remaining before lockout
-                      </AlertDescription>
-                    </Alert>
-                  )}
-
-                  <Button
-                    type="submit"
-                    className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
-                    disabled={isLoading || !rateLimitInfo.allowed}
-                  >
-                    {isLoading ? (
-                      <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Signing in...
-                      </>
-                    ) : (
-                      "Sign In"
-                    )}
-                  </Button>
-                </form>
-
-                <div className="space-y-4">
-                  <div className="p-4 bg-white/5 border border-white/10 rounded-lg text-sm space-y-2">
-                    <p className="font-semibold text-white mb-1">Demo Accounts:</p>
-                    <p className="text-xs text-gray-300">
-                      alice@demo.com / password123<br />
-                      bob@demo.com / password123
-                    </p>
-                  </div>
-
-                  <div className="p-4 bg-white/5 border border-white/10 rounded-lg text-sm space-y-3">
-                    <p className="font-semibold text-white">Forgot password?</p>
-                    <p className="text-xs text-white/70">Request a reset code, then set a new password.</p>
-                    {!resetRequested ? (
-                      <form onSubmit={handleRequestPasswordReset} className="space-y-2">
-                        <Input
-                          type="email"
-                          value={loginEmail}
-                          onChange={(e) => setLoginEmail(e.target.value)}
-                          placeholder="Enter your email"
-                          className="bg-white/10 border-white/20 text-white placeholder:text-gray-400"
-                          required
-                          disabled={isResetting}
-                        />
-                        <Button type="submit" size="sm" className="w-full bg-white/10 border border-white/20 text-white" disabled={isResetting}>
-                          {isResetting ? "Sending..." : "Send reset code"}
-                        </Button>
-                      </form>
-                    ) : (
-                      <form onSubmit={handleConfirmPasswordReset} className="space-y-2">
-                        <Input
-                          type="text"
-                          value={resetCode}
-                          onChange={(e) => setResetCode(e.target.value)}
-                          placeholder="Enter code"
-                          className="bg-white/10 border-white/20 text-white placeholder:text-gray-400"
-                          required
-                          disabled={isResetting}
-                        />
-                        <Input
-                          type="password"
-                          value={resetNewPassword}
-                          onChange={(e) => setResetNewPassword(e.target.value)}
-                          placeholder="New password"
-                          className="bg-white/10 border-white/20 text-white placeholder:text-gray-400"
-                          required
-                          disabled={isResetting}
-                        />
-                        <div className="flex gap-2">
-                          <Button type="submit" size="sm" className="flex-1 bg-white/10 border border-white/20 text-white" disabled={isResetting}>
-                            {isResetting ? "Resetting..." : "Update password"}
-                          </Button>
-                          <Button type="button" size="sm" variant="ghost" className="text-white/70 hover:text-white" onClick={() => setResetRequested(false)} disabled={isResetting}>
-                            Back
-                          </Button>
-                        </div>
-                      </form>
-                    )}
-                  </div>
+                <div className="p-4 bg-white/5 border border-white/10 rounded-lg text-sm space-y-2">
+                  <p className="font-semibold text-white mb-1">Demo Accounts:</p>
+                  <p className="text-xs text-gray-300">
+                    alice@demo.com / password123<br />
+                    bob@demo.com / password123
+                  </p>
                 </div>
               </div>
+            )}
+
+            {/* PASSWORD RESET TAB - Using accessible component */}
+            {activeTab === "login" && isResettingPassword && (
+              <PasswordResetForm
+                email={loginEmail}
+                onEmailChange={setLoginEmail}
+                onSubmitRequest={handleRequestPasswordReset}
+                onSubmitConfirm={handleConfirmPasswordReset}
+                onBack={() => {
+                  setIsResettingPassword(false);
+                  setResetRequested(false);
+                  setResetCode("");
+                  setResetNewPassword("");
+                  setLoginError("");
+                }}
+                resetCode={resetCode}
+                onResetCodeChange={setResetCode}
+                newPassword={resetNewPassword}
+                onNewPasswordChange={setResetNewPassword}
+                isLoading={isLoading}
+                error={loginError}
+                resetRequested={resetRequested}
+              />
             )}
 
             {(activeTab === "register") && (
