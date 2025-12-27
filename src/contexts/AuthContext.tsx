@@ -114,9 +114,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const logout = () => {
-    handleSetCurrentUser(null);
-    setUserStatus(null);
+  const logout = async () => {
+    try {
+      // Invalidate session on server
+      await logoutUser();
+    } catch (error) {
+      console.error("Server logout failed:", error);
+    } finally {
+      // Always clear local state even if server logout fails
+      handleSetCurrentUser(null);
+      setUserStatus(null);
+    }
   };
 
   // Keep tokens fresh in the background
