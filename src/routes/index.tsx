@@ -15,7 +15,7 @@ function App() {
     if (currentUser) {
       navigate({ to: "/dashboard" });
     } else {
-      navigate({ to: "/account-type" });
+      navigate({ to: "/marketing" });
     }
   }, [currentUser, navigate]);
 
