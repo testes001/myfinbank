@@ -61,6 +61,7 @@ export function EnhancedLoginForm({ mode, defaultAccountType, onSwitchToSignIn }
   const [registerAccountType, setRegisterAccountType] = useState<"checking" | "joint" | "business_elite">(defaultAccountType || "checking");
   const [kycSubmitting, setKycSubmitting] = useState(false);
   const [kycSubmitted, setKycSubmitted] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const [kycForm, setKycForm] = useState({
     phone: "",
