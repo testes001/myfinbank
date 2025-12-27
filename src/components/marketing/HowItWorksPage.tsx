@@ -10,6 +10,7 @@ import {
   ArrowRight,
   CheckCircle2,
 } from "lucide-react";
+import { useNavigate } from "@tanstack/react-router";
 
 const itemVariants = {
   hidden: { opacity: 0, y: 20 },
