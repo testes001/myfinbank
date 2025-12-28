@@ -225,3 +225,7 @@ third-party/
 # Project-Specific
 # =============================================================================
 # Add any project-specific ignore patterns below
+-e 
+# Environment files
+*.env
+*.env.*
