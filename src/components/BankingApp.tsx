@@ -39,30 +39,36 @@ export function BankingApp() {
     enableIpMonitoring: true,
   });
 
-  if (isLoading) {
-    return (
-      <div className="flex h-screen items-center justify-center bg-gradient-to-br from-blue-950 via-slate-900 to-purple-950 dark:from-blue-950 dark:via-slate-900 dark:to-purple-950 light:from-blue-50 light:via-slate-50 light:to-purple-50">
-        <div className="text-white dark:text-white light:text-gray-900">Loading...</div>
-      </div>
-    );
-  }
-
+  // EFFECT 1: Redirect to login if not authenticated
   useEffect(() => {
     if (!isLoading && !currentUser) {
       navigate({ to: "/login", replace: true });
     }
   }, [currentUser, isLoading, navigate]);
 
-  if (!currentUser) {
-    return (
-      <div className="flex h-screen items-center justify-center bg-gradient-to-br from-blue-950 via-slate-900 to-purple-950">
-        <div className="flex items-center gap-2 text-white/80">
-          <Loader2 className="h-5 w-5 animate-spin" />
-          Redirecting to login...
-        </div>
-      </div>
-    );
-  }
+  // EFFECT 2: Preserve scroll position per tab
+  useEffect(() => {
+    const container = scrollContainerRef.current;
+    if (!container) return;
+
+    const handleScroll = () => {
+      setScrollPositions((prev) => ({
+        ...prev,
+        [activePage]: container.scrollTop,
+      }));
+    };
+
+    container.addEventListener("scroll", handleScroll);
+    return () => container.removeEventListener("scroll", handleScroll);
+  }, [activePage]);
+
+  // EFFECT 3: Restore scroll position
+  useEffect(() => {
+    const container = scrollContainerRef.current;
+    if (!container) return;
+    const nextTop = scrollPositions[activePage] ?? 0;
+    container.scrollTo({ top: nextTop, behavior: "auto" });
+  }, [activePage, scrollPositions]);
 
   // Handle onboarding flow
   const handleOnboardingComplete = async (data: OnboardingData) => {
@@ -133,6 +139,25 @@ export function BankingApp() {
       throw error;
     }
   };
+
+  if (isLoading) {
+    return (
+      <div className="flex h-screen items-center justify-center bg-gradient-to-br from-blue-950 via-slate-900 to-purple-950 dark:from-blue-950 dark:via-slate-900 dark:to-purple-950 light:from-blue-50 light:via-slate-50 light:to-purple-50">
+        <div className="text-white dark:text-white light:text-gray-900">Loading...</div>
+      </div>
+    );
+  }
+
+  if (!currentUser) {
+    return (
+      <div className="flex h-screen items-center justify-center bg-gradient-to-br from-blue-950 via-slate-900 to-purple-950">
+        <div className="flex items-center gap-2 text-white/80">
+          <Loader2 className="h-5 w-5 animate-spin" />
+          Redirecting to login...
+        </div>
+      </div>
+    );
+  }
 
   // Show onboarding flow for new users
   if (userStatus === "onboarding") {
@@ -220,29 +245,6 @@ export function BankingApp() {
       </div>
     );
   }
-
-  // Preserve scroll position per tab to keep mobile navigation smooth
-  useEffect(() => {
-    const container = scrollContainerRef.current;
-    if (!container) return;
-
-    const handleScroll = () => {
-      setScrollPositions((prev) => ({
-        ...prev,
-        [activePage]: container.scrollTop,
-      }));
-    };
-
-    container.addEventListener("scroll", handleScroll);
-    return () => container.removeEventListener("scroll", handleScroll);
-  }, [activePage]);
-
-  useEffect(() => {
-    const container = scrollContainerRef.current;
-    if (!container) return;
-    const nextTop = scrollPositions[activePage] ?? 0;
-    container.scrollTo({ top: nextTop, behavior: "auto" });
-  }, [activePage, scrollPositions]);
 
   // Show main banking app for active users
   return (
