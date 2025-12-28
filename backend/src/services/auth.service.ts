@@ -35,7 +35,7 @@ export interface AuthResponse {
   user: {
     userId: string;
     email: string;
-    fullName: string;
+    full_name: string;
     role: string;
     status: string;
     kycStatus: string;
