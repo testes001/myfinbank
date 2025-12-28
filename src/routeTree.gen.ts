@@ -8,224 +8,86 @@
 // You should NOT make any changes in this file as it will be overwritten.
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
-// Import Routes
+import { Route as rootRouteImport } from './routes/__root'
+import { Route as SignupRouteImport } from './routes/signup'
+import { Route as MarketingRouteImport } from './routes/marketing'
+import { Route as LoginRouteImport } from './routes/login'
+import { Route as DashboardRouteImport } from './routes/dashboard'
+import { Route as AdminConsoleRouteImport } from './routes/admin-console'
+import { Route as AccountTypeRouteImport } from './routes/account-type'
+import { Route as IndexRouteImport } from './routes/index'
+import { Route as MarketingIndexRouteImport } from './routes/marketing/index'
+import { Route as MarketingSecurityRouteImport } from './routes/marketing/security'
+import { Route as MarketingPricingRouteImport } from './routes/marketing/pricing'
+import { Route as MarketingHowItWorksRouteImport } from './routes/marketing/how-it-works'
+import { Route as MarketingFeaturesRouteImport } from './routes/marketing/features'
+import { Route as MarketingAboutRouteImport } from './routes/marketing/about'
 
-import { Route as rootRoute } from './routes/__root'
-import { Route as SignupImport } from './routes/signup'
-import { Route as MarketingImport } from './routes/marketing'
-import { Route as LoginImport } from './routes/login'
-import { Route as DashboardImport } from './routes/dashboard'
-import { Route as AdminConsoleImport } from './routes/admin-console'
-import { Route as AccountTypeImport } from './routes/account-type'
-import { Route as IndexImport } from './routes/index'
-import { Route as MarketingIndexImport } from './routes/marketing/index'
-import { Route as MarketingSecurityImport } from './routes/marketing/security'
-import { Route as MarketingPricingImport } from './routes/marketing/pricing'
-import { Route as MarketingHowItWorksImport } from './routes/marketing/how-it-works'
-import { Route as MarketingFeaturesImport } from './routes/marketing/features'
-import { Route as MarketingAboutImport } from './routes/marketing/about'
-
-// Create/Update Routes
-
-const SignupRoute = SignupImport.update({
+const SignupRoute = SignupRouteImport.update({
   id: '/signup',
   path: '/signup',
-  getParentRoute: () => rootRoute,
+  getParentRoute: () => rootRouteImport,
 } as any)
-
-const MarketingRoute = MarketingImport.update({
+const MarketingRoute = MarketingRouteImport.update({
   id: '/marketing',
   path: '/marketing',
-  getParentRoute: () => rootRoute,
+  getParentRoute: () => rootRouteImport,
 } as any)
-
-const LoginRoute = LoginImport.update({
+const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
-  getParentRoute: () => rootRoute,
+  getParentRoute: () => rootRouteImport,
 } as any)
-
-const DashboardRoute = DashboardImport.update({
+const DashboardRoute = DashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
-  getParentRoute: () => rootRoute,
+  getParentRoute: () => rootRouteImport,
 } as any)
-
-const AdminConsoleRoute = AdminConsoleImport.update({
+const AdminConsoleRoute = AdminConsoleRouteImport.update({
   id: '/admin-console',
   path: '/admin-console',
-  getParentRoute: () => rootRoute,
+  getParentRoute: () => rootRouteImport,
 } as any)
-
-const AccountTypeRoute = AccountTypeImport.update({
+const AccountTypeRoute = AccountTypeRouteImport.update({
   id: '/account-type',
   path: '/account-type',
-  getParentRoute: () => rootRoute,
+  getParentRoute: () => rootRouteImport,
 } as any)
-
-const IndexRoute = IndexImport.update({
+const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
-  getParentRoute: () => rootRoute,
+  getParentRoute: () => rootRouteImport,
 } as any)
-
-const MarketingIndexRoute = MarketingIndexImport.update({
+const MarketingIndexRoute = MarketingIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => MarketingRoute,
 } as any)
-
-const MarketingSecurityRoute = MarketingSecurityImport.update({
+const MarketingSecurityRoute = MarketingSecurityRouteImport.update({
   id: '/security',
   path: '/security',
   getParentRoute: () => MarketingRoute,
 } as any)
-
-const MarketingPricingRoute = MarketingPricingImport.update({
+const MarketingPricingRoute = MarketingPricingRouteImport.update({
   id: '/pricing',
   path: '/pricing',
   getParentRoute: () => MarketingRoute,
 } as any)
-
-const MarketingHowItWorksRoute = MarketingHowItWorksImport.update({
+const MarketingHowItWorksRoute = MarketingHowItWorksRouteImport.update({
   id: '/how-it-works',
   path: '/how-it-works',
   getParentRoute: () => MarketingRoute,
 } as any)
-
-const MarketingFeaturesRoute = MarketingFeaturesImport.update({
+const MarketingFeaturesRoute = MarketingFeaturesRouteImport.update({
   id: '/features',
   path: '/features',
   getParentRoute: () => MarketingRoute,
 } as any)
-
-const MarketingAboutRoute = MarketingAboutImport.update({
+const MarketingAboutRoute = MarketingAboutRouteImport.update({
   id: '/about',
   path: '/about',
   getParentRoute: () => MarketingRoute,
 } as any)
-
-// Populate the FileRoutesByPath interface
-
-declare module '@tanstack/react-router' {
-  interface FileRoutesByPath {
-    '/': {
-      id: '/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexImport
-      parentRoute: typeof rootRoute
-    }
-    '/account-type': {
-      id: '/account-type'
-      path: '/account-type'
-      fullPath: '/account-type'
-      preLoaderRoute: typeof AccountTypeImport
-      parentRoute: typeof rootRoute
-    }
-    '/admin-console': {
-      id: '/admin-console'
-      path: '/admin-console'
-      fullPath: '/admin-console'
-      preLoaderRoute: typeof AdminConsoleImport
-      parentRoute: typeof rootRoute
-    }
-    '/dashboard': {
-      id: '/dashboard'
-      path: '/dashboard'
-      fullPath: '/dashboard'
-      preLoaderRoute: typeof DashboardImport
-      parentRoute: typeof rootRoute
-    }
-    '/login': {
-      id: '/login'
-      path: '/login'
-      fullPath: '/login'
-      preLoaderRoute: typeof LoginImport
-      parentRoute: typeof rootRoute
-    }
-    '/marketing': {
-      id: '/marketing'
-      path: '/marketing'
-      fullPath: '/marketing'
-      preLoaderRoute: typeof MarketingImport
-      parentRoute: typeof rootRoute
-    }
-    '/signup': {
-      id: '/signup'
-      path: '/signup'
-      fullPath: '/signup'
-      preLoaderRoute: typeof SignupImport
-      parentRoute: typeof rootRoute
-    }
-    '/marketing/about': {
-      id: '/marketing/about'
-      path: '/about'
-      fullPath: '/marketing/about'
-      preLoaderRoute: typeof MarketingAboutImport
-      parentRoute: typeof MarketingImport
-    }
-    '/marketing/features': {
-      id: '/marketing/features'
-      path: '/features'
-      fullPath: '/marketing/features'
-      preLoaderRoute: typeof MarketingFeaturesImport
-      parentRoute: typeof MarketingImport
-    }
-    '/marketing/how-it-works': {
-      id: '/marketing/how-it-works'
-      path: '/how-it-works'
-      fullPath: '/marketing/how-it-works'
-      preLoaderRoute: typeof MarketingHowItWorksImport
-      parentRoute: typeof MarketingImport
-    }
-    '/marketing/pricing': {
-      id: '/marketing/pricing'
-      path: '/pricing'
-      fullPath: '/marketing/pricing'
-      preLoaderRoute: typeof MarketingPricingImport
-      parentRoute: typeof MarketingImport
-    }
-    '/marketing/security': {
-      id: '/marketing/security'
-      path: '/security'
-      fullPath: '/marketing/security'
-      preLoaderRoute: typeof MarketingSecurityImport
-      parentRoute: typeof MarketingImport
-    }
-    '/marketing/': {
-      id: '/marketing/'
-      path: '/'
-      fullPath: '/marketing/'
-      preLoaderRoute: typeof MarketingIndexImport
-      parentRoute: typeof MarketingImport
-    }
-  }
-}
-
-// Create and export the route tree
-
-interface MarketingRouteChildren {
-  MarketingAboutRoute: typeof MarketingAboutRoute
-  MarketingFeaturesRoute: typeof MarketingFeaturesRoute
-  MarketingHowItWorksRoute: typeof MarketingHowItWorksRoute
-  MarketingPricingRoute: typeof MarketingPricingRoute
-  MarketingSecurityRoute: typeof MarketingSecurityRoute
-  MarketingIndexRoute: typeof MarketingIndexRoute
-}
-
-const MarketingRouteChildren: MarketingRouteChildren = {
-  MarketingAboutRoute: MarketingAboutRoute,
-  MarketingFeaturesRoute: MarketingFeaturesRoute,
-  MarketingHowItWorksRoute: MarketingHowItWorksRoute,
-  MarketingPricingRoute: MarketingPricingRoute,
-  MarketingSecurityRoute: MarketingSecurityRoute,
-  MarketingIndexRoute: MarketingIndexRoute,
-}
-
-const MarketingRouteWithChildren = MarketingRoute._addFileChildren(
-  MarketingRouteChildren,
-)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -242,7 +104,6 @@ export interface FileRoutesByFullPath {
   '/marketing/security': typeof MarketingSecurityRoute
   '/marketing/': typeof MarketingIndexRoute
 }
-
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/account-type': typeof AccountTypeRoute
@@ -257,9 +118,8 @@ export interface FileRoutesByTo {
   '/marketing/security': typeof MarketingSecurityRoute
   '/marketing': typeof MarketingIndexRoute
 }
-
 export interface FileRoutesById {
-  __root__: typeof rootRoute
+  __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/account-type': typeof AccountTypeRoute
   '/admin-console': typeof AdminConsoleRoute
@@ -274,7 +134,6 @@ export interface FileRoutesById {
   '/marketing/security': typeof MarketingSecurityRoute
   '/marketing/': typeof MarketingIndexRoute
 }
-
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
@@ -322,7 +181,6 @@ export interface FileRouteTypes {
     | '/marketing/'
   fileRoutesById: FileRoutesById
 }
-
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AccountTypeRoute: typeof AccountTypeRoute
@@ -333,6 +191,124 @@ export interface RootRouteChildren {
   SignupRoute: typeof SignupRoute
 }
 
+declare module '@tanstack/react-router' {
+  interface FileRoutesByPath {
+    '/signup': {
+      id: '/signup'
+      path: '/signup'
+      fullPath: '/signup'
+      preLoaderRoute: typeof SignupRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/marketing': {
+      id: '/marketing'
+      path: '/marketing'
+      fullPath: '/marketing'
+      preLoaderRoute: typeof MarketingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/dashboard': {
+      id: '/dashboard'
+      path: '/dashboard'
+      fullPath: '/dashboard'
+      preLoaderRoute: typeof DashboardRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin-console': {
+      id: '/admin-console'
+      path: '/admin-console'
+      fullPath: '/admin-console'
+      preLoaderRoute: typeof AdminConsoleRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/account-type': {
+      id: '/account-type'
+      path: '/account-type'
+      fullPath: '/account-type'
+      preLoaderRoute: typeof AccountTypeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/': {
+      id: '/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/marketing/': {
+      id: '/marketing/'
+      path: '/'
+      fullPath: '/marketing/'
+      preLoaderRoute: typeof MarketingIndexRouteImport
+      parentRoute: typeof MarketingRoute
+    }
+    '/marketing/security': {
+      id: '/marketing/security'
+      path: '/security'
+      fullPath: '/marketing/security'
+      preLoaderRoute: typeof MarketingSecurityRouteImport
+      parentRoute: typeof MarketingRoute
+    }
+    '/marketing/pricing': {
+      id: '/marketing/pricing'
+      path: '/pricing'
+      fullPath: '/marketing/pricing'
+      preLoaderRoute: typeof MarketingPricingRouteImport
+      parentRoute: typeof MarketingRoute
+    }
+    '/marketing/how-it-works': {
+      id: '/marketing/how-it-works'
+      path: '/how-it-works'
+      fullPath: '/marketing/how-it-works'
+      preLoaderRoute: typeof MarketingHowItWorksRouteImport
+      parentRoute: typeof MarketingRoute
+    }
+    '/marketing/features': {
+      id: '/marketing/features'
+      path: '/features'
+      fullPath: '/marketing/features'
+      preLoaderRoute: typeof MarketingFeaturesRouteImport
+      parentRoute: typeof MarketingRoute
+    }
+    '/marketing/about': {
+      id: '/marketing/about'
+      path: '/about'
+      fullPath: '/marketing/about'
+      preLoaderRoute: typeof MarketingAboutRouteImport
+      parentRoute: typeof MarketingRoute
+    }
+  }
+}
+
+interface MarketingRouteChildren {
+  MarketingAboutRoute: typeof MarketingAboutRoute
+  MarketingFeaturesRoute: typeof MarketingFeaturesRoute
+  MarketingHowItWorksRoute: typeof MarketingHowItWorksRoute
+  MarketingPricingRoute: typeof MarketingPricingRoute
+  MarketingSecurityRoute: typeof MarketingSecurityRoute
+  MarketingIndexRoute: typeof MarketingIndexRoute
+}
+
+const MarketingRouteChildren: MarketingRouteChildren = {
+  MarketingAboutRoute: MarketingAboutRoute,
+  MarketingFeaturesRoute: MarketingFeaturesRoute,
+  MarketingHowItWorksRoute: MarketingHowItWorksRoute,
+  MarketingPricingRoute: MarketingPricingRoute,
+  MarketingSecurityRoute: MarketingSecurityRoute,
+  MarketingIndexRoute: MarketingIndexRoute,
+}
+
+const MarketingRouteWithChildren = MarketingRoute._addFileChildren(
+  MarketingRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AccountTypeRoute: AccountTypeRoute,
@@ -342,79 +318,6 @@ const rootRouteChildren: RootRouteChildren = {
   MarketingRoute: MarketingRouteWithChildren,
   SignupRoute: SignupRoute,
 }
-
-export const routeTree = rootRoute
+export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-/* ROUTE_MANIFEST_START
-{
-  "routes": {
-    "__root__": {
-      "filePath": "__root.tsx",
-      "children": [
-        "/",
-        "/account-type",
-        "/admin-console",
-        "/dashboard",
-        "/login",
-        "/marketing",
-        "/signup"
-      ]
-    },
-    "/": {
-      "filePath": "index.tsx"
-    },
-    "/account-type": {
-      "filePath": "account-type.tsx"
-    },
-    "/admin-console": {
-      "filePath": "admin-console.tsx"
-    },
-    "/dashboard": {
-      "filePath": "dashboard.tsx"
-    },
-    "/login": {
-      "filePath": "login.tsx"
-    },
-    "/marketing": {
-      "filePath": "marketing.tsx",
-      "children": [
-        "/marketing/about",
-        "/marketing/features",
-        "/marketing/how-it-works",
-        "/marketing/pricing",
-        "/marketing/security",
-        "/marketing/"
-      ]
-    },
-    "/signup": {
-      "filePath": "signup.tsx"
-    },
-    "/marketing/about": {
-      "filePath": "marketing/about.tsx",
-      "parent": "/marketing"
-    },
-    "/marketing/features": {
-      "filePath": "marketing/features.tsx",
-      "parent": "/marketing"
-    },
-    "/marketing/how-it-works": {
-      "filePath": "marketing/how-it-works.tsx",
-      "parent": "/marketing"
-    },
-    "/marketing/pricing": {
-      "filePath": "marketing/pricing.tsx",
-      "parent": "/marketing"
-    },
-    "/marketing/security": {
-      "filePath": "marketing/security.tsx",
-      "parent": "/marketing"
-    },
-    "/marketing/": {
-      "filePath": "marketing/index.tsx",
-      "parent": "/marketing"
-    }
-  }
-}
-ROUTE_MANIFEST_END */
