@@ -41,6 +41,26 @@ export interface P2PTransferInput {
   idempotencyKey?: string;
 }
 
+export interface BillPayInput {
+  userId: string;
+  accountId: string;
+  payeeName: string;
+  amount: number;
+  category?: string;
+  idempotencyKey?: string;
+}
+
+export interface MobileDepositInput {
+  userId: string;
+  accountId: string;
+  amount: number;
+  currency: string;
+  frontImage: string;
+  backImage: string;
+  notes?: string;
+  idempotencyKey?: string;
+}
+
 export interface TransactionFilters {
   userId: string;
   accountId?: string;
@@ -94,7 +114,7 @@ export class TransactionService {
         userId,
         createdAt: { gte: today },
         status: { in: [TransactionStatus.COMPLETED, TransactionStatus.PROCESSING] },
-        type: { in: [TransactionType.TRANSFER, TransactionType.P2P_TRANSFER] },
+        type: { in: [TransactionType.TRANSFER, TransactionType.P2P_TRANSFER, TransactionType.PAYMENT] },
       },
       _sum: { amount: true },
     });
@@ -113,7 +133,7 @@ export class TransactionService {
         userId,
         createdAt: { gte: monthStart },
         status: { in: [TransactionStatus.COMPLETED, TransactionStatus.PROCESSING] },
-        type: { in: [TransactionType.TRANSFER, TransactionType.P2P_TRANSFER] },
+        type: { in: [TransactionType.TRANSFER, TransactionType.P2P_TRANSFER, TransactionType.PAYMENT] },
       },
       _sum: { amount: true },
     });
@@ -517,6 +537,123 @@ export class TransactionService {
   }
 
   /**
+   * Perform Bill Pay
+   */
+  async billPay(input: BillPayInput): Promise<Transaction> {
+    const { userId, accountId, payeeName, amount, category, idempotencyKey } = input;
+
+    // Validate limits
+    await this.validateTransactionLimits(userId, amount);
+
+    // Get account
+    const account = await prisma.account.findUnique({
+      where: { id: accountId },
+    });
+
+    if (!account || account.userId !== userId) {
+      throw errors.notFound('Account');
+    }
+
+    if (account.status !== AccountStatus.ACTIVE) {
+      throw errors.accountLocked('Account is not active');
+    }
+
+    if (Number(account.availableBalance) < amount) {
+      throw errors.insufficientFunds(amount.toString(), account.availableBalance.toString());
+    }
+
+    const referenceNumber = this.generateReferenceNumber();
+
+    // Perform transaction
+    const transaction = await prisma.$transaction(async (tx: any) => {
+      // Deduct balance
+      await tx.account.update({
+        where: { id: accountId },
+        data: {
+          balance: { decrement: amount },
+          availableBalance: { decrement: amount },
+        },
+      });
+
+      // Create transaction
+      return await tx.transaction.create({
+        data: {
+          userId,
+          fromAccountId: accountId,
+          type: TransactionType.PAYMENT,
+          amount,
+          currency: account.currency,
+          status: TransactionStatus.COMPLETED,
+          description: `Bill Payment to ${payeeName}`,
+          referenceNumber,
+          completedAt: new Date(),
+          metadata: { payeeName, category },
+          idempotencyKey,
+        },
+      });
+    });
+
+    // Audit log
+    await this.createTransactionAudit(userId, 'BILL_PAY', transaction.id, {
+      payeeName,
+      amount,
+      referenceNumber,
+    });
+
+    return transaction;
+  }
+
+  /**
+   * Submit Mobile Deposit
+   */
+  async mobileDeposit(input: MobileDepositInput): Promise<Transaction> {
+    const { userId, accountId, amount, currency, frontImage, backImage, notes, idempotencyKey } = input;
+
+    // Validate account
+    const account = await prisma.account.findUnique({
+      where: { id: accountId },
+    });
+
+    if (!account || account.userId !== userId) {
+      throw errors.notFound('Account');
+    }
+
+    if (account.currency !== currency) {
+      throw errors.validation(`Account currency (${account.currency}) does not match deposit currency (${currency})`);
+    }
+
+    const referenceNumber = this.generateReferenceNumber();
+
+    // Create pending transaction (funds not available yet)
+    const transaction = await prisma.transaction.create({
+      data: {
+        userId,
+        toAccountId: accountId, // Deposit INTO account
+        type: TransactionType.DEPOSIT,
+        amount,
+        currency,
+        status: TransactionStatus.PENDING, // Pending review
+        description: `Mobile Check Deposit`,
+        referenceNumber,
+        metadata: {
+          frontImageLength: frontImage.length, // Don't store full base64 in metadata for performance, usually upload to S3
+          notes,
+          method: 'MOBILE_CHECK',
+        },
+        idempotencyKey,
+      },
+    });
+
+    // Audit log
+    await this.createTransactionAudit(userId, 'MOBILE_DEPOSIT_SUBMITTED', transaction.id, {
+      amount,
+      referenceNumber,
+    });
+
+    return transaction;
+  }
+
+  /**
    * Get transaction history with filters and pagination
    */
   async getTransactionHistory(
@@ -684,6 +821,8 @@ export class TransactionService {
         createdAt: true,
         fromAccountId: true,
         toAccountId: true,
+        description: true,
+        type: true,
       },
     });
 
@@ -703,9 +842,11 @@ export class TransactionService {
       });
 
       // Adjust balance for previous point
+      // If money came IN to accountId, subtract it to go back in time
+      // If money went OUT from accountId, add it back to go back in time
       if (txn.toAccountId === accountId) {
         runningBalance -= Number(txn.amount);
-      } else {
+      } else if (txn.fromAccountId === accountId) {
         runningBalance += Number(txn.amount);
       }
     }
