@@ -349,7 +349,7 @@ export class AuthService {
       user: {
         userId: user.id,
         email: user.email,
-        fullName: user.fullName,
+        full_name: user.fullName,
         role: user.role,
         status: user.status,
         kycStatus: user.kycStatus,
