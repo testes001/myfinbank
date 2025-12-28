@@ -223,12 +223,14 @@ def main():
     # Authentication tests
     auth_success = False
     
-    # Try demo login first
-    if tester.test_user_login():
+    # Try registration first to get a valid user
+    if tester.test_user_registration():
         auth_success = True
+        # Now try login with the registered user
+        tester.test_user_login()
     else:
-        # If demo login fails, try registration
-        if tester.test_user_registration():
+        # If registration fails, try demo login
+        if tester.test_user_login():
             auth_success = True
     
     if not auth_success:
