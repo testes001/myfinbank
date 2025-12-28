@@ -142,6 +142,13 @@ export function Dashboard({ onNavigate }: DashboardProps) {
   const loadData = async () => {
     if (!currentUser) return;
 
+    // Check if we have a valid account ID before trying to fetch data
+    if (!currentUser.account?.id) {
+      console.warn("No account ID found for user, retrying account fetch...");
+      // Optionally trigger a refresh of user status/accounts here
+      return;
+    }
+
     await runAsync(async () => {
       const recentTxs = await getRecentTransactions(currentUser.account.id, 50);
 
