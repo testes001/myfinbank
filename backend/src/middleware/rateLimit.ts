@@ -34,7 +34,7 @@ export const loginLimiter = rateLimit({
     res.status(429).json({
       success: false,
       error: 'Too many login attempts. Please try again in 15 minutes.',
-      retryAfter: req.rateLimit?.resetTime,
+      retryAfter: (req as any).rateLimit?.resetTime,
     });
   },
 });
@@ -62,7 +62,7 @@ export const passwordResetLimiter = rateLimit({
       // Generic message - don't reveal rate limit details
       message: 'If email exists, reset code sent',
       error: 'Too many requests',
-      retryAfter: req.rateLimit?.resetTime,
+      retryAfter: (req as any).rateLimit?.resetTime,
     });
   },
 });
@@ -88,7 +88,7 @@ export const passwordResetConfirmLimiter = rateLimit({
       success: false,
       message: 'Invalid or expired verification code',
       error: 'Too many attempts',
-      retryAfter: req.rateLimit?.resetTime,
+      retryAfter: (req as any).rateLimit?.resetTime,
     });
   },
 });
@@ -114,7 +114,7 @@ export const emailVerificationLimiter = rateLimit({
       success: false,
       message: 'Too many verification attempts. Please try again in 1 hour.',
       error: 'Too many requests',
-      retryAfter: req.rateLimit?.resetTime,
+      retryAfter: (req as any).rateLimit?.resetTime,
     });
   },
 });
@@ -137,7 +137,7 @@ export const registerLimiter = rateLimit({
       success: false,
       message: 'Too many registration attempts. Please try again in 1 hour.',
       error: 'Too many requests',
-      retryAfter: req.rateLimit?.resetTime,
+      retryAfter: (req as any).rateLimit?.resetTime,
     });
   },
 });
