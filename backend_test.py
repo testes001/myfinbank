@@ -72,7 +72,28 @@ class SecureBankAPITester:
 
     def test_health_check(self):
         """Test basic health endpoint"""
-        return self.run_test("Health Check", "GET", "health", 200)
+        url = f"{self.base_url}/health"  # Health is at root level, not /api
+        self.tests_run += 1
+        print(f"\n🔍 Testing Health Check...")
+        print(f"   URL: {url}")
+        
+        try:
+            response = requests.get(url, timeout=10)
+            success = response.status_code == 200
+            if success:
+                self.tests_passed += 1
+                print(f"✅ Passed - Status: {response.status_code}")
+                try:
+                    response_data = response.json()
+                    print(f"   Health Status: {response_data.get('status', 'unknown')}")
+                except:
+                    pass
+            else:
+                print(f"❌ Failed - Expected 200, got {response.status_code}")
+            return success, response.json() if response.content else {}
+        except Exception as e:
+            print(f"❌ Failed - Error: {str(e)}")
+            return False, {}
 
     def test_user_registration(self):
         """Test user registration"""
