@@ -146,12 +146,17 @@ class SecureBankAPITester:
             data=demo_login_data
         )
         
-        if success and 'accessToken' in response:
-            self.token = response['accessToken']
-            if 'user' in response:
-                self.user_id = response['user'].get('id')
-            print(f"   ✅ Demo login successful, token: {self.token[:20]}...")
-            return True
+        if success:
+            print(f"   Login response: {response}")
+            if 'accessToken' in response:
+                self.token = response['accessToken']
+                if 'user' in response:
+                    self.user_id = response['user'].get('id')
+                print(f"   ✅ Demo login successful, token: {self.token[:20]}...")
+                return True
+            else:
+                print(f"   ⚠️ Login successful but no accessToken found in response")
+                return False
         
         # If demo login fails, try with registered user
         if self.registered_email and self.registered_password:
