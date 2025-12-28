@@ -16,6 +16,8 @@ class SecureBankAPITester:
         self.tests_run = 0
         self.tests_passed = 0
         self.user_id = None
+        self.registered_email = None
+        self.registered_password = None
 
     def run_test(self, name, method, endpoint, expected_status, data=None, headers=None):
         """Run a single API test"""
