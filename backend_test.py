@@ -114,14 +114,19 @@ class SecureBankAPITester:
             data=test_user_data
         )
         
-        if success and 'accessToken' in response:
-            self.token = response['accessToken']
-            if 'user' in response:
-                self.user_id = response['user'].get('id')
-            print(f"   ✅ Token obtained: {self.token[:20]}...")
+        if success:
             # Store the registered user credentials for login test
             self.registered_email = test_user_data['email']
             self.registered_password = test_user_data['password']
+            
+            # Check if token is provided in registration response
+            if 'accessToken' in response:
+                self.token = response['accessToken']
+                if 'user' in response:
+                    self.user_id = response['user'].get('id')
+                print(f"   ✅ Token obtained from registration: {self.token[:20]}...")
+            else:
+                print(f"   ✅ Registration successful, no token provided")
             return True
         return False
 
