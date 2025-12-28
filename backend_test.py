@@ -147,8 +147,15 @@ class SecureBankAPITester:
         )
         
         if success:
-            print(f"   Login response: {response}")
-            if 'accessToken' in response:
+            print(f"   Login response keys: {list(response.keys())}")
+            # Check for token in nested data structure
+            if 'data' in response and 'accessToken' in response['data']:
+                self.token = response['data']['accessToken']
+                if 'user' in response['data']:
+                    self.user_id = response['data']['user'].get('userId')
+                print(f"   ✅ Demo login successful, token: {self.token[:20]}...")
+                return True
+            elif 'accessToken' in response:
                 self.token = response['accessToken']
                 if 'user' in response:
                     self.user_id = response['user'].get('id')
