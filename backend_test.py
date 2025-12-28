@@ -117,6 +117,9 @@ class SecureBankAPITester:
             if 'user' in response:
                 self.user_id = response['user'].get('id')
             print(f"   ✅ Token obtained: {self.token[:20]}...")
+            # Store the registered user credentials for login test
+            self.registered_email = test_user_data['email']
+            self.registered_password = test_user_data['password']
             return True
         return False
 
