@@ -135,7 +135,7 @@ class SecureBankAPITester:
         # Try demo login first
         demo_login_data = {
             "email": "alice@demo.com",
-            "password": "demo123"
+            "password": "password123"
         }
         
         success, response = self.run_test(
