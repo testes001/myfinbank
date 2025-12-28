@@ -327,7 +327,7 @@ export function EnhancedLoginForm({ mode, defaultAccountType, onSwitchToSignIn }
   const showTabs = !mode;
 
   return (
-    <div className="relative min-h-screen bg-gradient-to-br from-blue-950 via-slate-900 to-purple-950 flex items-center justify-center p-4 text-white overflow-hidden">
+    <div className="relative min-h-screen bg-gradient-to-br from-blue-950 via-slate-900 to-purple-950 flex items-center justify-center p-4 text-white overflow-y-auto">
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(59,130,246,0.18),transparent_25%),radial-gradient(circle_at_80%_0%,rgba(124,58,237,0.14),transparent_25%),radial-gradient(circle_at_60%_80%,rgba(16,185,129,0.18),transparent_25%)]" />
       {mode === "signup" && (
         <div className="absolute top-6 left-6 right-6 flex items-center justify-between z-20">
