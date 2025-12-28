@@ -315,7 +315,7 @@ export function Dashboard({ onNavigate }: DashboardProps) {
               {showBalances ? <Eye className="size-5" /> : <EyeOff className="size-5" />}
             </button>
             <NotificationCenter />
-            <QuickActions onAction={(action) => console.log("quick action", action)} />
+            <QuickActions onAction={() => {}} />
             <button
               onClick={toggleTheme}
               className="rounded-full p-2 text-white/60 hover:bg-white/10 hover:text-white transition-colors"
