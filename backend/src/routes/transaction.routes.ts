@@ -26,6 +26,20 @@ router.post('/transfer', transactionController.internalTransfer);
 router.post('/p2p', transactionController.p2pTransfer);
 
 /**
+ * @route   POST /api/transactions/bill-pay
+ * @desc    Perform Bill Payment
+ * @access  Private
+ */
+router.post('/bill-pay', transactionController.billPay);
+
+/**
+ * @route   POST /api/transactions/deposit/mobile
+ * @desc    Submit Mobile Deposit
+ * @access  Private
+ */
+router.post('/deposit/mobile', transactionController.mobileDeposit);
+
+/**
  * @route   GET /api/transactions
  * @desc    Get transaction history with filters and pagination
  * @access  Private
