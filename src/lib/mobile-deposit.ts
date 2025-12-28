@@ -164,3 +164,45 @@ export async function submitMobileDeposit(
     };
   }
 }
+
+// ============================================================================
+// ADMIN MOCKS (Restored for Build Compatibility)
+// ============================================================================
+
+export function getAdminDepositQueue(): MobileDeposit[] {
+  return []; // Mock: No admin queue in frontend anymore, managed by backend
+}
+
+export async function approveDeposit(
+  depositId: string,
+  reviewedBy: string,
+): Promise<{ success: boolean; error?: string }> {
+  console.warn("approveDeposit called on frontend stub", { depositId, reviewedBy });
+  return { success: false, error: "Admin actions moved to backend" };
+}
+
+export async function rejectDeposit(
+  depositId: string,
+  reviewedBy: string,
+  reason: RejectionReason,
+  details?: string,
+): Promise<{ success: boolean; error?: string }> {
+  console.warn("rejectDeposit called on frontend stub", { depositId, reviewedBy });
+  return { success: false, error: "Admin actions moved to backend" };
+}
+
+/**
+ * Simulate OCR extraction from check image
+ */
+export function extractCheckDataFromImage(imageBase64: string): {
+  amount?: string;
+  date?: string;
+  payee?: string;
+} {
+  // Simulate OCR results
+  return {
+    amount: undefined,
+    date: undefined,
+    payee: undefined,
+  };
+}
