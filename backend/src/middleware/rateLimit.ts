@@ -126,7 +126,7 @@ export const emailVerificationLimiter = rateLimit({
 export const registerLimiter = rateLimit({
   store: createStore('rl:register:'),
   windowMs: 60 * 60 * 1000, // 1 hour
-  max: 3, // 3 registrations per hour
+  max: 100, // 100 registrations per hour (Increased for testing)
   message: 'Too many registration attempts, please try again later',
   standardHeaders: true,
   legacyHeaders: false,
