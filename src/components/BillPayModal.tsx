@@ -27,6 +27,7 @@ import {
   DollarSign,
   Building,
 } from "lucide-react";
+import { payBill } from "@/lib/transactions";
 
 interface BillPayModalProps {
   open: boolean;
@@ -67,7 +68,7 @@ export function BillPayModal({ open, onOpenChange, onSuccess }: BillPayModalProp
   const { currentUser } = useAuth();
   const [activeTab, setActiveTab] = useState<"pay" | "schedule" | "payees">("pay");
 
-  // Payee management
+  // Payee management (Keeping local for MVP until backend payee endpoints exist)
   const [payees, setPayees] = useState<Payee[]>([
     {
       id: "1",
@@ -92,7 +93,7 @@ export function BillPayModal({ open, onOpenChange, onSuccess }: BillPayModalProp
     },
   ]);
 
-  // Scheduled payments
+  // Scheduled payments (Local state for MVP)
   const [scheduledPayments, setScheduledPayments] = useState<ScheduledPayment[]>([
     {
       id: "sp1",
@@ -137,33 +138,54 @@ export function BillPayModal({ open, onOpenChange, onSuccess }: BillPayModalProp
       return;
     }
 
+    if (!currentUser?.account?.id) {
+        toast.error("Account information missing");
+        return;
+    }
+
     setIsProcessing(true);
 
-    // Simulate payment processing
-    setTimeout(() => {
+    try {
       const payee = payees.find((p) => p.id === selectedPayeeId);
+      
+      if (!payee) {
+          throw new Error("Payee not found");
+      }
 
       if (frequency !== "once") {
-        // Schedule recurring payment
+        // Schedule recurring payment (Mock for now as backend scheduler isn't fully exposed)
         const newScheduled: ScheduledPayment = {
           id: `sp${Date.now()}`,
           payeeId: selectedPayeeId,
-          payeeName: payee?.name || "",
+          payeeName: payee.name,
           amount: amountNum,
           frequency,
           nextDate: paymentDate,
           status: "scheduled",
         };
         setScheduledPayments((prev) => [...prev, newScheduled]);
-        toast.success(`Recurring ${frequency} payment scheduled to ${payee?.name}`);
+        toast.success(`Recurring ${frequency} payment scheduled to ${payee.name}`);
       } else {
-        toast.success(`Payment of $${amountNum.toFixed(2)} scheduled to ${payee?.name}`);
+        // Immediate payment via API
+        await payBill(
+            currentUser.account.id,
+            payee.name,
+            payee.accountNumber,
+            amountNum,
+            payee.category,
+            paymentDate
+        );
+        toast.success(`Payment of $${amountNum.toFixed(2)} sent to ${payee.name}`);
       }
 
-      setIsProcessing(false);
       resetPaymentForm();
       onSuccess();
-    }, 2000);
+    } catch (error) {
+        console.error("Bill pay error:", error);
+        toast.error(error instanceof Error ? error.message : "Bill payment failed");
+    } finally {
+        setIsProcessing(false);
+    }
   };
 
   const handleAddPayee = (e: React.FormEvent) => {

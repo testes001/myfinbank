@@ -3,7 +3,6 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -14,23 +13,18 @@ import {
   Send,
   Search,
   Users,
-  Clock,
-  CheckCircle2,
   Zap,
   Plus,
   Star,
-  Phone,
-  Mail,
-  DollarSign,
   ArrowRight,
   Loader2,
   Sparkles,
   History,
-  X,
+  CheckCircle2,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
-import { formatCurrency } from "@/lib/transactions";
+import { formatCurrency, p2pTransfer } from "@/lib/transactions";
 
 // Contact/recipient types
 interface P2PContact {
@@ -43,19 +37,7 @@ interface P2PContact {
   lastTransferAt?: string;
 }
 
-interface P2PTransfer {
-  id: string;
-  fromUserId: string;
-  toContactId: string;
-  toName: string;
-  amount: number;
-  note?: string;
-  status: "pending" | "completed" | "failed";
-  createdAt: string;
-}
-
 const P2P_CONTACTS_KEY = "finbank_p2p_contacts";
-const P2P_TRANSFERS_KEY = "finbank_p2p_transfers";
 
 // Get contacts for a user
 function getContacts(userId: string): P2PContact[] {
@@ -81,33 +63,6 @@ function saveContacts(userId: string, contacts: P2PContact[]): void {
   }
 }
 
-// Get transfer history
-function getTransferHistory(userId: string): P2PTransfer[] {
-  try {
-    const stored = localStorage.getItem(P2P_TRANSFERS_KEY);
-    if (!stored) return [];
-    const allTransfers: Record<string, P2PTransfer[]> = JSON.parse(stored);
-    return (allTransfers[userId] || []).sort(
-      (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-    );
-  } catch {
-    return [];
-  }
-}
-
-// Save transfer
-function saveTransfer(userId: string, transfer: P2PTransfer): void {
-  try {
-    const stored = localStorage.getItem(P2P_TRANSFERS_KEY);
-    const allTransfers: Record<string, P2PTransfer[]> = stored ? JSON.parse(stored) : {};
-    if (!allTransfers[userId]) allTransfers[userId] = [];
-    allTransfers[userId].push(transfer);
-    localStorage.setItem(P2P_TRANSFERS_KEY, JSON.stringify(allTransfers));
-  } catch (error) {
-    console.error("Failed to save transfer:", error);
-  }
-}
-
 interface P2PTransferModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -118,7 +73,6 @@ export function P2PTransferModal({ open, onOpenChange, onTransferComplete }: P2P
   const { currentUser } = useAuth();
   const [step, setStep] = useState<"select" | "amount" | "confirm" | "success">("select");
   const [contacts, setContacts] = useState<P2PContact[]>([]);
-  const [transferHistory, setTransferHistory] = useState<P2PTransfer[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedContact, setSelectedContact] = useState<P2PContact | null>(null);
   const [amount, setAmount] = useState("");
@@ -131,11 +85,10 @@ export function P2PTransferModal({ open, onOpenChange, onTransferComplete }: P2P
   const [newContactEmail, setNewContactEmail] = useState("");
   const [newContactPhone, setNewContactPhone] = useState("");
 
-  // Load contacts and history
+  // Load contacts
   useEffect(() => {
     if (open && currentUser) {
       setContacts(getContacts(currentUser.user.id));
-      setTransferHistory(getTransferHistory(currentUser.user.id));
     }
   }, [open, currentUser]);
 
@@ -175,13 +128,6 @@ export function P2PTransferModal({ open, onOpenChange, onTransferComplete }: P2P
       return 0;
     });
   }, [filteredContacts]);
-
-  // Recent recipients
-  const recentRecipients = useMemo(() => {
-    return transferHistory
-      .filter((t, i, arr) => arr.findIndex((x) => x.toContactId === t.toContactId) === i)
-      .slice(0, 5);
-  }, [transferHistory]);
 
   const handleAddContact = () => {
     if (!currentUser) return;
@@ -229,11 +175,21 @@ export function P2PTransferModal({ open, onOpenChange, onTransferComplete }: P2P
 
   const handleSendMoney = async () => {
     if (!currentUser || !selectedContact) return;
+    if (!selectedContact.email) {
+        toast.error("Contact needs an email address for transfers");
+        return;
+    }
+
     const amountNum = parseFloat(amount);
 
     if (isNaN(amountNum) || amountNum <= 0) {
       toast.error("Please enter a valid amount");
       return;
+    }
+
+    if (!currentUser.account?.id) {
+        toast.error("Account information missing");
+        return;
     }
 
     const balance = parseFloat(currentUser.account.balance);
@@ -244,33 +200,28 @@ export function P2PTransferModal({ open, onOpenChange, onTransferComplete }: P2P
 
     setIsProcessing(true);
 
-    // Simulate processing delay
-    await new Promise((resolve) => setTimeout(resolve, 1500));
+    try {
+        await p2pTransfer(
+            currentUser.account.id,
+            selectedContact.email,
+            amountNum,
+            note.trim() || undefined
+        );
 
-    // Create transfer record
-    const transfer: P2PTransfer = {
-      id: `p2p_${Date.now()}`,
-      fromUserId: currentUser.user.id,
-      toContactId: selectedContact.id,
-      toName: selectedContact.name,
-      amount: amountNum,
-      note: note.trim() || undefined,
-      status: "completed",
-      createdAt: new Date().toISOString(),
-    };
+        // Update contact's last transfer time
+        const updatedContacts = contacts.map((c) =>
+        c.id === selectedContact.id ? { ...c, lastTransferAt: new Date().toISOString() } : c
+        );
+        setContacts(updatedContacts);
+        saveContacts(currentUser.user.id, updatedContacts);
 
-    saveTransfer(currentUser.user.id, transfer);
-
-    // Update contact's last transfer time
-    const updatedContacts = contacts.map((c) =>
-      c.id === selectedContact.id ? { ...c, lastTransferAt: new Date().toISOString() } : c
-    );
-    setContacts(updatedContacts);
-    saveContacts(currentUser.user.id, updatedContacts);
-
-    setIsProcessing(false);
-    setStep("success");
-    onTransferComplete?.();
+        setIsProcessing(false);
+        setStep("success");
+        onTransferComplete?.();
+    } catch (error) {
+        setIsProcessing(false);
+        toast.error(error instanceof Error ? error.message : "Transfer failed");
+    }
   };
 
   const getInitials = (name: string) => {
@@ -320,40 +271,6 @@ export function P2PTransferModal({ open, onOpenChange, onTransferComplete }: P2P
                   className="border-white/20 bg-white/10 pl-10 text-white placeholder:text-white/40"
                 />
               </div>
-
-              {/* Recent Recipients */}
-              {!searchQuery && recentRecipients.length > 0 && (
-                <div>
-                  <div className="flex items-center gap-2 text-sm text-white/60 mb-2">
-                    <History className="size-4" />
-                    Recent
-                  </div>
-                  <div className="flex gap-2 overflow-x-auto pb-2">
-                    {recentRecipients.map((transfer) => {
-                      const contact = contacts.find((c) => c.id === transfer.toContactId);
-                      return (
-                        <button
-                          key={transfer.id}
-                          onClick={() =>
-                            contact && handleSelectContact(contact)
-                          }
-                          className="flex flex-col items-center gap-1 p-2 rounded-lg hover:bg-white/10 transition-colors min-w-[60px]"
-                        >
-                          <Avatar className="size-10 border border-white/20">
-                            <AvatarImage src={contact?.avatarUrl} />
-                            <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-500 text-white text-xs">
-                              {getInitials(transfer.toName)}
-                            </AvatarFallback>
-                          </Avatar>
-                          <span className="text-xs text-white/80 truncate max-w-[60px]">
-                            {transfer.toName.split(" ")[0]}
-                          </span>
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-              )}
 
               <Separator className="bg-white/10" />
 
@@ -548,21 +465,6 @@ export function P2PTransferModal({ open, onOpenChange, onTransferComplete }: P2P
                 <p className="text-sm text-white/40 mt-2">
                   Available: {formatCurrency(parseFloat(currentUser.account.balance))}
                 </p>
-              </div>
-
-              {/* Quick Amount Buttons */}
-              <div className="flex justify-center gap-2">
-                {[10, 25, 50, 100, 250].map((amt) => (
-                  <Button
-                    key={amt}
-                    size="sm"
-                    variant="outline"
-                    onClick={() => setAmount(amt.toString())}
-                    className="border-white/20 text-white hover:bg-white/10"
-                  >
-                    ${amt}
-                  </Button>
-                ))}
               </div>
 
               {/* Note */}
