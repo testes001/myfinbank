@@ -54,7 +54,7 @@ export async function transferFunds(
     throw new Error(msg);
   }
   const data = await resp.json();
-  return dtoToModel(data.data.transaction as TransactionDTO);
+  return dtoToModel(data.data);
 }
 
 export async function getTransactionsByAccountId(
@@ -69,10 +69,10 @@ export async function getTransactionsByAccountId(
     throw new Error(msg);
   }
   const data = await resp.json();
-  const txs = (data.data.transactions as TransactionDTO[]).map(dtoToModel);
+  const txs = (data.data as TransactionDTO[]).map(dtoToModel);
   return {
     transactions: txs,
-    totalPages: data.data.totalPages ?? 1,
+    totalPages: data.pagination?.totalPages ?? 1,
   };
 }
 
@@ -119,4 +119,26 @@ export async function p2pTransfer(
     const msg = (await resp.json().catch(() => null))?.message || "P2P transfer failed";
     throw new Error(msg);
   }
+}
+
+export async function payBill(
+  accountId: string,
+  payeeName: string,
+  payeeAccountNumber: string,
+  amount: number,
+  category: string,
+  paymentDate?: string, // Backend handles immediate, this is for future scheduling if implemented
+  frequency: "once" | "weekly" | "monthly" = "once",
+): Promise<TransactionModel> {
+  const resp = await apiFetch(`/api/transactions/bill-pay`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ accountId, payeeName, payeeAccountNumber, amount, category, paymentDate, frequency }),
+  });
+  if (!resp.ok) {
+    const msg = (await resp.json().catch(() => null))?.message || "Bill payment failed";
+    throw new Error(msg);
+  }
+  const data = await resp.json();
+  return dtoToModel(data.data);
 }
