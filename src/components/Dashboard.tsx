@@ -289,7 +289,7 @@ export function Dashboard({ onNavigate }: DashboardProps) {
             >
               <Avatar className="size-12 border-2 border-white/20">
                 <AvatarFallback className={`bg-gradient-to-br ${accountTypeGradients[accountType]} text-white font-bold`}>
-                  {currentUser.user.full_name.charAt(0)}
+                  {currentUser.user?.full_name?.charAt(0) || currentUser.user?.email?.charAt(0) || "U"}
                 </AvatarFallback>
               </Avatar>
               <span className="absolute -bottom-1 -right-1 flex size-4 items-center justify-center rounded-full bg-green-500 ring-2 ring-slate-900">
@@ -860,7 +860,7 @@ export function Dashboard({ onNavigate }: DashboardProps) {
             <div className="flex items-center gap-4 p-4 rounded-xl bg-white/5 border border-white/10">
               <Avatar className="size-16 border-2 border-white/20">
                 <AvatarFallback className={`bg-gradient-to-br ${accountTypeGradients[accountType]} text-white font-bold text-xl`}>
-                  {currentUser.user.full_name.charAt(0)}
+                  {currentUser.user?.full_name?.charAt(0) || currentUser.user?.email?.charAt(0) || "U"}
                 </AvatarFallback>
               </Avatar>
               <div>
