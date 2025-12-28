@@ -99,11 +99,9 @@ class SecureBankAPITester:
         """Test user registration"""
         test_user_data = {
             "email": f"test_{datetime.now().strftime('%H%M%S')}@example.com",
-            "password": "TestPass123!",
-            "firstName": "Test",
-            "lastName": "User",
-            "dateOfBirth": "1990-01-01",
-            "phoneNumber": "+1234567890"
+            "password": "TestPass123!@#",  # Updated to meet requirements
+            "fullName": "Test User",  # Changed from firstName/lastName to fullName
+            "accountType": "checking"
         }
         
         success, response = self.run_test(
