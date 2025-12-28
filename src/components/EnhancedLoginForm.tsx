@@ -648,27 +648,27 @@ export function EnhancedLoginForm({ mode, defaultAccountType, onSwitchToSignIn }
                   )}
 
                   <div className="space-y-3">
-                    <div className="flex items-start space-x-2 rounded-md border border-white/10 bg-white/5 p-3">
+                    <div className="relative z-20 flex items-start space-x-2 rounded-md border border-white/10 bg-white/5 p-3">
                       <Checkbox
                         id="terms"
                         checked={registerTermsAccepted}
                         onCheckedChange={(val) => setRegisterTermsAccepted(Boolean(val))}
-                        className="border-white/40 data-[state=checked]:bg-blue-600"
+                        className="relative z-30 border-white/40 data-[state=checked]:bg-blue-600"
                       />
-                      <Label htmlFor="terms" className="text-xs text-white/80 leading-snug">
-                        I agree to the <a className="text-blue-300 underline" href="/legal/terms">Terms of Service</a> and{" "}
-                        <a className="text-blue-300 underline" href="/legal/privacy">Privacy Policy</a>.
+                      <Label htmlFor="terms" className="text-xs text-white/80 leading-snug cursor-pointer relative z-30">
+                        I agree to the <a className="text-blue-300 underline relative z-40" href="/legal/terms">Terms of Service</a> and{" "}
+                        <a className="text-blue-300 underline relative z-40" href="/legal/privacy">Privacy Policy</a>.
                       </Label>
                     </div>
 
-                    <div className="flex items-start space-x-2 rounded-md border border-white/10 bg-white/5 p-3">
+                    <div className="relative z-20 flex items-start space-x-2 rounded-md border border-white/10 bg-white/5 p-3">
                       <Checkbox
                         id="marketing"
                         checked={registerMarketingConsent}
                         onCheckedChange={(val) => setRegisterMarketingConsent(Boolean(val))}
-                        className="border-white/40 data-[state=checked]:bg-blue-600"
+                        className="relative z-30 border-white/40 data-[state=checked]:bg-blue-600"
                       />
-                      <Label htmlFor="marketing" className="text-xs text-white/80 leading-snug">
+                      <Label htmlFor="marketing" className="text-xs text-white/80 leading-snug cursor-pointer relative z-30">
                         I agree to receive product updates and onboarding tips (optional).
                       </Label>
                     </div>
