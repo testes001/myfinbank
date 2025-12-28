@@ -9,7 +9,7 @@
     "serve": "vite preview",
     "test": "vitest run",
     "check": "tsc --noEmit && npm run lint:radix -- --fix && npm run format",
-    "check:safe": "timeout 20 npm run check || (echo 'Check timed out after 20 seconds' && exit 1)",
+    "check:safe": "timeout 60 npm run check || (echo 'Check timed out after 60 seconds' && exit 1)",
     "check:frontend:strict": "tsc --noEmit -p tsconfig.strict.json",
     "check:full": "npm run check && npm run backend:build",
     "format": "biome check --write --unsafe",
