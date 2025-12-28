@@ -6,7 +6,7 @@ import { Card } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { TransferModal } from "@/components/TransferModal";
-import { MobileDepositModal } from "@/components/MobileDepositModal";
+import { MobileDepositModalNew } from "@/components/MobileDepositModalNew";
 import { BillPayModal } from "@/components/BillPayModal";
 import { FundAccessRestrictionBanner } from "@/components/FundAccessRestrictionBanner";
 import { SpendingChart } from "@/components/SpendingChart";
@@ -795,7 +795,7 @@ export function Dashboard({ onNavigate }: DashboardProps) {
         onSuccess={handleTransferSuccess}
       />
 
-      <MobileDepositModal
+      <MobileDepositModalNew
         open={isMobileDepositOpen}
         onOpenChange={setIsMobileDepositOpen}
         onSuccess={handleTransferSuccess}

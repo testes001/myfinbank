@@ -20,7 +20,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Shield, Loader2, CheckCircle2, XCircle, ChevronLeft, Eye, EyeOff } from "lucide-react";
+import { Shield, Loader2, CheckCircle2, XCircle, ChevronLeft, Eye, EyeOff, AlertTriangle } from "lucide-react";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
 import { getAuthThrottle, recordAuthAttempt, resetAuthThrottle } from "@/lib/rate-limit";
@@ -158,7 +158,8 @@ export function EnhancedLoginForm({ mode, defaultAccountType, onSwitchToSignIn }
       setResetCode("");
       setResetNewPassword("");
     } catch (err) {
-      setLoginError(err instanceof Error ? err.message : "Failed to reset password");
+      // Generic error to prevent account enumeration
+      setLoginError("Invalid code or password. Please try again.");
     } finally {
       setIsResettingPassword(false);
     }
@@ -313,7 +314,8 @@ export function EnhancedLoginForm({ mode, defaultAccountType, onSwitchToSignIn }
       }
       navigate({ to: "/dashboard", replace: true });
     } catch (error) {
-      setRegisterError(error instanceof Error ? error.message : "Registration failed");
+      // Generic error to prevent account enumeration
+      setRegisterError("Registration failed. Please try again.");
       const next = recordAuthAttempt();
       setAuthThrottle(next);
     } finally {

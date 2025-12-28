@@ -5,7 +5,7 @@
  */
 
 import { describe, it, expect, vi } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import { LoginFormFields } from '@/components/LoginFormFields';
 import { PasswordResetForm } from '@/components/PasswordResetForm';
 
@@ -29,7 +29,7 @@ describe('LoginFormFields Accessibility', () => {
     it('should have properly associated labels with form inputs', () => {
       render(<LoginFormFields {...defaultProps} />);
       
-      const emailInput = screen.getByRole('textbox', { name: /email address/i });
+      const emailInput = screen.getByLabelText(/email address/i);
       const passwordInput = screen.getByLabelText(/password/i);
       
       expect(emailInput).toBeInTheDocument();
@@ -39,14 +39,14 @@ describe('LoginFormFields Accessibility', () => {
     it('should use aria-label for inputs without visible labels', () => {
       render(<LoginFormFields {...defaultProps} />);
       
-      const emailInput = screen.getByRole('textbox', { name: /email address/i });
+      const emailInput = screen.getByLabelText(/email address/i);
       expect(emailInput).toHaveAttribute('aria-label', 'Email address');
     });
 
     it('should mark required fields with aria-invalid when empty', () => {
       const { rerender } = render(<LoginFormFields {...defaultProps} email="" />);
       
-      const emailInput = screen.getByRole('textbox', { name: /email address/i });
+      const emailInput = screen.getByLabelText(/email address/i);
       
       // Simulate blur to trigger validation
       emailInput.focus();
@@ -73,7 +73,7 @@ describe('LoginFormFields Accessibility', () => {
     it('should allow keyboard navigation through all form elements', () => {
       render(<LoginFormFields {...defaultProps} />);
       
-      const emailInput = screen.getByRole('textbox', { name: /email address/i });
+      const emailInput = screen.getByLabelText(/email address/i);
       const passwordInput = screen.getByLabelText(/password/i);
       const submitButton = screen.getByRole('button', { name: /sign in/i });
       const forgotButton = screen.getByRole('button', { name: /forgot your password/i });
@@ -89,7 +89,7 @@ describe('LoginFormFields Accessibility', () => {
       
       const buttons = screen.getAllByRole('button');
       buttons.forEach((button) => {
-        const hasRingClass = button.className.includes('focus:ring');
+        const hasRingClass = button.className.includes('focus-visible:ring-ring/50');
         expect(hasRingClass).toBe(true);
       });
     });
@@ -126,14 +126,14 @@ describe('LoginFormFields Accessibility', () => {
     it('should have aria-pressed attribute on password toggle', () => {
       render(<LoginFormFields {...defaultProps} />);
       
-      const toggleButton = screen.getByLabelText(/show password/i);
+      const toggleButton = screen.getByRole('button', { name: /show password/i });
       expect(toggleButton).toHaveAttribute('aria-pressed');
     });
 
     it('should have aria-label on password toggle button', () => {
       render(<LoginFormFields {...defaultProps} />);
       
-      const toggleButton = screen.getByLabelText(/show password/i);
+      const toggleButton = screen.getByRole('button', { name: /show password/i });
       expect(toggleButton).toHaveAttribute('aria-label');
     });
   });
@@ -142,9 +142,8 @@ describe('LoginFormFields Accessibility', () => {
     it('should show required field error with role="alert"', () => {
       render(<LoginFormFields {...defaultProps} email="" />);
       
-      const emailInput = screen.getByRole('textbox', { name: /email address/i });
-      emailInput.focus();
-      emailInput.blur();
+      const emailInput = screen.getByLabelText(/email address/i);
+      fireEvent.blur(emailInput);
       
       const alerts = screen.queryAllByRole('alert');
       expect(alerts.length).toBeGreaterThan(0);
@@ -160,6 +159,18 @@ describe('LoginFormFields Accessibility', () => {
         const description = document.getElementById(describedBy);
         expect(description).toBeInTheDocument();
       }
+    });
+  });
+
+  describe('Form Focus Management', () => {
+    it('should maintain focus visibility during form submission', () => {
+      render(<LoginFormFields {...defaultProps} />);
+
+      const buttons = screen.getAllByRole('button');
+      buttons.forEach((button) => {
+        const hasRingClass = button.className.includes('focus-visible:ring-ring/50');
+        expect(hasRingClass).toBe(true);
+      });
     });
   });
 });
@@ -212,17 +223,5 @@ describe('PasswordResetForm Accessibility', () => {
     
     const alert = screen.getByRole('alert');
     expect(alert).toHaveAttribute('aria-live', 'assertive');
-  });
-});
-
-describe('Form Focus Management', () => {
-  it('should maintain focus visibility during form submission', () => {
-    render(<LoginFormFields {...defaultProps} />);
-    
-    const buttons = screen.getAllByRole('button');
-    buttons.forEach((button) => {
-      const hasRingClass = button.className.includes('focus:ring');
-      expect(hasRingClass).toBe(true);
-    });
   });
 });
