@@ -28,6 +28,25 @@ const p2pTransferSchema = z.object({
   memo: z.string().max(500).optional(),
 });
 
+const billPaySchema = z.object({
+  accountId: z.string().uuid('Invalid account ID'),
+  payeeName: z.string().min(1, 'Payee name is required'),
+  payeeAccountNumber: z.string().min(1, 'Payee account number is required'),
+  amount: z.number().positive('Amount must be greater than zero'),
+  category: z.string().optional(),
+  paymentDate: z.string().datetime().optional(), // For scheduled payments, though backend handles immediate for now
+  frequency: z.enum(['once', 'weekly', 'monthly']).default('once'),
+});
+
+const mobileDepositSchema = z.object({
+  accountId: z.string().uuid('Invalid account ID'), // Assuming we resolve account from accountType in service or pass ID
+  amount: z.number().positive(),
+  currency: z.enum(['USD', 'EUR']),
+  frontImage: z.string().min(1),
+  backImage: z.string().min(1),
+  notes: z.string().optional(),
+});
+
 const transactionFiltersSchema = z.object({
   accountId: z.string().uuid().optional(),
   type: z.nativeEnum(TransactionType).optional(),
@@ -170,6 +189,78 @@ export class TransactionController {
       });
     }
   );
+
+  /**
+   * POST /api/transactions/bill-pay
+   * Perform Bill Payment
+   */
+  billPay = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
+    if (!req.user) {
+      throw errors.unauthorized();
+    }
+
+    const validationResult = billPaySchema.safeParse(req.body);
+    if (!validationResult.success) {
+      throw errors.validation('Invalid request body', validationResult.error.errors);
+    }
+
+    const { accountId, payeeName, amount, category } = validationResult.data;
+
+    const transaction = await transactionService.billPay({
+      userId: req.user.userId,
+      accountId,
+      payeeName,
+      amount,
+      category,
+    });
+
+    res.status(201).json({
+      success: true,
+      message: 'Bill payment successful',
+      data: transaction,
+      meta: {
+        requestId: req.requestId,
+        timestamp: new Date().toISOString(),
+      },
+    });
+  });
+
+  /**
+   * POST /api/transactions/deposit/mobile
+   * Submit Mobile Deposit
+   */
+  mobileDeposit = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
+    if (!req.user) {
+      throw errors.unauthorized();
+    }
+
+    const validationResult = mobileDepositSchema.safeParse(req.body);
+    if (!validationResult.success) {
+      throw errors.validation('Invalid request body', validationResult.error.errors);
+    }
+
+    const { accountId, amount, currency, frontImage, backImage, notes } = validationResult.data;
+
+    const deposit = await transactionService.mobileDeposit({
+      userId: req.user.userId,
+      accountId,
+      amount,
+      currency,
+      frontImage,
+      backImage,
+      notes,
+    });
+
+    res.status(201).json({
+      success: true,
+      message: 'Mobile deposit submitted for review',
+      data: deposit,
+      meta: {
+        requestId: req.requestId,
+        timestamp: new Date().toISOString(),
+      },
+    });
+  });
 
   /**
    * GET /api/transactions
