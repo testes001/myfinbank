@@ -7,15 +7,22 @@ import rateLimit from 'express-rate-limit';
 import RedisStore from 'rate-limit-redis';
 import redisClient from '@/config/redis';
 
+// Helper to create store
+const createStore = (prefix: string) => {
+  if (!redisClient) return undefined;
+  return new RedisStore({
+    // @ts-ignore - redis client types mismatch sometimes
+    sendCommand: (...args: string[]) => redisClient!.sendCommand(args),
+    prefix,
+  });
+};
+
 /**
  * General login rate limiter
  * 5 attempts per 15 minutes per IP
  */
 export const loginLimiter = rateLimit({
-  store: new RedisStore({
-    client: redisClient,
-    prefix: 'rl:login:',
-  }),
+  store: createStore('rl:login:'),
   windowMs: 15 * 60 * 1000, // 15 minutes
   max: 5, // 5 attempts
   message: 'Too many login attempts, please try again later',
@@ -37,10 +44,7 @@ export const loginLimiter = rateLimit({
  * 3 attempts per hour per email address
  */
 export const passwordResetLimiter = rateLimit({
-  store: new RedisStore({
-    client: redisClient,
-    prefix: 'rl:password-reset:',
-  }),
+  store: createStore('rl:password-reset:'),
   windowMs: 60 * 60 * 1000, // 1 hour
   max: 3, // 3 attempts per hour
   message: 'Too many password reset attempts, please try again later',
@@ -68,10 +72,7 @@ export const passwordResetLimiter = rateLimit({
  * 5 attempts per hour per email address (to prevent brute-forcing the code)
  */
 export const passwordResetConfirmLimiter = rateLimit({
-  store: new RedisStore({
-    client: redisClient,
-    prefix: 'rl:password-reset-confirm:',
-  }),
+  store: createStore('rl:password-reset-confirm:'),
   windowMs: 60 * 60 * 1000, // 1 hour
   max: 5, // 5 attempts per hour
   message: 'Too many password reset attempts, please try again later',
@@ -97,10 +98,7 @@ export const passwordResetConfirmLimiter = rateLimit({
  * 3 attempts per hour per email address
  */
 export const emailVerificationLimiter = rateLimit({
-  store: new RedisStore({
-    client: redisClient,
-    prefix: 'rl:email-verify:',
-  }),
+  store: createStore('rl:email-verify:'),
   windowMs: 60 * 60 * 1000, // 1 hour
   max: 3, // 3 attempts per hour
   message: 'Too many verification attempts, please try again later',
@@ -126,10 +124,7 @@ export const emailVerificationLimiter = rateLimit({
  * 3 registrations per hour per IP address
  */
 export const registerLimiter = rateLimit({
-  store: new RedisStore({
-    client: redisClient,
-    prefix: 'rl:register:',
-  }),
+  store: createStore('rl:register:'),
   windowMs: 60 * 60 * 1000, // 1 hour
   max: 3, // 3 registrations per hour
   message: 'Too many registration attempts, please try again later',
