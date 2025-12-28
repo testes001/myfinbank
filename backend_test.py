@@ -126,8 +126,9 @@ class SecureBankAPITester:
         return False
 
     def test_user_login(self):
-        """Test user login with demo credentials"""
-        login_data = {
+        """Test user login with demo credentials or registered user"""
+        # Try demo login first
+        demo_login_data = {
             "email": "alice@demo.com",
             "password": "demo123"
         }
@@ -137,7 +138,7 @@ class SecureBankAPITester:
             "POST",
             "auth/login",
             200,
-            data=login_data
+            data=demo_login_data
         )
         
         if success and 'accessToken' in response:
@@ -146,6 +147,30 @@ class SecureBankAPITester:
                 self.user_id = response['user'].get('id')
             print(f"   ✅ Demo login successful, token: {self.token[:20]}...")
             return True
+        
+        # If demo login fails, try with registered user
+        if self.registered_email and self.registered_password:
+            print("   Demo login failed, trying with registered user...")
+            registered_login_data = {
+                "email": self.registered_email,
+                "password": self.registered_password
+            }
+            
+            success, response = self.run_test(
+                "User Login (Registered)",
+                "POST",
+                "auth/login",
+                200,
+                data=registered_login_data
+            )
+            
+            if success and 'accessToken' in response:
+                self.token = response['accessToken']
+                if 'user' in response:
+                    self.user_id = response['user'].get('id')
+                print(f"   ✅ Registered user login successful, token: {self.token[:20]}...")
+                return True
+        
         return False
 
     def test_profile_fetch(self):
