@@ -65,7 +65,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const tokenToUse = (await refreshAccessToken()) || accessToken;
       const [profile, accounts, kyc] = await Promise.all([
         fetchProfile(tokenToUse),
-        fetchAccounts(tokenToUse).catch(() => []),
+        fetchAccounts(tokenToUse).catch((err) => {
+          console.error("Failed to fetch accounts:", err);
+          return [];
+        }),
         fetchKycStatus(tokenToUse).catch(() => null),
       ]);
 
