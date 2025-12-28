@@ -24,7 +24,7 @@ const createStore = (prefix: string) => {
 export const loginLimiter = rateLimit({
   store: createStore('rl:login:'),
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 5, // 5 attempts
+  max: 100, // 100 attempts (Increased for testing)
   message: 'Too many login attempts, please try again later',
   standardHeaders: true, // Return rate limit info in `RateLimit-*` headers
   legacyHeaders: false, // Disable `X-RateLimit-*` headers
@@ -74,7 +74,7 @@ export const passwordResetLimiter = rateLimit({
 export const passwordResetConfirmLimiter = rateLimit({
   store: createStore('rl:password-reset-confirm:'),
   windowMs: 60 * 60 * 1000, // 1 hour
-  max: 5, // 5 attempts per hour
+  max: 100, // 100 attempts (Increased for testing) per hour
   message: 'Too many password reset attempts, please try again later',
   standardHeaders: true,
   legacyHeaders: false,
