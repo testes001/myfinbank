@@ -6,7 +6,14 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/components/ui/dialog";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -63,9 +70,18 @@ import {
   Plane,
 } from "lucide-react";
 import { FINBANK_ROUTING_NUMBER } from "@/lib/seed";
-import { maskAccountNumber, formatRoutingNumber, generateMockCreditScore } from "@/lib/banking-utils";
-import { Textarea } from "@/components/ui/textarea";
-import { fetchKycStatus, fetchProfile, updateProfile, uploadKycDocument, uploadKycFile } from "@/lib/backend";
+import {
+  maskAccountNumber,
+  formatRoutingNumber,
+  generateMockCreditScore,
+} from "@/lib/banking-utils";
+import {
+  fetchKycStatus,
+  fetchProfile,
+  updateProfile,
+  uploadKycDocument,
+  uploadKycFile,
+} from "@/lib/backend";
 
 export function ProfilePage() {
   const { currentUser, logout } = useAuth();
@@ -73,13 +89,10 @@ export function ProfilePage() {
   const [showAccountNumber, setShowAccountNumber] = useState(false);
   const [twoFactorEnabled, setTwoFactorEnabled] = useState(false);
   const [biometricEnabled, setBiometricEnabled] = useState(false);
-  const [emailNotifications, setEmailNotifications] = useState(true);
-  const [pushNotifications, setPushNotifications] = useState(true);
   const [showCreditScore, setShowCreditScore] = useState(false);
   const [creditScore] = useState(generateMockCreditScore());
 
   // Profile editing
-  const [editingProfile, setEditingProfile] = useState(false);
   const [profileData, setProfileData] = useState({
     phone: "",
     address: "",
@@ -91,7 +104,8 @@ export function ProfilePage() {
   const [kycData, setKycData] = useState<any | null>(null);
   const [secondaryEmail, setSecondaryEmail] = useState("");
   const [secondaryPhone, setSecondaryPhone] = useState("");
-  const [showSecondaryContactModal, setShowSecondaryContactModal] = useState(false);
+  const [showSecondaryContactModal, setShowSecondaryContactModal] =
+    useState(false);
 
   // Profile photo upload (one-time only)
   const [profilePhotoUploaded, setProfilePhotoUploaded] = useState(false);
@@ -107,14 +121,21 @@ export function ProfilePage() {
     zipCode: "",
     country: "United States",
   });
-  const [addressVerificationDoc, setAddressVerificationDoc] = useState<File | null>(null);
-  const [pendingAddressChange, setPendingAddressChange] = useState<any | null>(null);
+  const [addressVerificationDoc, setAddressVerificationDoc] =
+    useState<File | null>(null);
+  const [pendingAddressChange, setPendingAddressChange] = useState<any | null>(
+    null,
+  );
 
   // Biometric and 2FA enhancements
-  const [twoFactorMethod, setTwoFactorMethod] = useState<"sms" | "authenticator" | "push">("sms");
+  const [twoFactorMethod, setTwoFactorMethod] = useState<
+    "sms" | "authenticator" | "push"
+  >("sms");
   const [showBiometricSetupModal, setShowBiometricSetupModal] = useState(false);
   const [show2FASetupModal, setShow2FASetupModal] = useState(false);
-  const [biometricType, setBiometricType] = useState<"fingerprint" | "face" | "none">("none");
+  const [biometricType, setBiometricType] = useState<
+    "fingerprint" | "face" | "none"
+  >("none");
 
   // Reload KYC data from backend
   useEffect(() => {
@@ -129,10 +150,13 @@ export function ProfilePage() {
           kycStatus: status.kycStatus?.toLowerCase?.() || status.kycStatus,
           verification: status.verification,
           primaryAccountType:
-            currentUser?.accounts?.[0]?.accountType?.toLowerCase?.() || "checking",
+            currentUser?.accounts?.[0]?.accountType?.toLowerCase?.() ||
+            "checking",
         });
         setProfilePhotoUploaded(Boolean(status?.verification));
-        setProfilePhotoUrl(status?.verification?.id ? "KYC verification submitted" : "");
+        setProfilePhotoUrl(
+          status?.verification?.id ? "KYC verification submitted" : "",
+        );
         setProfileData({
           phone: profile.phoneNumber || "",
           address: profile.address || "",
@@ -147,38 +171,91 @@ export function ProfilePage() {
 
   const accountType: PrimaryAccountType =
     kycData?.primaryAccountType ||
-    ((currentUser?.accounts?.[0]?.accountType?.toLowerCase?.() as PrimaryAccountType) ?? "checking");
+    ((currentUser?.accounts?.[0]?.accountType?.toLowerCase?.() as PrimaryAccountType) ??
+      "checking");
 
   // Security - Session Management
   const [showSessionsModal, setShowSessionsModal] = useState(false);
   const [activeSessions] = useState([
-    { id: "1", device: "iPhone 14 Pro", location: "New York, NY", ip: "192.168.1.100", lastActive: "Just now", current: true },
-    { id: "2", device: "Chrome on Windows", location: "New York, NY", ip: "192.168.1.101", lastActive: "2 hours ago", current: false },
-    { id: "3", device: "Safari on MacBook", location: "New York, NY", ip: "192.168.1.102", lastActive: "1 day ago", current: false },
+    {
+      id: "1",
+      device: "iPhone 14 Pro",
+      location: "New York, NY",
+      ip: "192.168.1.100",
+      lastActive: "Just now",
+      current: true,
+    },
+    {
+      id: "2",
+      device: "Chrome on Windows",
+      location: "New York, NY",
+      ip: "192.168.1.101",
+      lastActive: "2 hours ago",
+      current: false,
+    },
+    {
+      id: "3",
+      device: "Safari on MacBook",
+      location: "New York, NY",
+      ip: "192.168.1.102",
+      lastActive: "1 day ago",
+      current: false,
+    },
   ]);
 
   // Security - Login History
   const [showLoginHistoryModal, setShowLoginHistoryModal] = useState(false);
   const [loginHistory] = useState([
-    { id: "1", device: "iPhone 14 Pro", location: "New York, NY", ip: "192.168.1.100", time: "2024-01-15 10:30 AM", success: true },
-    { id: "2", device: "Chrome on Windows", location: "New York, NY", ip: "192.168.1.101", time: "2024-01-14 3:45 PM", success: true },
-    { id: "3", device: "Unknown Device", location: "Los Angeles, CA", ip: "203.0.113.42", time: "2024-01-13 11:20 PM", success: false },
-    { id: "4", device: "Safari on MacBook", location: "New York, NY", ip: "192.168.1.102", time: "2024-01-13 9:15 AM", success: true },
+    {
+      id: "1",
+      device: "iPhone 14 Pro",
+      location: "New York, NY",
+      ip: "192.168.1.100",
+      time: "2024-01-15 10:30 AM",
+      success: true,
+    },
+    {
+      id: "2",
+      device: "Chrome on Windows",
+      location: "New York, NY",
+      ip: "192.168.1.101",
+      time: "2024-01-14 3:45 PM",
+      success: true,
+    },
+    {
+      id: "3",
+      device: "Unknown Device",
+      location: "Los Angeles, CA",
+      ip: "203.0.113.42",
+      time: "2024-01-13 11:20 PM",
+      success: false,
+    },
+    {
+      id: "4",
+      device: "Safari on MacBook",
+      location: "New York, NY",
+      ip: "192.168.1.102",
+      time: "2024-01-13 9:15 AM",
+      success: true,
+    },
   ]);
 
   // Overdraft Protection
   const [overdraftEnabled, setOverdraftEnabled] = useState(false);
-  const [linkedSavingsForOverdraft, setLinkedSavingsForOverdraft] = useState("");
+  const [linkedSavingsForOverdraft, setLinkedSavingsForOverdraft] =
+    useState("");
 
   // External Accounts
   const [showLinkAccountModal, setShowLinkAccountModal] = useState(false);
-  const [externalAccounts, setExternalAccounts] = useState<Array<{
-    id: string;
-    bankName: string;
-    accountType: string;
-    lastFour: string;
-    status: "active" | "pending" | "verification";
-  }>>([]);
+  const [externalAccounts, setExternalAccounts] = useState<
+    Array<{
+      id: string;
+      bankName: string;
+      accountType: string;
+      lastFour: string;
+      status: "active" | "pending" | "verification";
+    }>
+  >([]);
 
   // Limit Upgrade
   const [showLimitUpgradeModal, setShowLimitUpgradeModal] = useState(false);
@@ -191,13 +268,21 @@ export function ProfilePage() {
   const [showCardManagementModal, setShowCardManagementModal] = useState(false);
 
   // Account Nickname
-  const [showAccountNicknameModal, setShowAccountNicknameModal] = useState(false);
+  const [showAccountNicknameModal, setShowAccountNicknameModal] =
+    useState(false);
   const [accountNickname, setAccountNickname] = useState("Primary Checking");
 
   // Travel Notification
-  const [showTravelNotificationModal, setShowTravelNotificationModal] = useState(false);
+  const [showTravelNotificationModal, setShowTravelNotificationModal] =
+    useState(false);
   const [travelNotifications] = useState([
-    { id: "1", destination: "Paris, France", startDate: "2024-02-01", endDate: "2024-02-10", status: "active" },
+    {
+      id: "1",
+      destination: "Paris, France",
+      startDate: "2024-02-01",
+      endDate: "2024-02-10",
+      status: "active",
+    },
   ]);
 
   // Wire Transfer Setup
@@ -213,7 +298,8 @@ export function ProfilePage() {
   });
 
   // Spending Analytics
-  const [showSpendingAnalyticsModal, setShowSpendingAnalyticsModal] = useState(false);
+  const [showSpendingAnalyticsModal, setShowSpendingAnalyticsModal] =
+    useState(false);
   const [spendingData] = useState([
     { category: "Groceries", amount: 450, percentage: 25 },
     { category: "Dining", amount: 320, percentage: 18 },
@@ -258,7 +344,9 @@ export function ProfilePage() {
 
   const handleEnableBiometric = () => {
     setBiometricEnabled(!biometricEnabled);
-    toast.success(biometricEnabled ? "Biometric login disabled" : "Biometric login enabled");
+    toast.success(
+      biometricEnabled ? "Biometric login disabled" : "Biometric login enabled",
+    );
   };
 
   // Handle profile photo upload (one-time only)
@@ -270,14 +358,18 @@ export function ProfilePage() {
 
     setIsUploadingPhoto(true);
     try {
-      const photoUrl = currentUser?.accessToken ? await uploadKycFile(file, currentUser.accessToken) : await uploadDocument(file);
+      const photoUrl = currentUser?.accessToken
+        ? await uploadKycFile(file, currentUser.accessToken)
+        : await uploadDocument(file);
       if (currentUser?.accessToken && photoUrl) {
         await uploadKycDocument("ID_FRONT", photoUrl, currentUser.accessToken);
       }
       setProfilePhotoUploaded(true);
       setProfilePhotoUrl(photoUrl);
       setShowProfilePictureModal(false);
-      toast.success("Profile photo uploaded successfully. This cannot be changed.");
+      toast.success(
+        "Profile photo uploaded successfully. This cannot be changed.",
+      );
     } catch (error) {
       toast.error("Failed to upload profile photo");
     } finally {
@@ -294,7 +386,7 @@ export function ProfilePage() {
           secondaryEmail: secondaryEmail || undefined,
           secondaryPhone: secondaryPhone || undefined,
         },
-        currentUser.accessToken
+        currentUser.accessToken,
       );
       setKycData((prev: any) => ({
         ...prev,
@@ -304,7 +396,9 @@ export function ProfilePage() {
       setShowSecondaryContactModal(false);
       toast.success("Secondary contact information saved");
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Failed to save secondary contact");
+      toast.error(
+        err instanceof Error ? err.message : "Failed to save secondary contact",
+      );
     }
   };
 
@@ -312,13 +406,20 @@ export function ProfilePage() {
   const handleSubmitAddressChange = async () => {
     if (!currentUser) return;
 
-    if (!newAddressData.streetAddress || !newAddressData.city || !newAddressData.state || !newAddressData.zipCode) {
+    if (
+      !newAddressData.streetAddress ||
+      !newAddressData.city ||
+      !newAddressData.state ||
+      !newAddressData.zipCode
+    ) {
       toast.error("Please fill in all address fields");
       return;
     }
 
     if (!addressVerificationDoc) {
-      toast.error("Please upload a verification document (utility bill, ID, etc.)");
+      toast.error(
+        "Please upload a verification document (utility bill, ID, etc.)",
+      );
       return;
     }
 
@@ -335,7 +436,11 @@ export function ProfilePage() {
 
       setPendingAddressChange(pendingChange);
       if (currentUser?.accessToken) {
-        await uploadKycDocument("PROOF_OF_ADDRESS", docUrl, currentUser.accessToken);
+        await uploadKycDocument(
+          "PROOF_OF_ADDRESS",
+          docUrl,
+          currentUser.accessToken,
+        );
         await updateProfile(
           {
             address: {
@@ -346,7 +451,7 @@ export function ProfilePage() {
               country: newAddressData.country,
             },
           },
-          currentUser.accessToken
+          currentUser.accessToken,
         );
       }
       setShowAddressChangeModal(false);
@@ -364,33 +469,21 @@ export function ProfilePage() {
     }
   };
 
-  const handleProfileUpdate = async () => {
-    if (!currentUser?.accessToken) return;
-    try {
-      await updateProfile(
-        {
-          phoneNumber: profileData.phone || undefined,
-        },
-        currentUser.accessToken
-      );
-      toast.success("Profile updated");
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Failed to update profile");
-    }
-  };
-
-  // Handle 2FA setup with method selection
   const handleSetup2FA = () => {
     setTwoFactorEnabled(true);
     setShow2FASetupModal(false);
-    toast.success(`Two-factor authentication enabled via ${twoFactorMethod.toUpperCase()}`);
+    toast.success(
+      `Two-factor authentication enabled via ${twoFactorMethod.toUpperCase()}`,
+    );
   };
 
   // Handle biometric setup
   const handleSetupBiometric = () => {
     setBiometricEnabled(true);
     setShowBiometricSetupModal(false);
-    toast.success(`Biometric login enabled using ${biometricType === "face" ? "Face ID" : "Fingerprint"}`);
+    toast.success(
+      `Biometric login enabled using ${biometricType === "face" ? "Face ID" : "Fingerprint"}`,
+    );
   };
 
   return (
@@ -399,7 +492,9 @@ export function ProfilePage() {
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-white">Profile & Settings</h1>
+            <h1 className="text-2xl font-bold text-white">
+              Profile & Settings
+            </h1>
             <p className="text-white/60">Manage your account and preferences</p>
           </div>
           <Button
@@ -413,26 +508,45 @@ export function ProfilePage() {
         </div>
 
         {/* Tabs */}
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
+        <Tabs
+          value={activeTab}
+          onValueChange={setActiveTab}
+          className="space-y-4"
+        >
           <div className="overflow-x-auto">
             <TabsList className="inline-flex w-full min-w-max bg-white/5">
-              <TabsTrigger value="account" className="data-[state=active]:bg-white/20">
+              <TabsTrigger
+                value="account"
+                className="data-[state=active]:bg-white/20"
+              >
                 <User className="mr-2 size-4" />
                 Account
               </TabsTrigger>
-              <TabsTrigger value="security" className="data-[state=active]:bg-white/20">
+              <TabsTrigger
+                value="security"
+                className="data-[state=active]:bg-white/20"
+              >
                 <Shield className="mr-2 size-4" />
                 Security
               </TabsTrigger>
-              <TabsTrigger value="services" className="data-[state=active]:bg-white/20">
+              <TabsTrigger
+                value="services"
+                className="data-[state=active]:bg-white/20"
+              >
                 <Settings className="mr-2 size-4" />
                 Services
               </TabsTrigger>
-              <TabsTrigger value="notifications" className="data-[state=active]:bg-white/20">
+              <TabsTrigger
+                value="notifications"
+                className="data-[state=active]:bg-white/20"
+              >
                 <Bell className="mr-2 size-4" />
                 Alerts
               </TabsTrigger>
-              <TabsTrigger value="tools" className="data-[state=active]:bg-white/20">
+              <TabsTrigger
+                value="tools"
+                className="data-[state=active]:bg-white/20"
+              >
                 <FileText className="mr-2 size-4" />
                 Tools
               </TabsTrigger>
@@ -479,10 +593,18 @@ export function ProfilePage() {
                     )}
                   </div>
                   <div className="flex-1">
-                    <h3 className="text-xl font-bold text-white">{currentUser.user.full_name}</h3>
-                    <p className="text-sm text-white/60">Member since January 2024</p>
+                    <h3 className="text-xl font-bold text-white">
+                      {currentUser.user.full_name}
+                    </h3>
+                    <p className="text-sm text-white/60">
+                      Member since January 2024
+                    </p>
                     <Badge className="mt-1 bg-blue-500/20 text-blue-400">
-                      {accountType === "checking" ? "Personal Checking" : accountType === "joint" ? "Joint Account" : "Business Elite"}
+                      {accountType === "checking"
+                        ? "Personal Checking"
+                        : accountType === "joint"
+                          ? "Joint Account"
+                          : "Business Elite"}
                     </Badge>
                     {profilePhotoUploaded ? (
                       <p className="mt-2 text-xs text-white/40 flex items-center">
@@ -511,7 +633,10 @@ export function ProfilePage() {
                     <User className="mr-2 size-5" />
                     Personal Information
                   </h3>
-                  <Badge variant="outline" className="border-amber-500/30 text-amber-400">
+                  <Badge
+                    variant="outline"
+                    className="border-amber-500/30 text-amber-400"
+                  >
                     <Lock className="size-3 mr-1" />
                     Verified
                   </Badge>
@@ -521,7 +646,12 @@ export function ProfilePage() {
                   <div>
                     <div className="flex items-center gap-2">
                       <Label className="text-white/60">Full Name</Label>
-                      <Badge variant="outline" className="text-xs border-white/20 text-white/40">Cannot be changed</Badge>
+                      <Badge
+                        variant="outline"
+                        className="text-xs border-white/20 text-white/40"
+                      >
+                        Cannot be changed
+                      </Badge>
                     </div>
                     <div className="mt-1 text-lg text-white flex items-center">
                       {currentUser.user.full_name}
@@ -531,7 +661,12 @@ export function ProfilePage() {
                   <div>
                     <div className="flex items-center gap-2">
                       <Label className="text-white/60">Primary Email</Label>
-                      <Badge variant="outline" className="text-xs border-white/20 text-white/40">Cannot be changed</Badge>
+                      <Badge
+                        variant="outline"
+                        className="text-xs border-white/20 text-white/40"
+                      >
+                        Cannot be changed
+                      </Badge>
                     </div>
                     <div className="mt-1 flex items-center text-lg text-white">
                       <Mail className="mr-2 size-4 text-white/40" />
@@ -542,7 +677,12 @@ export function ProfilePage() {
                   <div>
                     <div className="flex items-center gap-2">
                       <Label className="text-white/60">Primary Phone</Label>
-                      <Badge variant="outline" className="text-xs border-white/20 text-white/40">Cannot be changed</Badge>
+                      <Badge
+                        variant="outline"
+                        className="text-xs border-white/20 text-white/40"
+                      >
+                        Cannot be changed
+                      </Badge>
                     </div>
                     <div className="mt-1 flex items-center text-lg text-white">
                       <Phone className="mr-2 size-4 text-white/40" />
@@ -554,7 +694,9 @@ export function ProfilePage() {
                   {/* Secondary Contact - Editable */}
                   <div className="pt-4 border-t border-white/10">
                     <div className="flex items-center justify-between mb-3">
-                      <h4 className="text-sm font-medium text-white/80">Secondary Contact Information</h4>
+                      <h4 className="text-sm font-medium text-white/80">
+                        Secondary Contact Information
+                      </h4>
                       <Button
                         size="sm"
                         variant="ghost"
@@ -571,19 +713,25 @@ export function ProfilePage() {
                           <div className="flex items-center text-white/80">
                             <Mail className="mr-2 size-4 text-white/40" />
                             {secondaryEmail}
-                            <Badge className="ml-2 text-xs bg-green-500/20 text-green-400">Secondary</Badge>
+                            <Badge className="ml-2 text-xs bg-green-500/20 text-green-400">
+                              Secondary
+                            </Badge>
                           </div>
                         )}
                         {secondaryPhone && (
                           <div className="flex items-center text-white/80">
                             <Phone className="mr-2 size-4 text-white/40" />
                             {secondaryPhone}
-                            <Badge className="ml-2 text-xs bg-green-500/20 text-green-400">Secondary</Badge>
+                            <Badge className="ml-2 text-xs bg-green-500/20 text-green-400">
+                              Secondary
+                            </Badge>
                           </div>
                         )}
                       </div>
                     ) : (
-                      <p className="text-sm text-white/40">No secondary contact information added</p>
+                      <p className="text-sm text-white/40">
+                        No secondary contact information added
+                      </p>
                     )}
                   </div>
 
@@ -592,7 +740,12 @@ export function ProfilePage() {
                     <div className="flex items-center justify-between mb-3">
                       <div className="flex items-center gap-2">
                         <Label className="text-white/60">Address</Label>
-                        <Badge variant="outline" className="text-xs border-white/20 text-white/40">Requires verification</Badge>
+                        <Badge
+                          variant="outline"
+                          className="text-xs border-white/20 text-white/40"
+                        >
+                          Requires verification
+                        </Badge>
                       </div>
                       <Button
                         size="sm"
@@ -607,13 +760,19 @@ export function ProfilePage() {
                     </div>
                     <div className="flex items-center text-lg text-white">
                       <MapPin className="mr-2 size-4 text-white/40" />
-                      {kycData ? `${kycData.streetAddress}, ${kycData.city}, ${kycData.state} ${kycData.zipCode}` : profileData.address}
+                      {kycData
+                        ? `${kycData.streetAddress}, ${kycData.city}, ${kycData.state} ${kycData.zipCode}`
+                        : profileData.address}
                     </div>
                     {pendingAddressChange && (
                       <Alert className="mt-3 bg-amber-500/10 border-amber-500/20">
                         <AlertCircle className="h-4 w-4 text-amber-400" />
                         <AlertDescription className="text-amber-200">
-                          Address change request pending review. New address: {pendingAddressChange.streetAddress}, {pendingAddressChange.city}, {pendingAddressChange.state} {pendingAddressChange.zipCode}
+                          Address change request pending review. New address:{" "}
+                          {pendingAddressChange.streetAddress},{" "}
+                          {pendingAddressChange.city},{" "}
+                          {pendingAddressChange.state}{" "}
+                          {pendingAddressChange.zipCode}
                         </AlertDescription>
                       </Alert>
                     )}
@@ -654,16 +813,24 @@ export function ProfilePage() {
                     <Label className="text-white/60">Account Number</Label>
                     <div className="mt-1 flex items-center justify-between">
                       <span className="font-mono text-lg text-white">
-                        {showAccountNumber ? accountNumber : maskAccountNumber(accountNumber)}
+                        {showAccountNumber
+                          ? accountNumber
+                          : maskAccountNumber(accountNumber)}
                       </span>
                       <div className="flex gap-2">
                         <Button
                           size="sm"
                           variant="ghost"
-                          onClick={() => setShowAccountNumber(!showAccountNumber)}
+                          onClick={() =>
+                            setShowAccountNumber(!showAccountNumber)
+                          }
                           className="text-white/60 hover:bg-white/10"
                         >
-                          {showAccountNumber ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+                          {showAccountNumber ? (
+                            <EyeOff className="size-4" />
+                          ) : (
+                            <Eye className="size-4" />
+                          )}
                         </Button>
                         <Button
                           size="sm"
@@ -719,7 +886,11 @@ export function ProfilePage() {
                     </p>
                     {twoFactorEnabled && (
                       <Badge className="mt-2 bg-blue-500/20 text-blue-400">
-                        {twoFactorMethod === "sms" ? "SMS" : twoFactorMethod === "authenticator" ? "Authenticator App" : "Push Notifications"}
+                        {twoFactorMethod === "sms"
+                          ? "SMS"
+                          : twoFactorMethod === "authenticator"
+                            ? "Authenticator App"
+                            : "Push Notifications"}
                       </Badge>
                     )}
                   </div>
@@ -750,7 +921,12 @@ export function ProfilePage() {
                   <div className="mt-4 rounded-lg bg-green-500/10 p-3">
                     <p className="flex items-center text-sm text-green-400">
                       <CheckCircle2 className="mr-2 size-4" />
-                      2FA is enabled via {twoFactorMethod === "sms" ? "SMS" : twoFactorMethod === "authenticator" ? "Authenticator App" : "Push Notifications"}
+                      2FA is enabled via{" "}
+                      {twoFactorMethod === "sms"
+                        ? "SMS"
+                        : twoFactorMethod === "authenticator"
+                          ? "Authenticator App"
+                          : "Push Notifications"}
                     </p>
                   </div>
                 )}
@@ -765,7 +941,8 @@ export function ProfilePage() {
                       Biometric Login
                     </h3>
                     <p className="text-sm text-white/60">
-                      Use your device's native biometric capabilities (Face ID, fingerprint)
+                      Use your device's native biometric capabilities (Face ID,
+                      fingerprint)
                     </p>
                     {biometricEnabled && (
                       <Badge className="mt-2 bg-green-500/20 text-green-400">
@@ -801,7 +978,10 @@ export function ProfilePage() {
                   <div className="mt-4 rounded-lg bg-green-500/10 p-3">
                     <p className="flex items-center text-sm text-green-400">
                       <CheckCircle2 className="mr-2 size-4" />
-                      {biometricType === "face" ? "Face ID" : "Fingerprint"} authentication enabled
+                      {biometricType === "face"
+                        ? "Face ID"
+                        : "Fingerprint"}{" "}
+                      authentication enabled
                     </p>
                   </div>
                 )}
@@ -843,20 +1023,31 @@ export function ProfilePage() {
                   Active Sessions
                 </h3>
                 <p className="mb-4 text-sm text-white/60">
-                  {activeSessions.length} active device{activeSessions.length !== 1 ? 's' : ''} logged into your account
+                  {activeSessions.length} active device
+                  {activeSessions.length !== 1 ? "s" : ""} logged into your
+                  account
                 </p>
                 <div className="mb-4 space-y-2">
                   {activeSessions.slice(0, 2).map((session) => (
-                    <Card key={session.id} className="border-white/10 bg-white/10 p-3">
+                    <Card
+                      key={session.id}
+                      className="border-white/10 bg-white/10 p-3"
+                    >
                       <div className="flex items-start justify-between">
                         <div className="flex-1">
                           <div className="flex items-center gap-2">
-                            <p className="font-medium text-white">{session.device}</p>
+                            <p className="font-medium text-white">
+                              {session.device}
+                            </p>
                             {session.current && (
-                              <span className="rounded-full bg-green-500/20 px-2 py-0.5 text-xs text-green-400">Current</span>
+                              <span className="rounded-full bg-green-500/20 px-2 py-0.5 text-xs text-green-400">
+                                Current
+                              </span>
                             )}
                           </div>
-                          <p className="text-xs text-white/60">{session.location} • {session.lastActive}</p>
+                          <p className="text-xs text-white/60">
+                            {session.location} • {session.lastActive}
+                          </p>
                         </div>
                       </div>
                     </Card>
@@ -882,18 +1073,25 @@ export function ProfilePage() {
                 </p>
                 <div className="mb-4 space-y-2">
                   {loginHistory.slice(0, 2).map((login) => (
-                    <Card key={login.id} className="border-white/10 bg-white/10 p-3">
+                    <Card
+                      key={login.id}
+                      className="border-white/10 bg-white/10 p-3"
+                    >
                       <div className="flex items-start justify-between">
                         <div className="flex-1">
                           <div className="flex items-center gap-2">
-                            <p className="font-medium text-white">{login.device}</p>
+                            <p className="font-medium text-white">
+                              {login.device}
+                            </p>
                             {login.success ? (
                               <CheckCircle2 className="size-4 text-green-400" />
                             ) : (
                               <AlertCircle className="size-4 text-red-400" />
                             )}
                           </div>
-                          <p className="text-xs text-white/60">{login.location} • {login.time}</p>
+                          <p className="text-xs text-white/60">
+                            {login.location} • {login.time}
+                          </p>
                         </div>
                       </div>
                     </Card>
@@ -946,7 +1144,8 @@ export function ProfilePage() {
                       Overdraft Protection
                     </h3>
                     <p className="text-sm text-white/60">
-                      Automatically transfer funds from savings to cover overdrafts
+                      Automatically transfer funds from savings to cover
+                      overdrafts
                     </p>
                   </div>
                   <Switch
@@ -954,7 +1153,9 @@ export function ProfilePage() {
                     onCheckedChange={(checked) => {
                       setOverdraftEnabled(checked);
                       toast.success(
-                        checked ? "Overdraft protection enabled" : "Overdraft protection disabled"
+                        checked
+                          ? "Overdraft protection enabled"
+                          : "Overdraft protection disabled",
                       );
                     }}
                     className="ml-4"
@@ -962,7 +1163,9 @@ export function ProfilePage() {
                 </div>
                 {overdraftEnabled && (
                   <div className="mt-4 space-y-3">
-                    <Label className="text-white/80">Link Account for Overdraft</Label>
+                    <Label className="text-white/80">
+                      Link Account for Overdraft
+                    </Label>
                     <Select
                       value={linkedSavingsForOverdraft}
                       onValueChange={setLinkedSavingsForOverdraft}
@@ -971,8 +1174,12 @@ export function ProfilePage() {
                         <SelectValue placeholder="Select account to link" />
                       </SelectTrigger>
                       <SelectContent className="border-white/20 bg-slate-900 text-white">
-                        <SelectItem value="savings1">Savings Account (...4321)</SelectItem>
-                        <SelectItem value="savings2">High-Yield Savings (...8765)</SelectItem>
+                        <SelectItem value="savings1">
+                          Savings Account (...4321)
+                        </SelectItem>
+                        <SelectItem value="savings2">
+                          High-Yield Savings (...8765)
+                        </SelectItem>
                       </SelectContent>
                     </Select>
                     {linkedSavingsForOverdraft && (
@@ -994,32 +1201,46 @@ export function ProfilePage() {
                   External Account Linking
                 </h3>
                 <p className="mb-4 text-sm text-white/60">
-                  Link accounts from other banks for easy transfers and balance viewing
+                  Link accounts from other banks for easy transfers and balance
+                  viewing
                 </p>
                 <div className="mb-4 space-y-2">
                   {externalAccounts.length === 0 ? (
                     <div className="rounded-lg bg-white/5 p-4 text-center">
-                      <p className="text-sm text-white/60">No external accounts linked</p>
+                      <p className="text-sm text-white/60">
+                        No external accounts linked
+                      </p>
                     </div>
                   ) : (
                     externalAccounts.map((account) => (
-                      <Card key={account.id} className="border-white/10 bg-white/10 p-3">
+                      <Card
+                        key={account.id}
+                        className="border-white/10 bg-white/10 p-3"
+                      >
                         <div className="flex items-center justify-between">
                           <div>
-                            <p className="font-medium text-white">{account.bankName}</p>
+                            <p className="font-medium text-white">
+                              {account.bankName}
+                            </p>
                             <p className="text-sm text-white/60">
                               {account.accountType} ...{account.lastFour}
                             </p>
                           </div>
                           <div className="text-right">
                             {account.status === "active" && (
-                              <span className="text-xs text-green-400">✓ Active</span>
+                              <span className="text-xs text-green-400">
+                                ✓ Active
+                              </span>
                             )}
                             {account.status === "pending" && (
-                              <span className="text-xs text-yellow-400">⏳ Pending</span>
+                              <span className="text-xs text-yellow-400">
+                                ⏳ Pending
+                              </span>
                             )}
                             {account.status === "verification" && (
-                              <span className="text-xs text-blue-400">🔍 Verify</span>
+                              <span className="text-xs text-blue-400">
+                                🔍 Verify
+                              </span>
                             )}
                           </div>
                         </div>
@@ -1047,11 +1268,15 @@ export function ProfilePage() {
                 </p>
                 <div className="mb-4 space-y-2 text-sm">
                   <div className="flex justify-between">
-                    <span className="text-white/60">Current Daily Transfer Limit:</span>
+                    <span className="text-white/60">
+                      Current Daily Transfer Limit:
+                    </span>
                     <span className="text-white">$5,000</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-white/60">Current Mobile Deposit Limit:</span>
+                    <span className="text-white/60">
+                      Current Mobile Deposit Limit:
+                    </span>
                     <span className="text-white">$5,000</span>
                   </div>
                 </div>
@@ -1072,7 +1297,8 @@ export function ProfilePage() {
                   Card Management & Controls
                 </h3>
                 <p className="mb-4 text-sm text-white/60">
-                  Freeze/unfreeze card, set geographic restrictions, and report lost or stolen cards
+                  Freeze/unfreeze card, set geographic restrictions, and report
+                  lost or stolen cards
                 </p>
                 <Button
                   variant="outline"
@@ -1094,7 +1320,9 @@ export function ProfilePage() {
                 </p>
                 <div className="mb-3 rounded-lg bg-white/5 p-3">
                   <p className="text-sm text-white/60">Current Nickname:</p>
-                  <p className="text-lg font-medium text-white">{accountNickname}</p>
+                  <p className="text-lg font-medium text-white">
+                    {accountNickname}
+                  </p>
                 </div>
                 <Button
                   variant="outline"
@@ -1117,22 +1345,31 @@ export function ProfilePage() {
                 {travelNotifications.length > 0 ? (
                   <div className="mb-4 space-y-2">
                     {travelNotifications.map((trip) => (
-                      <Card key={trip.id} className="border-white/10 bg-white/10 p-3">
+                      <Card
+                        key={trip.id}
+                        className="border-white/10 bg-white/10 p-3"
+                      >
                         <div className="flex items-center justify-between">
                           <div>
-                            <p className="font-medium text-white">{trip.destination}</p>
+                            <p className="font-medium text-white">
+                              {trip.destination}
+                            </p>
                             <p className="text-xs text-white/60">
                               {trip.startDate} - {trip.endDate}
                             </p>
                           </div>
-                          <span className="rounded-full bg-green-500/20 px-2 py-0.5 text-xs text-green-400">Active</span>
+                          <span className="rounded-full bg-green-500/20 px-2 py-0.5 text-xs text-green-400">
+                            Active
+                          </span>
                         </div>
                       </Card>
                     ))}
                   </div>
                 ) : (
                   <div className="mb-4 rounded-lg bg-white/5 p-4 text-center">
-                    <p className="text-sm text-white/60">No active travel notifications</p>
+                    <p className="text-sm text-white/60">
+                      No active travel notifications
+                    </p>
                   </div>
                 )}
                 <Button
@@ -1151,7 +1388,8 @@ export function ProfilePage() {
                   Wire Transfer Setup
                 </h3>
                 <p className="mb-4 text-sm text-white/60">
-                  Set up saved recipients for domestic and international wire transfers
+                  Set up saved recipients for domestic and international wire
+                  transfers
                 </p>
                 <div className="mb-4 space-y-2 text-sm">
                   <div className="flex justify-between">
@@ -1159,7 +1397,9 @@ export function ProfilePage() {
                     <span className="text-white">$25.00</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-white/60">International Wire Fee:</span>
+                    <span className="text-white/60">
+                      International Wire Fee:
+                    </span>
                     <span className="text-white">$45.00</span>
                   </div>
                 </div>
@@ -1216,48 +1456,77 @@ export function ProfilePage() {
                   <div className="flex items-center justify-between">
                     <div className="flex-1">
                       <p className="font-medium text-white">Email Alerts</p>
-                      <p className="text-xs text-white/60">Receive transaction notifications via email</p>
+                      <p className="text-xs text-white/60">
+                        Receive transaction notifications via email
+                      </p>
                     </div>
                     <Switch
                       checked={notificationPreferences.transactions.email}
                       onCheckedChange={(checked) => {
                         setNotificationPreferences({
                           ...notificationPreferences,
-                          transactions: { ...notificationPreferences.transactions, email: checked }
+                          transactions: {
+                            ...notificationPreferences.transactions,
+                            email: checked,
+                          },
                         });
-                        toast.success(checked ? "Email alerts enabled" : "Email alerts disabled");
+                        toast.success(
+                          checked
+                            ? "Email alerts enabled"
+                            : "Email alerts disabled",
+                        );
                       }}
                     />
                   </div>
                   <div className="flex items-center justify-between">
                     <div className="flex-1">
-                      <p className="font-medium text-white">Push Notifications</p>
-                      <p className="text-xs text-white/60">Instant alerts on your mobile device</p>
+                      <p className="font-medium text-white">
+                        Push Notifications
+                      </p>
+                      <p className="text-xs text-white/60">
+                        Instant alerts on your mobile device
+                      </p>
                     </div>
                     <Switch
                       checked={notificationPreferences.transactions.push}
                       onCheckedChange={(checked) => {
                         setNotificationPreferences({
                           ...notificationPreferences,
-                          transactions: { ...notificationPreferences.transactions, push: checked }
+                          transactions: {
+                            ...notificationPreferences.transactions,
+                            push: checked,
+                          },
                         });
-                        toast.success(checked ? "Push notifications enabled" : "Push notifications disabled");
+                        toast.success(
+                          checked
+                            ? "Push notifications enabled"
+                            : "Push notifications disabled",
+                        );
                       }}
                     />
                   </div>
                   <div className="flex items-center justify-between">
                     <div className="flex-1">
                       <p className="font-medium text-white">SMS Alerts</p>
-                      <p className="text-xs text-white/60">Text message notifications for transactions</p>
+                      <p className="text-xs text-white/60">
+                        Text message notifications for transactions
+                      </p>
                     </div>
                     <Switch
                       checked={notificationPreferences.transactions.sms}
                       onCheckedChange={(checked) => {
                         setNotificationPreferences({
                           ...notificationPreferences,
-                          transactions: { ...notificationPreferences.transactions, sms: checked }
+                          transactions: {
+                            ...notificationPreferences.transactions,
+                            sms: checked,
+                          },
                         });
-                        toast.success(checked ? "SMS alerts enabled" : "SMS alerts disabled");
+                        toast.success(
+                          checked
+                            ? "SMS alerts enabled"
+                            : "SMS alerts disabled",
+                        );
                       }}
                     />
                   </div>
@@ -1274,29 +1543,41 @@ export function ProfilePage() {
                   <div className="flex items-center justify-between">
                     <div className="flex-1">
                       <p className="font-medium text-white">Email Alerts</p>
-                      <p className="text-xs text-white/60">Login attempts and security events</p>
+                      <p className="text-xs text-white/60">
+                        Login attempts and security events
+                      </p>
                     </div>
                     <Switch
                       checked={notificationPreferences.security.email}
                       onCheckedChange={(checked) => {
                         setNotificationPreferences({
                           ...notificationPreferences,
-                          security: { ...notificationPreferences.security, email: checked }
+                          security: {
+                            ...notificationPreferences.security,
+                            email: checked,
+                          },
                         });
                       }}
                     />
                   </div>
                   <div className="flex items-center justify-between">
                     <div className="flex-1">
-                      <p className="font-medium text-white">Push Notifications</p>
-                      <p className="text-xs text-white/60">Instant security alerts</p>
+                      <p className="font-medium text-white">
+                        Push Notifications
+                      </p>
+                      <p className="text-xs text-white/60">
+                        Instant security alerts
+                      </p>
                     </div>
                     <Switch
                       checked={notificationPreferences.security.push}
                       onCheckedChange={(checked) => {
                         setNotificationPreferences({
                           ...notificationPreferences,
-                          security: { ...notificationPreferences.security, push: checked }
+                          security: {
+                            ...notificationPreferences.security,
+                            push: checked,
+                          },
                         });
                       }}
                     />
@@ -1304,14 +1585,19 @@ export function ProfilePage() {
                   <div className="flex items-center justify-between">
                     <div className="flex-1">
                       <p className="font-medium text-white">SMS Alerts</p>
-                      <p className="text-xs text-white/60">Critical security notifications via SMS</p>
+                      <p className="text-xs text-white/60">
+                        Critical security notifications via SMS
+                      </p>
                     </div>
                     <Switch
                       checked={notificationPreferences.security.sms}
                       onCheckedChange={(checked) => {
                         setNotificationPreferences({
                           ...notificationPreferences,
-                          security: { ...notificationPreferences.security, sms: checked }
+                          security: {
+                            ...notificationPreferences.security,
+                            sms: checked,
+                          },
                         });
                       }}
                     />
@@ -1328,30 +1614,44 @@ export function ProfilePage() {
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
                     <div className="flex-1">
-                      <p className="font-medium text-white">Bill Pay Reminders</p>
-                      <p className="text-xs text-white/60">Email notifications for upcoming bills</p>
+                      <p className="font-medium text-white">
+                        Bill Pay Reminders
+                      </p>
+                      <p className="text-xs text-white/60">
+                        Email notifications for upcoming bills
+                      </p>
                     </div>
                     <Switch
                       checked={notificationPreferences.billPay.email}
                       onCheckedChange={(checked) => {
                         setNotificationPreferences({
                           ...notificationPreferences,
-                          billPay: { ...notificationPreferences.billPay, email: checked }
+                          billPay: {
+                            ...notificationPreferences.billPay,
+                            email: checked,
+                          },
                         });
                       }}
                     />
                   </div>
                   <div className="flex items-center justify-between">
                     <div className="flex-1">
-                      <p className="font-medium text-white">Deposit Confirmations</p>
-                      <p className="text-xs text-white/60">Mobile check and direct deposit alerts</p>
+                      <p className="font-medium text-white">
+                        Deposit Confirmations
+                      </p>
+                      <p className="text-xs text-white/60">
+                        Mobile check and direct deposit alerts
+                      </p>
                     </div>
                     <Switch
                       checked={notificationPreferences.deposits.email}
                       onCheckedChange={(checked) => {
                         setNotificationPreferences({
                           ...notificationPreferences,
-                          deposits: { ...notificationPreferences.deposits, email: checked }
+                          deposits: {
+                            ...notificationPreferences.deposits,
+                            email: checked,
+                          },
                         });
                       }}
                     />
@@ -1367,22 +1667,30 @@ export function ProfilePage() {
                 </h3>
                 <div className="space-y-4">
                   <div>
-                    <Label className="text-white/80">Large Transaction Alert ($)</Label>
+                    <Label className="text-white/80">
+                      Large Transaction Alert ($)
+                    </Label>
                     <Input
                       type="number"
                       defaultValue="500"
                       className="mt-2 border-white/20 bg-white/10 text-white"
                     />
-                    <p className="mt-1 text-xs text-white/60">Alert for transactions exceeding this amount</p>
+                    <p className="mt-1 text-xs text-white/60">
+                      Alert for transactions exceeding this amount
+                    </p>
                   </div>
                   <div>
-                    <Label className="text-white/80">Low Balance Alert ($)</Label>
+                    <Label className="text-white/80">
+                      Low Balance Alert ($)
+                    </Label>
                     <Input
                       type="number"
                       defaultValue="100"
                       className="mt-2 border-white/20 bg-white/10 text-white"
                     />
-                    <p className="mt-1 text-xs text-white/60">Alert when balance falls below this amount</p>
+                    <p className="mt-1 text-xs text-white/60">
+                      Alert when balance falls below this amount
+                    </p>
                   </div>
                   <Button
                     onClick={() => toast.success("Alert thresholds updated")}
@@ -1402,17 +1710,28 @@ export function ProfilePage() {
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
                     <div className="flex-1">
-                      <p className="font-medium text-white">Promotional Emails</p>
-                      <p className="text-xs text-white/60">Special offers and product updates</p>
+                      <p className="font-medium text-white">
+                        Promotional Emails
+                      </p>
+                      <p className="text-xs text-white/60">
+                        Special offers and product updates
+                      </p>
                     </div>
                     <Switch
                       checked={notificationPreferences.marketing.email}
                       onCheckedChange={(checked) => {
                         setNotificationPreferences({
                           ...notificationPreferences,
-                          marketing: { ...notificationPreferences.marketing, email: checked }
+                          marketing: {
+                            ...notificationPreferences.marketing,
+                            email: checked,
+                          },
                         });
-                        toast.success(checked ? "Marketing emails enabled" : "Marketing emails disabled");
+                        toast.success(
+                          checked
+                            ? "Marketing emails enabled"
+                            : "Marketing emails disabled",
+                        );
                       }}
                     />
                   </div>
@@ -1439,8 +1758,13 @@ export function ProfilePage() {
                 </p>
                 <div className="mb-4 space-y-2">
                   {spendingData.slice(0, 3).map((item) => (
-                    <div key={item.category} className="flex items-center justify-between">
-                      <span className="text-sm text-white/80">{item.category}</span>
+                    <div
+                      key={item.category}
+                      className="flex items-center justify-between"
+                    >
+                      <span className="text-sm text-white/80">
+                        {item.category}
+                      </span>
                       <div className="flex items-center gap-2">
                         <div className="h-2 w-20 overflow-hidden rounded-full bg-white/10">
                           <div
@@ -1448,7 +1772,9 @@ export function ProfilePage() {
                             style={{ width: `${item.percentage}%` }}
                           />
                         </div>
-                        <span className="text-sm font-medium text-white">${item.amount}</span>
+                        <span className="text-sm font-medium text-white">
+                          ${item.amount}
+                        </span>
                       </div>
                     </div>
                   ))}
@@ -1477,22 +1803,30 @@ export function ProfilePage() {
                     <div key={budget.category} className="space-y-1">
                       <div className="flex items-center justify-between text-sm">
                         <span className="text-white/80">{budget.category}</span>
-                        <span className={`font-medium ${
-                          budget.percentage > 100 ? 'text-red-400' :
-                          budget.percentage > 80 ? 'text-yellow-400' :
-                          'text-green-400'
-                        }`}>
+                        <span
+                          className={`font-medium ${
+                            budget.percentage > 100
+                              ? "text-red-400"
+                              : budget.percentage > 80
+                                ? "text-yellow-400"
+                                : "text-green-400"
+                          }`}
+                        >
                           ${budget.spent} / ${budget.limit}
                         </span>
                       </div>
                       <div className="h-2 w-full overflow-hidden rounded-full bg-white/10">
                         <div
                           className={`h-full ${
-                            budget.percentage > 100 ? 'bg-red-500' :
-                            budget.percentage > 80 ? 'bg-yellow-500' :
-                            'bg-green-500'
+                            budget.percentage > 100
+                              ? "bg-red-500"
+                              : budget.percentage > 80
+                                ? "bg-yellow-500"
+                                : "bg-green-500"
                           }`}
-                          style={{ width: `${Math.min(budget.percentage, 100)}%` }}
+                          style={{
+                            width: `${Math.min(budget.percentage, 100)}%`,
+                          }}
                         />
                       </div>
                     </div>
@@ -1549,12 +1883,18 @@ export function ProfilePage() {
                   Check your credit score and get tips to improve it
                 </p>
                 <div className="mb-4 rounded-lg bg-gradient-to-r from-blue-500/20 to-purple-500/20 p-4">
-                  <div className="text-3xl font-bold text-white">{creditScore.score}</div>
-                  <div className={`text-sm font-medium ${
-                    creditScore.category === 'Excellent' ? 'text-green-400' :
-                    creditScore.category === 'Very Good' ? 'text-blue-400' :
-                    'text-yellow-400'
-                  }`}>
+                  <div className="text-3xl font-bold text-white">
+                    {creditScore.score}
+                  </div>
+                  <div
+                    className={`text-sm font-medium ${
+                      creditScore.category === "Excellent"
+                        ? "text-green-400"
+                        : creditScore.category === "Very Good"
+                          ? "text-blue-400"
+                          : "text-yellow-400"
+                    }`}
+                  >
                     {creditScore.category}
                   </div>
                 </div>
@@ -1605,23 +1945,35 @@ export function ProfilePage() {
       <Dialog open={showCreditScore} onOpenChange={setShowCreditScore}>
         <DialogContent className="border-white/20 bg-slate-900/95 text-white backdrop-blur-xl">
           <DialogHeader>
-            <DialogTitle className="text-xl text-white">Your Credit Score</DialogTitle>
+            <DialogTitle className="text-xl text-white">
+              Your Credit Score
+            </DialogTitle>
           </DialogHeader>
           <div className="space-y-6 py-4">
             <div className="text-center">
-              <div className="mb-2 text-6xl font-bold text-white">{creditScore.score}</div>
-              <div className={`text-lg font-semibold ${
-                creditScore.category === 'Excellent' ? 'text-green-400' :
-                creditScore.category === 'Very Good' ? 'text-blue-400' :
-                creditScore.category === 'Good' ? 'text-yellow-400' :
-                creditScore.category === 'Fair' ? 'text-orange-400' :
-                'text-red-400'
-              }`}>
+              <div className="mb-2 text-6xl font-bold text-white">
+                {creditScore.score}
+              </div>
+              <div
+                className={`text-lg font-semibold ${
+                  creditScore.category === "Excellent"
+                    ? "text-green-400"
+                    : creditScore.category === "Very Good"
+                      ? "text-blue-400"
+                      : creditScore.category === "Good"
+                        ? "text-yellow-400"
+                        : creditScore.category === "Fair"
+                          ? "text-orange-400"
+                          : "text-red-400"
+                }`}
+              >
                 {creditScore.category}
               </div>
             </div>
             <div>
-              <h4 className="mb-2 font-semibold text-white">Factors Affecting Your Score:</h4>
+              <h4 className="mb-2 font-semibold text-white">
+                Factors Affecting Your Score:
+              </h4>
               <ul className="space-y-1 text-sm text-white/60">
                 {creditScore.factors.map((factor, index) => (
                   <li key={index} className="flex items-start">
@@ -1642,7 +1994,10 @@ export function ProfilePage() {
       </Dialog>
 
       {/* Link External Account Modal */}
-      <Dialog open={showLinkAccountModal} onOpenChange={setShowLinkAccountModal}>
+      <Dialog
+        open={showLinkAccountModal}
+        onOpenChange={setShowLinkAccountModal}
+      >
         <DialogContent className="border-white/20 bg-slate-900/95 text-white backdrop-blur-xl">
           <DialogHeader>
             <DialogTitle className="flex items-center text-xl text-white">
@@ -1653,7 +2008,8 @@ export function ProfilePage() {
           <div className="space-y-4 py-4">
             <Card className="border-blue-500/20 bg-blue-500/10 p-4">
               <p className="text-sm text-blue-400">
-                🔒 Secure connection powered by industry-standard encryption. Your credentials are never stored.
+                🔒 Secure connection powered by industry-standard encryption.
+                Your credentials are never stored.
               </p>
             </Card>
             <div className="space-y-3">
@@ -1694,7 +2050,8 @@ export function ProfilePage() {
             </div>
             <Card className="border-yellow-500/20 bg-yellow-500/10 p-3">
               <p className="text-sm text-yellow-400">
-                ℹ️ We'll send 2 small deposits (under $1) to verify your account. This may take 1-3 business days.
+                ℹ️ We'll send 2 small deposits (under $1) to verify your
+                account. This may take 1-3 business days.
               </p>
             </Card>
             <div className="flex gap-3">
@@ -1717,7 +2074,9 @@ export function ProfilePage() {
                       status: "verification",
                     },
                   ]);
-                  toast.success("Micro-deposits initiated. Check your account in 1-3 days.");
+                  toast.success(
+                    "Micro-deposits initiated. Check your account in 1-3 days.",
+                  );
                   setShowLinkAccountModal(false);
                 }}
                 className="flex-1 bg-gradient-to-r from-blue-500 to-purple-500"
@@ -1730,7 +2089,10 @@ export function ProfilePage() {
       </Dialog>
 
       {/* Limit Upgrade Request Modal */}
-      <Dialog open={showLimitUpgradeModal} onOpenChange={setShowLimitUpgradeModal}>
+      <Dialog
+        open={showLimitUpgradeModal}
+        onOpenChange={setShowLimitUpgradeModal}
+      >
         <DialogContent className="border-white/20 bg-slate-900/95 text-white backdrop-blur-xl">
           <DialogHeader>
             <DialogTitle className="flex items-center text-xl text-white">
@@ -1740,14 +2102,19 @@ export function ProfilePage() {
           </DialogHeader>
           <div className="space-y-4 py-4">
             <Card className="border-blue-500/20 bg-blue-500/10 p-4">
-              <h4 className="mb-2 text-sm font-semibold text-blue-400">Verification Required</h4>
+              <h4 className="mb-2 text-sm font-semibold text-blue-400">
+                Verification Required
+              </h4>
               <p className="text-xs text-blue-400/80">
-                To increase your limits, we need to verify your identity. Please upload a government-issued ID.
+                To increase your limits, we need to verify your identity. Please
+                upload a government-issued ID.
               </p>
             </Card>
             <div className="space-y-3">
               <div>
-                <Label className="text-white/80">Requested Transfer Limit</Label>
+                <Label className="text-white/80">
+                  Requested Transfer Limit
+                </Label>
                 <Select>
                   <SelectTrigger className="border-white/20 bg-white/10 text-white">
                     <SelectValue placeholder="Select new limit" />
@@ -1760,7 +2127,9 @@ export function ProfilePage() {
                 </Select>
               </div>
               <div>
-                <Label className="text-white/80">Requested Mobile Deposit Limit</Label>
+                <Label className="text-white/80">
+                  Requested Mobile Deposit Limit
+                </Label>
                 <Select>
                   <SelectTrigger className="border-white/20 bg-white/10 text-white">
                     <SelectValue placeholder="Select new limit" />
@@ -1780,11 +2149,15 @@ export function ProfilePage() {
                   className="mt-1 border-white/20 bg-white/10 text-white file:text-white"
                 />
                 {idDocument && (
-                  <p className="mt-1 text-xs text-green-400">✓ {idDocument.name} uploaded</p>
+                  <p className="mt-1 text-xs text-green-400">
+                    ✓ {idDocument.name} uploaded
+                  </p>
                 )}
               </div>
               <div>
-                <Label className="text-white/80">Reason for Increase (Optional)</Label>
+                <Label className="text-white/80">
+                  Reason for Increase (Optional)
+                </Label>
                 <Input
                   placeholder="Business expenses, frequent transfers, etc."
                   className="mt-1 border-white/20 bg-white/10 text-white placeholder:text-white/40"
@@ -1831,7 +2204,10 @@ export function ProfilePage() {
       />
 
       {/* Profile Picture Modal - One-time upload */}
-      <Dialog open={showProfilePictureModal} onOpenChange={setShowProfilePictureModal}>
+      <Dialog
+        open={showProfilePictureModal}
+        onOpenChange={setShowProfilePictureModal}
+      >
         <DialogContent className="border-white/20 bg-slate-900/95 text-white backdrop-blur-xl">
           <DialogHeader>
             <DialogTitle className="flex items-center text-xl text-white">
@@ -1840,7 +2216,8 @@ export function ProfilePage() {
             </DialogTitle>
             <DialogDescription className="text-amber-400 flex items-center gap-1">
               <AlertCircle className="size-4" />
-              This is a one-time upload. Once set, your profile photo cannot be changed.
+              This is a one-time upload. Once set, your profile photo cannot be
+              changed.
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
@@ -1867,7 +2244,9 @@ export function ProfilePage() {
             <Alert className="bg-amber-500/10 border-amber-500/20">
               <AlertCircle className="h-4 w-4 text-amber-400" />
               <AlertDescription className="text-amber-200 text-sm">
-                By uploading a photo, you acknowledge that it will be permanently associated with your account and cannot be changed or removed.
+                By uploading a photo, you acknowledge that it will be
+                permanently associated with your account and cannot be changed
+                or removed.
               </AlertDescription>
             </Alert>
             <Button
@@ -1883,7 +2262,10 @@ export function ProfilePage() {
       </Dialog>
 
       {/* Secondary Contact Modal */}
-      <Dialog open={showSecondaryContactModal} onOpenChange={setShowSecondaryContactModal}>
+      <Dialog
+        open={showSecondaryContactModal}
+        onOpenChange={setShowSecondaryContactModal}
+      >
         <DialogContent className="border-white/20 bg-slate-900/95 text-white backdrop-blur-xl">
           <DialogHeader>
             <DialogTitle className="flex items-center text-xl text-white">
@@ -1935,7 +2317,10 @@ export function ProfilePage() {
       </Dialog>
 
       {/* Address Change Modal */}
-      <Dialog open={showAddressChangeModal} onOpenChange={setShowAddressChangeModal}>
+      <Dialog
+        open={showAddressChangeModal}
+        onOpenChange={setShowAddressChangeModal}
+      >
         <DialogContent className="border-white/20 bg-slate-900/95 text-white backdrop-blur-xl max-w-lg">
           <DialogHeader>
             <DialogTitle className="flex items-center text-xl text-white">
@@ -1943,7 +2328,8 @@ export function ProfilePage() {
               Request Address Change
             </DialogTitle>
             <DialogDescription className="text-white/60">
-              Address changes require verification. Please upload a supporting document.
+              Address changes require verification. Please upload a supporting
+              document.
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
@@ -1951,7 +2337,12 @@ export function ProfilePage() {
               <Label className="text-white/80">Street Address *</Label>
               <Input
                 value={newAddressData.streetAddress}
-                onChange={(e) => setNewAddressData({ ...newAddressData, streetAddress: e.target.value })}
+                onChange={(e) =>
+                  setNewAddressData({
+                    ...newAddressData,
+                    streetAddress: e.target.value,
+                  })
+                }
                 placeholder="123 Main Street, Apt 4B"
                 className="mt-2 border-white/20 bg-white/10 text-white placeholder:text-white/40"
               />
@@ -1961,7 +2352,12 @@ export function ProfilePage() {
                 <Label className="text-white/80">City *</Label>
                 <Input
                   value={newAddressData.city}
-                  onChange={(e) => setNewAddressData({ ...newAddressData, city: e.target.value })}
+                  onChange={(e) =>
+                    setNewAddressData({
+                      ...newAddressData,
+                      city: e.target.value,
+                    })
+                  }
                   placeholder="New York"
                   className="mt-2 border-white/20 bg-white/10 text-white placeholder:text-white/40"
                 />
@@ -1970,7 +2366,12 @@ export function ProfilePage() {
                 <Label className="text-white/80">State *</Label>
                 <Input
                   value={newAddressData.state}
-                  onChange={(e) => setNewAddressData({ ...newAddressData, state: e.target.value })}
+                  onChange={(e) =>
+                    setNewAddressData({
+                      ...newAddressData,
+                      state: e.target.value,
+                    })
+                  }
                   placeholder="NY"
                   className="mt-2 border-white/20 bg-white/10 text-white placeholder:text-white/40"
                 />
@@ -1980,18 +2381,28 @@ export function ProfilePage() {
               <Label className="text-white/80">ZIP Code *</Label>
               <Input
                 value={newAddressData.zipCode}
-                onChange={(e) => setNewAddressData({ ...newAddressData, zipCode: e.target.value })}
+                onChange={(e) =>
+                  setNewAddressData({
+                    ...newAddressData,
+                    zipCode: e.target.value,
+                  })
+                }
                 placeholder="10001"
                 className="mt-2 border-white/20 bg-white/10 text-white placeholder:text-white/40"
               />
             </div>
             <div>
               <Label className="text-white/80">Verification Document *</Label>
-              <p className="text-xs text-white/40 mt-1 mb-2">Upload a utility bill, government ID, or bank statement showing your new address</p>
+              <p className="text-xs text-white/40 mt-1 mb-2">
+                Upload a utility bill, government ID, or bank statement showing
+                your new address
+              </p>
               <Input
                 type="file"
                 accept=".pdf,.jpg,.jpeg,.png"
-                onChange={(e) => setAddressVerificationDoc(e.target.files?.[0] || null)}
+                onChange={(e) =>
+                  setAddressVerificationDoc(e.target.files?.[0] || null)
+                }
                 className="border-white/20 bg-white/10 text-white file:text-white"
               />
               {addressVerificationDoc && (
@@ -2004,7 +2415,8 @@ export function ProfilePage() {
             <Alert className="bg-blue-500/10 border-blue-500/20">
               <AlertCircle className="h-4 w-4 text-blue-400" />
               <AlertDescription className="text-blue-200 text-sm">
-                Address changes are reviewed within 1-2 business days. You'll receive a notification once approved.
+                Address changes are reviewed within 1-2 business days. You'll
+                receive a notification once approved.
               </AlertDescription>
             </Alert>
             <DialogFooter>
@@ -2058,7 +2470,9 @@ export function ProfilePage() {
                 <Smartphone className="size-5 text-blue-400 mt-0.5" />
                 <div>
                   <h4 className="font-medium text-white">SMS Text Message</h4>
-                  <p className="text-sm text-white/60">Receive codes via text message to your phone</p>
+                  <p className="text-sm text-white/60">
+                    Receive codes via text message to your phone
+                  </p>
                 </div>
               </label>
 
@@ -2080,7 +2494,9 @@ export function ProfilePage() {
                 <Lock className="size-5 text-green-400 mt-0.5" />
                 <div>
                   <h4 className="font-medium text-white">Authenticator App</h4>
-                  <p className="text-sm text-white/60">Use Google Authenticator, Authy, or similar apps</p>
+                  <p className="text-sm text-white/60">
+                    Use Google Authenticator, Authy, or similar apps
+                  </p>
                 </div>
               </label>
 
@@ -2102,7 +2518,9 @@ export function ProfilePage() {
                 <Bell className="size-5 text-purple-400 mt-0.5" />
                 <div>
                   <h4 className="font-medium text-white">Push Notifications</h4>
-                  <p className="text-sm text-white/60">Approve logins with a tap on your mobile device</p>
+                  <p className="text-sm text-white/60">
+                    Approve logins with a tap on your mobile device
+                  </p>
                 </div>
               </label>
             </div>
@@ -2126,7 +2544,10 @@ export function ProfilePage() {
       </Dialog>
 
       {/* Biometric Setup Modal */}
-      <Dialog open={showBiometricSetupModal} onOpenChange={setShowBiometricSetupModal}>
+      <Dialog
+        open={showBiometricSetupModal}
+        onOpenChange={setShowBiometricSetupModal}
+      >
         <DialogContent className="border-white/20 bg-slate-900/95 text-white backdrop-blur-xl">
           <DialogHeader>
             <DialogTitle className="flex items-center text-xl text-white">
@@ -2134,7 +2555,8 @@ export function ProfilePage() {
               Set Up Biometric Login
             </DialogTitle>
             <DialogDescription className="text-white/60">
-              Use your device's native biometric capabilities for secure, quick login
+              Use your device's native biometric capabilities for secure, quick
+              login
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
@@ -2156,8 +2578,12 @@ export function ProfilePage() {
                 />
                 <User className="size-5 text-blue-400 mt-0.5" />
                 <div>
-                  <h4 className="font-medium text-white">Face ID / Face Recognition</h4>
-                  <p className="text-sm text-white/60">Use your face to securely log in</p>
+                  <h4 className="font-medium text-white">
+                    Face ID / Face Recognition
+                  </h4>
+                  <p className="text-sm text-white/60">
+                    Use your face to securely log in
+                  </p>
                 </div>
               </label>
 
@@ -2178,15 +2604,20 @@ export function ProfilePage() {
                 />
                 <Smartphone className="size-5 text-green-400 mt-0.5" />
                 <div>
-                  <h4 className="font-medium text-white">Fingerprint / Touch ID</h4>
-                  <p className="text-sm text-white/60">Use your fingerprint to securely log in</p>
+                  <h4 className="font-medium text-white">
+                    Fingerprint / Touch ID
+                  </h4>
+                  <p className="text-sm text-white/60">
+                    Use your fingerprint to securely log in
+                  </p>
                 </div>
               </label>
             </div>
             <Alert className="bg-green-500/10 border-green-500/20">
               <CheckCircle2 className="h-4 w-4 text-green-400" />
               <AlertDescription className="text-green-200 text-sm">
-                Biometric data never leaves your device. Authentication is performed locally for maximum security.
+                Biometric data never leaves your device. Authentication is
+                performed locally for maximum security.
               </AlertDescription>
             </Alert>
             <DialogFooter>
@@ -2223,7 +2654,10 @@ export function ProfilePage() {
           </DialogHeader>
           <div className="space-y-3 py-4">
             {activeSessions.map((session) => (
-              <Card key={session.id} className="border-white/10 bg-white/10 p-4">
+              <Card
+                key={session.id}
+                className="border-white/10 bg-white/10 p-4"
+              >
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
                     <div className="flex items-center gap-2">
@@ -2240,13 +2674,17 @@ export function ProfilePage() {
                       {session.location}
                     </p>
                     <p className="text-sm text-white/60">IP: {session.ip}</p>
-                    <p className="text-xs text-white/40">Last active: {session.lastActive}</p>
+                    <p className="text-xs text-white/40">
+                      Last active: {session.lastActive}
+                    </p>
                   </div>
                   {!session.current && (
                     <Button
                       size="sm"
                       variant="outline"
-                      onClick={() => toast.success(`Session on ${session.device} terminated`)}
+                      onClick={() =>
+                        toast.success(`Session on ${session.device} terminated`)
+                      }
                       className="border-red-500/20 bg-red-500/10 text-red-400 hover:bg-red-500/20"
                     >
                       <Trash2 className="size-4" />
@@ -2270,7 +2708,10 @@ export function ProfilePage() {
       </Dialog>
 
       {/* Login History Modal */}
-      <Dialog open={showLoginHistoryModal} onOpenChange={setShowLoginHistoryModal}>
+      <Dialog
+        open={showLoginHistoryModal}
+        onOpenChange={setShowLoginHistoryModal}
+      >
         <DialogContent className="max-w-2xl border-white/20 bg-slate-900/95 text-white backdrop-blur-xl">
           <DialogHeader>
             <DialogTitle className="flex items-center text-xl text-white">
@@ -2283,9 +2724,14 @@ export function ProfilePage() {
           </DialogHeader>
           <div className="max-h-96 space-y-3 overflow-y-auto py-4">
             {loginHistory.map((login) => (
-              <Card key={login.id} className={`border-white/10 p-4 ${
-                login.success ? 'bg-white/5' : 'bg-red-500/10 border-red-500/20'
-              }`}>
+              <Card
+                key={login.id}
+                className={`border-white/10 p-4 ${
+                  login.success
+                    ? "bg-white/5"
+                    : "bg-red-500/10 border-red-500/20"
+                }`}
+              >
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
                     <div className="flex items-center gap-2">
@@ -2294,8 +2740,12 @@ export function ProfilePage() {
                       ) : (
                         <AlertCircle className="size-4 text-red-400" />
                       )}
-                      <p className={`font-medium ${login.success ? 'text-white' : 'text-red-400'}`}>
-                        {login.success ? 'Successful Login' : 'Failed Login Attempt'}
+                      <p
+                        className={`font-medium ${login.success ? "text-white" : "text-red-400"}`}
+                      >
+                        {login.success
+                          ? "Successful Login"
+                          : "Failed Login Attempt"}
                       </p>
                     </div>
                     <p className="mt-1 text-sm text-white/60">{login.device}</p>
@@ -2323,7 +2773,10 @@ export function ProfilePage() {
       </Dialog>
 
       {/* Account Nickname Modal */}
-      <Dialog open={showAccountNicknameModal} onOpenChange={setShowAccountNicknameModal}>
+      <Dialog
+        open={showAccountNicknameModal}
+        onOpenChange={setShowAccountNicknameModal}
+      >
         <DialogContent className="border-white/20 bg-slate-900/95 text-white backdrop-blur-xl">
           <DialogHeader>
             <DialogTitle className="flex items-center text-xl text-white">
@@ -2367,7 +2820,10 @@ export function ProfilePage() {
       </Dialog>
 
       {/* Travel Notification Modal */}
-      <Dialog open={showTravelNotificationModal} onOpenChange={setShowTravelNotificationModal}>
+      <Dialog
+        open={showTravelNotificationModal}
+        onOpenChange={setShowTravelNotificationModal}
+      >
         <DialogContent className="border-white/20 bg-slate-900/95 text-white backdrop-blur-xl">
           <DialogHeader>
             <DialogTitle className="flex items-center text-xl text-white">
@@ -2404,7 +2860,8 @@ export function ProfilePage() {
             </div>
             <Card className="border-blue-500/20 bg-blue-500/10 p-3">
               <p className="text-sm text-blue-400">
-                ℹ️ We'll monitor your account for transactions in this location during your trip
+                ℹ️ We'll monitor your account for transactions in this location
+                during your trip
               </p>
             </Card>
             <div className="flex gap-3">
@@ -2430,7 +2887,10 @@ export function ProfilePage() {
       </Dialog>
 
       {/* Wire Transfer Modal */}
-      <Dialog open={showWireTransferModal} onOpenChange={setShowWireTransferModal}>
+      <Dialog
+        open={showWireTransferModal}
+        onOpenChange={setShowWireTransferModal}
+      >
         <DialogContent className="border-white/20 bg-slate-900/95 text-white backdrop-blur-xl">
           <DialogHeader>
             <DialogTitle className="flex items-center text-xl text-white">
@@ -2440,7 +2900,9 @@ export function ProfilePage() {
           </DialogHeader>
           <div className="space-y-4 py-4">
             <Card className="border-white/10 bg-white/5 p-4 text-center">
-              <p className="text-sm text-white/60">No saved wire transfer recipients</p>
+              <p className="text-sm text-white/60">
+                No saved wire transfer recipients
+              </p>
             </Card>
             <div>
               <Label className="text-white/80">Recipient Name</Label>
@@ -2478,8 +2940,12 @@ export function ProfilePage() {
                   <SelectValue placeholder="Select type" />
                 </SelectTrigger>
                 <SelectContent className="border-white/20 bg-slate-900 text-white">
-                  <SelectItem value="domestic">Domestic Wire ($25 fee)</SelectItem>
-                  <SelectItem value="international">International Wire ($45 fee)</SelectItem>
+                  <SelectItem value="domestic">
+                    Domestic Wire ($25 fee)
+                  </SelectItem>
+                  <SelectItem value="international">
+                    International Wire ($45 fee)
+                  </SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -2506,7 +2972,10 @@ export function ProfilePage() {
       </Dialog>
 
       {/* Spending Analytics Modal */}
-      <Dialog open={showSpendingAnalyticsModal} onOpenChange={setShowSpendingAnalyticsModal}>
+      <Dialog
+        open={showSpendingAnalyticsModal}
+        onOpenChange={setShowSpendingAnalyticsModal}
+      >
         <DialogContent className="max-w-3xl border-white/20 bg-slate-900/95 text-white backdrop-blur-xl">
           <DialogHeader>
             <DialogTitle className="flex items-center text-xl text-white">
@@ -2522,12 +2991,17 @@ export function ProfilePage() {
               <Card className="border-white/10 bg-white/5 p-4">
                 <p className="text-sm text-white/60">Total Spending</p>
                 <p className="text-2xl font-bold text-white">
-                  ${spendingData.reduce((acc, item) => acc + item.amount, 0).toFixed(2)}
+                  $
+                  {spendingData
+                    .reduce((acc, item) => acc + item.amount, 0)
+                    .toFixed(2)}
                 </p>
               </Card>
               <Card className="border-white/10 bg-white/5 p-4">
                 <p className="text-sm text-white/60">Top Category</p>
-                <p className="text-2xl font-bold text-white">{spendingData[0].category}</p>
+                <p className="text-2xl font-bold text-white">
+                  {spendingData[0].category}
+                </p>
               </Card>
             </div>
             <div className="space-y-3">
@@ -2566,10 +3040,17 @@ export function ProfilePage() {
           </DialogHeader>
           <div className="space-y-4 py-4">
             {budgets.map((budget) => (
-              <Card key={budget.category} className="border-white/10 bg-white/5 p-4">
+              <Card
+                key={budget.category}
+                className="border-white/10 bg-white/5 p-4"
+              >
                 <div className="mb-3 flex items-center justify-between">
                   <h4 className="font-medium text-white">{budget.category}</h4>
-                  <Button size="sm" variant="ghost" className="text-blue-400 hover:bg-blue-500/20">
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    className="text-blue-400 hover:bg-blue-500/20"
+                  >
                     <Edit className="size-4" />
                   </Button>
                 </div>
@@ -2584,20 +3065,26 @@ export function ProfilePage() {
                   </div>
                   <div className="flex items-center justify-between text-sm">
                     <span className="text-white/60">Spent</span>
-                    <span className={`font-medium ${
-                      budget.percentage > 100 ? 'text-red-400' :
-                      budget.percentage > 80 ? 'text-yellow-400' :
-                      'text-green-400'
-                    }`}>
+                    <span
+                      className={`font-medium ${
+                        budget.percentage > 100
+                          ? "text-red-400"
+                          : budget.percentage > 80
+                            ? "text-yellow-400"
+                            : "text-green-400"
+                      }`}
+                    >
                       ${budget.spent}
                     </span>
                   </div>
                   <div className="h-2 w-full overflow-hidden rounded-full bg-white/10">
                     <div
                       className={`h-full ${
-                        budget.percentage > 100 ? 'bg-red-500' :
-                        budget.percentage > 80 ? 'bg-yellow-500' :
-                        'bg-green-500'
+                        budget.percentage > 100
+                          ? "bg-red-500"
+                          : budget.percentage > 80
+                            ? "bg-yellow-500"
+                            : "bg-green-500"
                       }`}
                       style={{ width: `${Math.min(budget.percentage, 100)}%` }}
                     />
