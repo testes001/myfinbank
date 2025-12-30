@@ -21,7 +21,7 @@ export interface CacheEntry<T> {
  * Safe cache wrapper for LocalStorage
  * Gracefully degrades if LocalStorage is unavailable (e.g., private browsing)
  */
-class HybridCache<T> {
+export class HybridCache<T> {
   private localKey: string;
   private expiryMs: number;
   private isAvailable = true;
