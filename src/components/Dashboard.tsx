@@ -96,7 +96,6 @@ function generateNumericAccountNumber(accountType: PrimaryAccountType): string {
 export function Dashboard({ onNavigate }: DashboardProps) {
   const { currentUser, setCurrentUser } = useAuth();
   const { theme, toggleTheme } = useTheme();
-  const [transactions, setTransactions] = useState<TransactionModel[]>([]);
   const [isTransferOpen, setIsTransferOpen] = useState(false);
   const [isMobileDepositOpen, setIsMobileDepositOpen] = useState(false);
   const [isBillPayOpen, setIsBillPayOpen] = useState(false);
@@ -107,19 +106,10 @@ export function Dashboard({ onNavigate }: DashboardProps) {
   const [isVirtualCardsOpen, setIsVirtualCardsOpen] = useState(false);
   const [isP2PTransferOpen, setIsP2PTransferOpen] = useState(false);
   const [isJointInviteOpen, setIsJointInviteOpen] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
-  const { loading: asyncLoading, error: asyncError, run: runAsync, setError: setAsyncError } = useAsync<void>();
-  const [loadError, setLoadError] = useState<string | null>(null);
   const [showBalances, setShowBalances] = useState(true);
   const [upcomingTransfers, setUpcomingTransfers] = useState<RecurringTransfer[]>([]);
-
-  // Account details modal state
   const [isAccountDetailsOpen, setIsAccountDetailsOpen] = useState(false);
-
-  // Floating action button state (collapsible quick actions)
   const [isFabOpen, setIsFabOpen] = useState(false);
-
-  // Additional account data
   const [additionalAccountsBalance, setAdditionalAccountsBalance] = useState(0);
   const [upcomingTransfersCount, setUpcomingTransfersCount] = useState(0);
   const [activeVirtualCardsCount, setActiveVirtualCardsCount] = useState(0);
@@ -129,7 +119,6 @@ export function Dashboard({ onNavigate }: DashboardProps) {
 
   // Generate a stable numeric account number based on user ID
   const [numericAccountNumber] = useState(() => {
-    // Use stored number or generate new one
     const stored = localStorage.getItem(`account_number_${currentUser?.user.id}`);
     if (stored) return stored;
     const newNumber = generateNumericAccountNumber(accountType);
@@ -139,22 +128,21 @@ export function Dashboard({ onNavigate }: DashboardProps) {
     return newNumber;
   });
 
-  const loadData = async () => {
-    if (!currentUser) return;
-
-    // Check if we have a valid account ID before trying to fetch data
-    if (!currentUser.account?.id) {
-      console.warn("No account ID found for user, retrying account fetch...");
-      // Optionally trigger a refresh of user status/accounts here
-      return;
-    }
-
-    await runAsync(async () => {
-      const recentTxs = await getRecentTransactions(currentUser.account.id, 50);
-
-      setTransactions(recentTxs);
-      // Keep existing user data; backend sync can be added when available
-      setCurrentUser(currentUser);
+  // Resilient data fetching with automatic retry, caching, and cancellation
+  const {
+    data: transactions = [],
+    isLoading,
+    error,
+    isCached,
+    cacheAge,
+    retry: retryTransactions,
+    clearCache,
+  } = useResilientData(
+    async (signal) => {
+      if (!currentUser?.account?.id) {
+        throw new Error("No account ID found for user");
+      }
+      const txs = await getRecentTransactions(currentUser.account.id, 50, { signal });
 
       // Load additional account data
       const additionalBalance = getTotalBalance(currentUser.user.id);
@@ -166,16 +154,21 @@ export function Dashboard({ onNavigate }: DashboardProps) {
 
       const activeCards = getActiveCardCount(currentUser.user.id);
       setActiveVirtualCardsCount(activeCards);
-    }).catch((err) => {
-      console.error("Failed to load dashboard data:", err);
-      setLoadError(err instanceof Error ? err.message : String(err));
-      setAsyncError(err instanceof Error ? err : new Error(String(err)));
-    }).finally(() => setIsLoading(false));
-  };
 
-  useEffect(() => {
-    loadData();
-  }, []);
+      // Keep existing user data
+      setCurrentUser(currentUser);
+
+      return txs;
+    },
+    [currentUser?.account?.id, currentUser?.user.id],
+    {
+      cacheInstance: currentUser?.account?.id
+        ? cacheInstances.transactions(currentUser.account.id)
+        : undefined,
+      showErrorToast: true,
+      errorToastMessage: "Failed to load dashboard data",
+    }
+  );
 
   const handleTransferSuccess = () => {
     setIsTransferOpen(false);
