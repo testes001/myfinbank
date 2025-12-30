@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useMemo } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTheme } from "@/contexts/ThemeContext";
 import { Button } from "@/components/ui/button";
@@ -10,7 +10,6 @@ import { MobileDepositModalNew } from "@/components/MobileDepositModalNew";
 import { BillPayModal } from "@/components/BillPayModal";
 import { FundAccessRestrictionBanner } from "@/components/FundAccessRestrictionBanner";
 import { SpendingChart } from "@/components/SpendingChart";
-import { TransactionSkeleton } from "@/components/LoadingSkeleton";
 import { NotificationCenter } from "@/components/NotificationCenter";
 import { TransactionSearch } from "@/components/TransactionSearch";
 import { RecurringTransfersModal } from "@/components/RecurringTransfersModal";
@@ -22,10 +21,13 @@ import { SavingsGoals } from "@/components/SavingsGoals";
 import { AIInsights } from "@/components/AIInsights";
 import { JointAccountInviteModal } from "@/components/JointAccountInviteModal";
 import { QuickActions } from "@/components/QuickActions";
+import { DataLoadingState } from "@/components/DataLoadingState";
 import { getRecentTransactions, formatCurrency, formatDate, getTransactionType } from "@/lib/transactions";
 import { getTotalBalance } from "@/lib/multi-account";
 import { getUpcomingTransfers, formatFrequency } from "@/lib/recurring-transfers";
 import { getActiveCardCount } from "@/lib/virtual-cards";
+import { cacheInstances } from "@/lib/cache-strategy";
+import { useResilientData } from "@/hooks/useResilientData";
 import type { PrimaryAccountType } from "@/lib/kyc-storage";
 import type { TransactionModel } from "@/lib/transactions";
 import type { ActivePage } from "@/components/BankingApp";
@@ -62,9 +64,7 @@ import {
   ShieldCheck,
   Zap,
 } from "lucide-react";
-import { useAsync } from "@/hooks/useAsync";
 import { FINBANK_ROUTING_NUMBER } from "@/lib/seed";
-import { toast } from "sonner";
 import type { RecurringTransfer } from "@/lib/recurring-transfers";
 
 interface DashboardProps {
