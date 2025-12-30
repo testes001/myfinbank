@@ -43,11 +43,15 @@ export async function transferFunds(
   toAccountId: string,
   amount: number,
   description?: string,
+  options?: { signal?: AbortSignal },
 ): Promise<TransactionModel> {
   const resp = await apiFetch(`/api/transactions/transfer`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ fromAccountId, toAccountId, amount, description }),
+    signal: options?.signal,
+    circuitBreakerId: "transactions:transfer",
+    timeoutMs: 30_000,
   });
   if (!resp.ok) {
     const msg = (await resp.json().catch(() => null))?.message || "Transfer failed";
@@ -61,9 +65,15 @@ export async function getTransactionsByAccountId(
   accountId: string,
   page: number = 1,
   pageSize: number = 20,
+  options?: { signal?: AbortSignal },
 ): Promise<{ transactions: TransactionModel[]; totalPages: number }> {
   const params = new URLSearchParams({ accountId, page: String(page), pageSize: String(pageSize) });
-  const resp = await apiFetch(`/api/transactions?${params.toString()}`);
+  const resp = await apiFetch(`/api/transactions?${params.toString()}`, {
+    signal: options?.signal,
+    circuitBreakerId: "transactions:list",
+    timeoutMs: 30_000,
+    useResilience: true,
+  });
   if (!resp.ok) {
     const msg = (await resp.json().catch(() => null))?.message || "Failed to load transactions";
     throw new Error(msg);
@@ -76,8 +86,12 @@ export async function getTransactionsByAccountId(
   };
 }
 
-export async function getRecentTransactions(accountId: string, limit: number = 5): Promise<TransactionModel[]> {
-  const { transactions } = await getTransactionsByAccountId(accountId, 1, limit);
+export async function getRecentTransactions(
+  accountId: string,
+  limit: number = 5,
+  options?: { signal?: AbortSignal },
+): Promise<TransactionModel[]> {
+  const { transactions } = await getTransactionsByAccountId(accountId, 1, limit, options);
   return transactions;
 }
 
