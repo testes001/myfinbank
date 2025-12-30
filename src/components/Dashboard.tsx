@@ -708,59 +708,66 @@ export function Dashboard({ onNavigate }: DashboardProps) {
             )}
           </div>
 
-          {isLoading ? (
-            <TransactionSkeleton />
-          ) : transactions.length === 0 ? (
-            <Card className="border-white/10 bg-white/5 p-8 text-center backdrop-blur-xl">
-              <p className="text-white/60">No transactions yet</p>
-              <p className="mt-1 text-sm text-white/40">Start sending money to see your activity</p>
-            </Card>
-          ) : (
-            <div className="space-y-2">
-              {transactions.slice(0, 5).map((tx) => {
-                const type = getTransactionType(tx, currentUser.account.id);
-                const isSent = type === "sent";
+          <DataLoadingState
+            isLoading={isLoading}
+            error={error}
+            isCached={isCached}
+            cacheAge={cacheAge}
+            onRetry={retryTransactions}
+            onClearCache={clearCache}
+          >
+            {transactions.length === 0 ? (
+              <Card className="border-white/10 bg-white/5 p-8 text-center backdrop-blur-xl">
+                <p className="text-white/60">No transactions yet</p>
+                <p className="mt-1 text-sm text-white/40">Start sending money to see your activity</p>
+              </Card>
+            ) : (
+              <div className="space-y-2">
+                {transactions.slice(0, 5).map((tx) => {
+                  const type = getTransactionType(tx, currentUser.account.id);
+                  const isSent = type === "sent";
 
-                return (
-                  <motion.div
-                    key={tx.id}
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="flex items-center gap-3 rounded-xl border border-white/10 bg-white/5 p-4 backdrop-blur-xl"
-                  >
-                    <div
-                      className={`rounded-full p-2 ${
-                        isSent ? "bg-red-500/20" : "bg-green-500/20"
-                      }`}
-                      aria-hidden="true"
+                  return (
+                    <motion.div
+                      key={tx.id}
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="flex items-center gap-3 rounded-xl border border-white/10 bg-white/5 p-4 backdrop-blur-xl"
                     >
-                      {isSent ? (
-                        <ArrowUpRight className="size-5 text-red-400" />
-                      ) : (
-                        <ArrowDownLeft className="size-5 text-green-400" />
-                      )}
-                    </div>
-                    <div className="flex-1">
-                      <p className="font-medium text-white">
-                        {isSent ? "Sent" : "Received"}
+                      <div
+                        className={`rounded-full p-2 ${
+                          isSent ? "bg-red-500/20" : "bg-green-500/20"
+                        }`}
+                        aria-hidden="true"
+                      >
+                        {isSent ? (
+                          <ArrowUpRight className="size-5 text-red-400" />
+                        ) : (
+                          <ArrowDownLeft className="size-5 text-green-400" />
+                        )}
+                      </div>
+                      <div className="flex-1">
+                        <p className="font-medium text-white">
+                          {isSent ? "Sent" : "Received"}
+                        </p>
+                        <p className="text-sm text-white/60">
+                          {formatDate(tx.create_time)}
+                        </p>
+                      </div>
+                      <p
+                        className={`text-lg font-semibold ${
+                          isSent ? "text-red-400" : "text-green-400"
+                        }`}
+                      >
+                        {isSent ? "-" : "+"}
+                        {formatCurrency(tx.amount)}
                       </p>
-                      <p className="text-sm text-white/60">
-                        {formatDate(tx.create_time)}
-                      </p>
-                    </div>
-                    <p
-                      className={`text-lg font-semibold ${
-                        isSent ? "text-red-400" : "text-green-400"
-                      }`}
-                    >
-                      {isSent ? "-" : "+"}
-                      {formatCurrency(tx.amount)}
-                    </p>
-                  </motion.div>
-                );
-              })}
-            </div>
-          )}
+                    </motion.div>
+                  );
+                })}
+              </div>
+            )}
+          </DataLoadingState>
         </div>
       </div>
 
