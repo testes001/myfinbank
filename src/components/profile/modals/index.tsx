@@ -3,34 +3,42 @@ import { Loader2 } from "lucide-react";
 
 // Lazy load all modal components for code splitting
 const ProfilePictureModalComponent = lazy(
-  () => import("./ProfilePictureModal")
+  () => import("./ProfilePictureModal.tsx"),
 );
 const SecondaryContactModalComponent = lazy(
-  () => import("./SecondaryContactModal")
+  () => import("./SecondaryContactModal.tsx"),
 );
-const AddressChangeModalComponent = lazy(() => import("./AddressChangeModal"));
+const AddressChangeModalComponent = lazy(
+  () => import("./AddressChangeModal.tsx"),
+);
 const TwoFactorSetupModalComponent = lazy(
-  () => import("./TwoFactorSetupModal")
+  () => import("./TwoFactorSetupModal.tsx"),
 );
 const BiometricSetupModalComponent = lazy(
-  () => import("./BiometricSetupModal")
+  () => import("./BiometricSetupModal.tsx"),
 );
-const SessionsModalComponent = lazy(() => import("./SessionsModal"));
-const LoginHistoryModalComponent = lazy(() => import("./LoginHistoryModal"));
-const CreditScoreModalComponent = lazy(() => import("./CreditScoreModal"));
-const LinkAccountModalComponent = lazy(() => import("./LinkAccountModal"));
-const LimitUpgradeModalComponent = lazy(() => import("./LimitUpgradeModal"));
+const SessionsModalComponent = lazy(() => import("./SessionsModal.tsx"));
+const LoginHistoryModalComponent = lazy(
+  () => import("./LoginHistoryModal.tsx"),
+);
+const CreditScoreModalComponent = lazy(() => import("./CreditScoreModal.tsx"));
+const LinkAccountModalComponent = lazy(() => import("./LinkAccountModal.tsx"));
+const LimitUpgradeModalComponent = lazy(
+  () => import("./LimitUpgradeModal.tsx"),
+);
 const AccountNicknameModalComponent = lazy(
-  () => import("./AccountNicknameModal")
+  () => import("./AccountNicknameModal.tsx"),
 );
 const TravelNotificationModalComponent = lazy(
-  () => import("./TravelNotificationModal")
+  () => import("./TravelNotificationModal.tsx"),
 );
-const WireTransferModalComponent = lazy(() => import("./WireTransferModal"));
+const WireTransferModalComponent = lazy(
+  () => import("./WireTransferModal.tsx"),
+);
 const SpendingAnalyticsModalComponent = lazy(
-  () => import("./SpendingAnalyticsModal")
+  () => import("./SpendingAnalyticsModal.tsx"),
 );
-const BudgetingModalComponent = lazy(() => import("./BudgetingModal"));
+const BudgetingModalComponent = lazy(() => import("./BudgetingModal.tsx"));
 
 // Loading fallback component
 function ModalLoader() {
