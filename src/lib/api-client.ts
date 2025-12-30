@@ -4,6 +4,7 @@ import {
   initializeSecureStorage,
   isAuthenticated
 } from './secure-storage';
+import { resilientApiFetch } from './resilient-api-client';
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL || window.location.origin;
 
@@ -77,10 +78,52 @@ interface ApiFetchOptions extends RequestInit {
    * Skip attaching Authorization header even if a token exists.
    */
   skipAuth?: boolean;
+  /**
+   * Enable resilience features (retry, timeout, circuit breaker)
+   * @default true
+   */
+  useResilience?: boolean;
+  /**
+   * Circuit breaker ID for grouping related endpoints
+   */
+  circuitBreakerId?: string;
+  /**
+   * Request timeout in milliseconds
+   * @default 30000
+   */
+  timeoutMs?: number;
+  /**
+   * Cancellation signal (AbortSignal)
+   */
+  signal?: AbortSignal;
 }
 
+/**
+ * Main API fetch wrapper with resilience features
+ *
+ * This is the primary entry point for all API calls. It handles:
+ * - Authorization (token refresh on 401)
+ * - Timeout (30s default)
+ * - Retries for transient errors (exponential backoff)
+ * - Circuit breaker (prevents cascading failures)
+ * - Cancellation support (AbortSignal)
+ *
+ * @param path API endpoint path (relative or absolute URL)
+ * @param options Request and resilience configuration
+ * @returns Response object
+ */
 export async function apiFetch(path: string, options: ApiFetchOptions = {}): Promise<Response> {
-  const { tokenOverride, skipAuth, headers, ...rest } = options;
+  const {
+    tokenOverride,
+    skipAuth,
+    useResilience = true,
+    circuitBreakerId,
+    timeoutMs,
+    signal,
+    headers,
+    ...rest
+  } = options;
+
   const requestHeaders = new Headers(headers || {});
 
   const token = skipAuth ? null : tokenOverride ?? getStoredAccessToken();
@@ -94,10 +137,26 @@ export async function apiFetch(path: string, options: ApiFetchOptions = {}): Pro
     if (overrideToken) {
       requestHeaders.set("Authorization", `Bearer ${overrideToken}`);
     }
+
+    // Use resilient fetch if enabled
+    if (useResilience) {
+      return resilientApiFetch(url, {
+        credentials: "include",
+        ...rest,
+        headers: requestHeaders,
+        skipAuth: true, // Don't re-apply auth in resilientApiFetch
+        circuitBreakerId,
+        timeoutMs,
+        signal,
+      });
+    }
+
+    // Fallback to standard fetch (for non-resilient requests)
     return fetch(url, {
       credentials: "include",
       ...rest,
       headers: requestHeaders,
+      signal,
     });
   };
 
