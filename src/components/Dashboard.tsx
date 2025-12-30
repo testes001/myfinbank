@@ -172,7 +172,7 @@ export function Dashboard({ onNavigate }: DashboardProps) {
 
   const handleTransferSuccess = () => {
     setIsTransferOpen(false);
-    loadData();
+    retryTransactions();
   };
 
   const monthlyFlow = useMemo(() => {
@@ -215,31 +215,6 @@ export function Dashboard({ onNavigate }: DashboardProps) {
   }, [upcomingTransfers]);
 
   if (!currentUser) return null;
-
-  if (loadError) {
-    return (
-      <div className="min-h-screen p-4 pt-6">
-        <div className="mx-auto max-w-2xl space-y-6">
-          <div className="rounded-xl border border-red-500/20 bg-red-500/10 p-6">
-            <h3 className="text-lg font-semibold text-red-400">Failed to load dashboard</h3>
-            <p className="text-sm text-red-300 mt-2">{loadError}</p>
-            <div className="mt-4">
-              <button
-                onClick={() => {
-                  setLoadError(null);
-                  setIsLoading(true);
-                  loadData();
-                }}
-                className="inline-flex items-center rounded-md bg-blue-500 px-4 py-2 text-white"
-              >
-                Retry
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
 
   const balance = parseFloat(currentUser.account.balance);
 
