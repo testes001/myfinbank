@@ -1,5 +1,10 @@
 import { lazy, Suspense } from "react";
-import { Loader2 } from "lucide-react";
+import {
+  FormModalSkeleton,
+  DetailModalSkeleton,
+  ListModalSkeleton,
+  ChartModalSkeleton,
+} from "@/components/ui/skeleton-loaders";
 
 // Lazy load all modal components for code splitting
 const ProfilePictureModalComponent = lazy(
@@ -40,19 +45,11 @@ const SpendingAnalyticsModalComponent = lazy(
 );
 const BudgetingModalComponent = lazy(() => import("./BudgetingModal.tsx"));
 
-// Loading fallback component
-function ModalLoader() {
-  return (
-    <div className="flex items-center justify-center p-8">
-      <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
-    </div>
-  );
-}
+// Wrapper components with Suspense and appropriate skeleton loaders
 
-// Wrapper components with Suspense
 export function ProfilePictureModal(props: any) {
   return (
-    <Suspense fallback={<ModalLoader />}>
+    <Suspense fallback={<FormModalSkeleton />}>
       <ProfilePictureModalComponent {...props} />
     </Suspense>
   );
@@ -60,7 +57,7 @@ export function ProfilePictureModal(props: any) {
 
 export function SecondaryContactModal(props: any) {
   return (
-    <Suspense fallback={<ModalLoader />}>
+    <Suspense fallback={<FormModalSkeleton />}>
       <SecondaryContactModalComponent {...props} />
     </Suspense>
   );
@@ -68,7 +65,7 @@ export function SecondaryContactModal(props: any) {
 
 export function AddressChangeModal(props: any) {
   return (
-    <Suspense fallback={<ModalLoader />}>
+    <Suspense fallback={<FormModalSkeleton />}>
       <AddressChangeModalComponent {...props} />
     </Suspense>
   );
@@ -76,7 +73,7 @@ export function AddressChangeModal(props: any) {
 
 export function TwoFactorSetupModal(props: any) {
   return (
-    <Suspense fallback={<ModalLoader />}>
+    <Suspense fallback={<FormModalSkeleton />}>
       <TwoFactorSetupModalComponent {...props} />
     </Suspense>
   );
@@ -84,7 +81,7 @@ export function TwoFactorSetupModal(props: any) {
 
 export function BiometricSetupModal(props: any) {
   return (
-    <Suspense fallback={<ModalLoader />}>
+    <Suspense fallback={<FormModalSkeleton />}>
       <BiometricSetupModalComponent {...props} />
     </Suspense>
   );
@@ -92,7 +89,7 @@ export function BiometricSetupModal(props: any) {
 
 export function SessionsModal(props: any) {
   return (
-    <Suspense fallback={<ModalLoader />}>
+    <Suspense fallback={<ListModalSkeleton />}>
       <SessionsModalComponent {...props} />
     </Suspense>
   );
@@ -100,7 +97,7 @@ export function SessionsModal(props: any) {
 
 export function LoginHistoryModal(props: any) {
   return (
-    <Suspense fallback={<ModalLoader />}>
+    <Suspense fallback={<ListModalSkeleton />}>
       <LoginHistoryModalComponent {...props} />
     </Suspense>
   );
@@ -108,7 +105,7 @@ export function LoginHistoryModal(props: any) {
 
 export function CreditScoreModal(props: any) {
   return (
-    <Suspense fallback={<ModalLoader />}>
+    <Suspense fallback={<DetailModalSkeleton />}>
       <CreditScoreModalComponent {...props} />
     </Suspense>
   );
@@ -116,7 +113,7 @@ export function CreditScoreModal(props: any) {
 
 export function LinkAccountModal(props: any) {
   return (
-    <Suspense fallback={<ModalLoader />}>
+    <Suspense fallback={<FormModalSkeleton />}>
       <LinkAccountModalComponent {...props} />
     </Suspense>
   );
@@ -124,7 +121,7 @@ export function LinkAccountModal(props: any) {
 
 export function LimitUpgradeModal(props: any) {
   return (
-    <Suspense fallback={<ModalLoader />}>
+    <Suspense fallback={<FormModalSkeleton />}>
       <LimitUpgradeModalComponent {...props} />
     </Suspense>
   );
@@ -132,7 +129,7 @@ export function LimitUpgradeModal(props: any) {
 
 export function AccountNicknameModal(props: any) {
   return (
-    <Suspense fallback={<ModalLoader />}>
+    <Suspense fallback={<FormModalSkeleton />}>
       <AccountNicknameModalComponent {...props} />
     </Suspense>
   );
@@ -140,7 +137,7 @@ export function AccountNicknameModal(props: any) {
 
 export function TravelNotificationModal(props: any) {
   return (
-    <Suspense fallback={<ModalLoader />}>
+    <Suspense fallback={<FormModalSkeleton />}>
       <TravelNotificationModalComponent {...props} />
     </Suspense>
   );
@@ -148,7 +145,7 @@ export function TravelNotificationModal(props: any) {
 
 export function WireTransferModal(props: any) {
   return (
-    <Suspense fallback={<ModalLoader />}>
+    <Suspense fallback={<FormModalSkeleton />}>
       <WireTransferModalComponent {...props} />
     </Suspense>
   );
@@ -156,7 +153,7 @@ export function WireTransferModal(props: any) {
 
 export function SpendingAnalyticsModal(props: any) {
   return (
-    <Suspense fallback={<ModalLoader />}>
+    <Suspense fallback={<ChartModalSkeleton />}>
       <SpendingAnalyticsModalComponent {...props} />
     </Suspense>
   );
@@ -164,7 +161,7 @@ export function SpendingAnalyticsModal(props: any) {
 
 export function BudgetingModal(props: any) {
   return (
-    <Suspense fallback={<ModalLoader />}>
+    <Suspense fallback={<ChartModalSkeleton />}>
       <BudgetingModalComponent {...props} />
     </Suspense>
   );
