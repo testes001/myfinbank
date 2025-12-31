@@ -12,11 +12,12 @@ import { BaseModal, useModalState } from "@/components/ui/base-modal";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
-import VerificationAlert, {
+import {
+  VerificationAlert,
   DocumentVerificationAlert,
   SecurityAlert,
   PendingVerificationAlert,
-} from "./VerificationAlert";
+} from "@/components/ui/verification-alert";
 import {
   addressChangeSchema,
   type AddressChangeFormData,
@@ -243,8 +244,8 @@ export default function AddressChangeModal({
         <AnimatePresence>
           {pendingChange && (
             <PendingVerificationAlert
-              type="address"
-              estimatedCompletion="2-5 business days"
+              type="document"
+              estimatedTime="2-5 business days"
             />
           )}
         </AnimatePresence>
@@ -382,12 +383,8 @@ export default function AddressChangeModal({
               Verification Document <span className="text-red-400">*</span>
             </Label>
             <DocumentVerificationAlert
-              documentTypes={[
-                "utility bill",
-                "bank statement",
-                "government ID",
-              ]}
-              processingTime="2-5 business days"
+              documentType="proof of address (utility bill, bank statement, or government ID)"
+              message="Upload a document showing your name and address. Accepted formats: PDF, JPEG, PNG (max 10MB)."
             />
 
             {!verificationDoc ? (
@@ -466,12 +463,9 @@ export default function AddressChangeModal({
           </div>
 
           {/* Warning Alert */}
-          <VerificationAlert
-            type="warning"
-            icon={AlertTriangle}
+          <SecurityAlert
             title="Important Notice"
             message="Address changes require manual verification and may take 2-5 business days to process. You'll receive an email once your request is reviewed."
-            animate={false}
           />
 
           {/* Security Info */}

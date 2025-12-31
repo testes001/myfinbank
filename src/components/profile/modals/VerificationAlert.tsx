@@ -1,3 +1,20 @@
+/**
+ * @deprecated This file is deprecated. Use @/components/ui/verification-alert instead.
+ *
+ * This version is kept for backward compatibility but will be removed in a future version.
+ * All new code should import from @/components/ui/verification-alert.
+ *
+ * Migration:
+ * - Old: import { DocumentVerificationAlert } from "./VerificationAlert"
+ * - New: import { DocumentVerificationAlert } from "@/components/ui/verification-alert"
+ *
+ * The new version has enhanced features:
+ * - Action button support
+ * - Dismissible functionality
+ * - Better TypeScript support
+ * - More consistent API
+ */
+
 import { motion } from "framer-motion";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
@@ -103,14 +120,10 @@ export default function VerificationAlert({
   const Icon = CustomIcon || config.icon;
 
   const alertContent = (
-    <Alert
-      className={`${config.bgColor} ${config.borderColor} ${className}`}
-    >
+    <Alert className={`${config.bgColor} ${config.borderColor} ${className}`}>
       <Icon className={`h-4 w-4 ${config.iconColor}`} />
       <AlertDescription className={`${config.textColor} text-sm`}>
-        {title && (
-          <strong className="font-medium block mb-1">{title}</strong>
-        )}
+        {title && <strong className="font-medium block mb-1">{title}</strong>}
         {message}
       </AlertDescription>
     </Alert>
@@ -229,8 +242,10 @@ export function PendingVerificationAlert({
   const messages: Record<typeof type, string> = {
     email: "Email verification is pending. Please check your inbox.",
     phone: "Phone verification is pending. Please check your messages.",
-    document: "Document verification is in progress. Our team is reviewing your submission.",
-    address: "Address change request is pending review. You'll receive an email once it's processed.",
+    document:
+      "Document verification is in progress. Our team is reviewing your submission.",
+    address:
+      "Address change request is pending review. You'll receive an email once it's processed.",
   };
 
   return (
@@ -257,10 +272,6 @@ export function VerificationSuccessAlert({
   className,
 }: VerificationSuccessAlertProps) {
   return (
-    <VerificationAlert
-      type="success"
-      message={message}
-      className={className}
-    />
+    <VerificationAlert type="success" message={message} className={className} />
   );
 }

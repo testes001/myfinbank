@@ -15,7 +15,7 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { SecurityAlert } from "./VerificationAlert";
+import { SecurityAlert } from "@/components/ui/verification-alert";
 import {
   twoFactorSetupSchema,
   type TwoFactorSetupFormData,
