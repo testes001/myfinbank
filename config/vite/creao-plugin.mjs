@@ -30,15 +30,29 @@ export const creaoPlugins = () => [
   }),
   {
     // add alias to config
-    name: 'creao-plugin',
-    enforce: 'post',
+    name: "creao-plugin",
+    enforce: "post",
     config(config) {
-      const rolldownOptions = config.optimizeDeps.esbuildOptions
-      config.optimizeDeps.esbuildOptions = undefined
+      const rolldownOptions = config.optimizeDeps?.esbuildOptions;
+      if (rolldownOptions) {
+        // Remove jsx option as it's not supported in rolldown
+        const { jsx, ...cleanOptions } = rolldownOptions;
+        config.optimizeDeps.esbuildOptions = undefined;
+        return {
+          optimizeDeps: {
+            rolldownOptions: cleanOptions,
+          },
+          resolve: {
+            alias: {
+              "react-jsx-source/jsx-dev-runtime": resolve(
+                process.cwd(),
+                "./src/sdk/core/internal/react-jsx-dev.js",
+              ),
+            },
+          },
+        };
+      }
       return {
-        optimizeDeps: {
-          rolldownOptions
-        },
         resolve: {
           alias: {
             "react-jsx-source/jsx-dev-runtime": resolve(
@@ -47,7 +61,7 @@ export const creaoPlugins = () => [
             ),
           },
         },
-      }
-    }
-  }
-]
+      };
+    },
+  },
+];
